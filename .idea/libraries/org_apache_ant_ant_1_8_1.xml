@@ -2,10 +2,12 @@
   <library name="org.apache.ant:ant:1.8.1" type="repository">
     <properties maven-id="org.apache.ant:ant:1.8.1" />
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/ant-1.8.1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/ant-launcher-1.8.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/ant/ant/1.8.1/ant-1.8.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/ant/ant-launcher/1.8.1/ant-launcher-1.8.1.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/ant/ant/1.8.1/ant-1.8.1-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>

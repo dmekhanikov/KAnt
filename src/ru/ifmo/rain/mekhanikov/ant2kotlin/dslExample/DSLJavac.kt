@@ -1,4 +1,4 @@
-package DSLExample
+package ru.ifmo.rain.mekhanikov.ant2kotlin.dslExample
 
 import java.io.File
 
@@ -6,6 +6,9 @@ import org.apache.tools.ant.types.Path
 import org.apache.tools.ant.types.Path.PathElement
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.Javac
+
+import ru.ifmo.rain.mekhanikov.ant2kotlin.DSLElement
+import ru.ifmo.rain.mekhanikov.ant2kotlin.DSLAttributeAdapter
 
 class DSLPathElement : DSLElement("pathelement") {
     var path: String? by DSLAttributeAdapter()

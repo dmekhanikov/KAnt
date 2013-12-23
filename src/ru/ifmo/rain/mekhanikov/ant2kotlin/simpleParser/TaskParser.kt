@@ -1,4 +1,4 @@
-package SimpleGenerator
+package ru.ifmo.rain.mekhanikov.ant2kotlin.simpleParser
 
 import java.io.InputStream
 import java.util.HashSet
@@ -8,8 +8,8 @@ class TaskParser(inputStream : InputStream) : ClassFile(inputStream) {
     public fun booleanFields(): HashSet<String> {
         var ans = HashSet<String>()
         for (method in methods) {
-            if (method.name.startsWith("set") && method.signature.equals("(Z)V")) {
-                ans.add(cutName(method.name))
+            if (method.getName()!!.startsWith("set") && method.getDescriptor().equals("(Z)V")) {
+                ans.add(cutName(method.getName()!!))
             }
         }
         return ans
@@ -18,8 +18,8 @@ class TaskParser(inputStream : InputStream) : ClassFile(inputStream) {
     public fun stringFields(): HashSet<String> {
         var ans = HashSet<String>()
         for (method in methods) {
-            if (method.name.startsWith("set") && method.signature.equals("(Ljava/lang/String;)V")) {
-                ans.add(cutName(method.name))
+            if (method.getName()!!.startsWith("set") && method.getDescriptor().equals("(Ljava/lang/String;)V")) {
+                ans.add(cutName(method.getName()!!))
             }
         }
         return ans
