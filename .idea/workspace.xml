@@ -2,40 +2,31 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="48b80297-0cbe-442d-b367-331fe1fed41d" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/Ant2KotlinTestCase.kt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ClassFileTests.kt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/ClassWithOverrides.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/out/ClassWithOverrides.out" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/ClassWithStaticInit.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/out/ClassWithStaticInit.out" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/Interface.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/out/Interface.out" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/SimpleClass.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/out/SimpleClass.out" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/asm_asm_commons_3_3_1.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/asm_asm_commons_3_3_11.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Ant.iml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Tests/Tests.iml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Tests/res/ClassFileTests/Javac.class" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Tests/res/ClassFileTests/Target.class" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Tests/res/ClassFileTests/Task.class" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Tests/src/ClassFileTests.kt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/DSLBase.kt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/DSLExample/DSLJavac.kt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/DSLExample/DSLJavacExample.kt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/SimpleParser/ClassFile.kt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/SimpleParser/Method.kt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/SimpleParser/SimpleParserExample.kt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/SimpleParser/TaskParser.kt" afterPath="" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/AntClassFile/Javac.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/AntClassFileTest.kt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ClassFileTest.kt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/DSLBase.kt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/AntClassFile/exp/Javac.exp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/testData/ClassFile/exp/SimpleClass.exp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/Templates.kt" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/DSLBase.kt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dslExample/DSLJavac.kt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dslExample/DSLJavacExample.kt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/ClassFile.kt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/TaskParser.kt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test/ClassFileTests.kt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test/testData/ClassFile/ClassWithStaticInit.java" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test/testData/ClassFile/out/ClassWithStaticInit.out" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test/testData/ClassFile/out/SimpleClass.out" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/test/testData/ClassFile/out/ClassWithOverrides.out" afterPath="$PROJECT_DIR$/test/testData/ClassFile/exp/ClassWithOverrides.exp" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/test/testData/ClassFile/out/Interface.out" afterPath="$PROJECT_DIR$/test/testData/ClassFile/exp/Interface.exp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/.name" afterPath="$PROJECT_DIR$/.idea/.name" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/junit_junit_4_10.xml" afterPath="$PROJECT_DIR$/.idea/libraries/junit_junit_4_10.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/org_apache_ant_ant_1_8_1.xml" afterPath="$PROJECT_DIR$/.idea/libraries/org_apache_ant_ant_1_8_1.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/Ant2KotlinTestCase.kt" afterPath="$PROJECT_DIR$/test/Ant2KotlinTestCase.kt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
-    <ignored path="Ant2Kotlin1.iws" />
+    <ignored path="Ant2Kotlin.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -93,25 +84,34 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
-    <favorites_list name="Ant2Kotlin1" />
+    <favorites_list name="Ant2Kotlin" />
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="TaskParser.kt" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/TaskParser.kt">
+      <file leaf-file-name="DSLBase.kt" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/DSLBase.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="16" column="19" selection-start="501" selection-end="501" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="540">
+            <state line="87" column="37" selection-start="2723" selection-end="2723" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1830">
               <folding>
-                <element signature="e#57#108#0" expanded="true" />
+                <element signature="e#48#99#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ClassFile.kt" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/ClassFile.kt">
+      <file leaf-file-name="Templates.kt" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/Templates.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="45" selection-start="367" selection-end="394" vertical-scroll-proportion="0.15050167" vertical-offset="0" max-vertical-offset="598">
+            <state line="13" column="84" selection-start="897" selection-end="958" vertical-scroll-proportion="0.46650717" vertical-offset="0" max-vertical-offset="495">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AntClassFile.kt" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="67" column="45" selection-start="2330" selection-end="2330" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1155">
               <folding />
             </state>
           </provider>
@@ -132,7 +132,6 @@
       <list>
         <option value="$PROJECT_DIR$/Tests/src/ClassFileTests.kt" />
         <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simple_parser/ClassFile.kt" />
-        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/ClassFile.kt" />
         <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/SimpleParserExample.kt" />
         <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/DSLBase.kt" />
         <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dslExample/DSLJavacExample.kt" />
@@ -151,15 +150,31 @@
         <option value="$PROJECT_DIR$/testRes/classFile/Interface.java" />
         <option value="$PROJECT_DIR$/testRes/classFile/SimpleClass.java" />
         <option value="$PROJECT_DIR$/test/testData/classFile/SimpleClass.java" />
-        <option value="$PROJECT_DIR$/test/Ant2KotlinTestCase.kt" />
         <option value="$PROJECT_DIR$/test/ClassFileTests.kt" />
         <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/TaskParser.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/ClassFile.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/TaskParser.kt" />
+        <option value="$PROJECT_DIR$/test/testData/ClassFile/SimpleClass.java" />
+        <option value="$PROJECT_DIR$/test/testData/ClassFile/ClassWithStaticInit.java" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntTaskFile.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/DSLTemplates.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt" />
+        <option value="$PROJECT_DIR$/test/ClassFileTest.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/example/DSLJavacExample.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/example/DSLJavac.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt" />
+        <option value="$PROJECT_DIR$/test/Ant2KotlinTestCase.kt" />
+        <option value="$PROJECT_DIR$/test/AntClassFileTest.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/DSLBase.kt" />
+        <option value="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/Templates.kt" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="width" value="954" />
-    <option name="height" value="1045" />
+    <option name="x" value="-2" />
+    <option name="y" value="-3" />
+    <option name="width" value="1370" />
+    <option name="height" value="740" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -177,7 +192,7 @@
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
       <flattenPackages />
-      <showMembers />
+      <showMembers ProjectPane="false" />
       <showModules />
       <showLibraryContents />
       <hideEmptyPackages ProjectPane="true" />
@@ -187,18 +202,19 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="Ant2Kotlin1" />
+              <option name="myItemId" value="Ant2Kotlin" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="Ant2Kotlin1" />
+              <option name="myItemId" value="Ant2Kotlin" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -208,7 +224,7 @@
           </PATH>
           <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="Ant2Kotlin1" />
+              <option name="myItemId" value="Ant2Kotlin" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -222,7 +238,7 @@
           </PATH>
           <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="Ant2Kotlin1" />
+              <option name="myItemId" value="Ant2Kotlin" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -240,7 +256,7 @@
           </PATH>
           <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="Ant2Kotlin1" />
+              <option name="myItemId" value="Ant2Kotlin" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -256,13 +272,12 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="simpleParser" />
+              <option name="myItemId" value="dsl" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -280,21 +295,26 @@
     <property name="recentsLimit" value="5" />
     <property name="dynamic.classpath" value="false" />
     <property name="FullScreen" value="false" />
+    <property name="restartRequiresConfirmation" value="true" />
+    <property name="OverrideImplement.combined" value="true" />
+    <property name="OverrideImplement.overriding.sorted" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl" />
+      <recent name="$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin" />
       <recent name="$PROJECT_DIR$/testRes/classFile" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/test" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.ClassFileTests">
-    <configuration default="false" name="ClassFileTests (2)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="JUnit.ClassFileTest">
+    <configuration default="false" name="ClassFileTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Ant2Kotlin" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="src" />
-      <option name="MAIN_CLASS_NAME" value="ClassFileTests" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="ClassFileTest" />
       <option name="METHOD_NAME" />
       <option name="TEST_OBJECT" value="class" />
       <option name="VM_PARAMETERS" value="-ea" />
@@ -307,21 +327,27 @@
       </option>
       <envs />
       <patterns />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="" />
+        <option name="TRANSPORT" value="0" />
+        <option name="LOCAL" value="true" />
+      </RunnerSettings>
       <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Debug" />
       <ConfigurationWrapper RunnerId="Run" />
       <method />
     </configuration>
-    <configuration default="false" name="ClassFileTests (3)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration default="false" name="AntClassFileTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Ant2Kotlin" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="src" />
-      <option name="MAIN_CLASS_NAME" value="ClassFileTests" />
-      <option name="METHOD_NAME" />
+      <option name="ALTERNATIVE_JRE_PATH" value="" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="AntClassFileTest" />
+      <option name="METHOD_NAME" value="" />
       <option name="TEST_OBJECT" value="class" />
       <option name="VM_PARAMETERS" value="-ea" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
       <option name="ENV_VARIABLES" />
       <option name="PASS_PARENT_ENVS" value="true" />
       <option name="TEST_SEARCH_SCOPE">
@@ -329,72 +355,26 @@
       </option>
       <envs />
       <patterns />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="" />
+        <option name="TRANSPORT" value="0" />
+        <option name="LOCAL" value="true" />
+      </RunnerSettings>
       <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Debug" />
       <ConfigurationWrapper RunnerId="Run" />
       <method />
     </configuration>
-    <configuration default="false" name="ClassFileTests (4)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Ant2Kotlin" />
+    <configuration default="false" name="ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.example.ExamplePackage" type="JetRunConfigurationType" factoryName="Kotlin" temporary="true">
+      <option name="MAIN_CLASS_NAME" value="ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.example.ExamplePackage" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="src" />
-      <option name="MAIN_CLASS_NAME" value="ClassFileTests" />
-      <option name="METHOD_NAME" />
-      <option name="TEST_OBJECT" value="class" />
-      <option name="VM_PARAMETERS" value="-ea" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ENV_VARIABLES" />
       <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="moduleWithDependencies" />
-      </option>
-      <envs />
-      <patterns />
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
-    <configuration default="false" name="ClassFileTests (5)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Ant2Kotlin" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="src" />
-      <option name="MAIN_CLASS_NAME" value="ClassFileTests" />
-      <option name="METHOD_NAME" />
-      <option name="TEST_OBJECT" value="class" />
-      <option name="VM_PARAMETERS" value="-ea" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="moduleWithDependencies" />
-      </option>
       <envs />
-      <patterns />
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
-    <configuration default="false" name="ClassFileTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Ant2Kotlin" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="src" />
-      <option name="MAIN_CLASS_NAME" value="ClassFileTests" />
-      <option name="METHOD_NAME" />
-      <option name="TEST_OBJECT" value="class" />
-      <option name="VM_PARAMETERS" value="-ea" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="moduleWithDependencies" />
-      </option>
-      <envs />
-      <patterns />
       <RunnerSettings RunnerId="Run" />
       <ConfigurationWrapper RunnerId="Run" />
       <method />
@@ -431,6 +411,18 @@
       <option name="SHMEM_ADDRESS" value="javadebug" />
       <option name="HOST" value="localhost" />
       <option name="PORT" value="5005" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType" factoryName="Kotlin">
+      <option name="MAIN_CLASS_NAME" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="Ant2Kotlin" />
+      <envs />
       <method />
     </configuration>
     <configuration default="true" type="Applet" factoryName="Applet">
@@ -526,20 +518,16 @@
       <option name="SHOW_LOGCAT_AUTOMATICALLY" value="true" />
       <method />
     </configuration>
-    <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="JUnit.ClassFileTests (2)" />
-      <item index="1" class="java.lang.String" itemvalue="JUnit.ClassFileTests (3)" />
-      <item index="2" class="java.lang.String" itemvalue="JUnit.ClassFileTests (4)" />
-      <item index="3" class="java.lang.String" itemvalue="JUnit.ClassFileTests (5)" />
-      <item index="4" class="java.lang.String" itemvalue="JUnit.ClassFileTests" />
+    <list size="3">
+      <item index="0" class="java.lang.String" itemvalue="JUnit.ClassFileTest" />
+      <item index="1" class="java.lang.String" itemvalue="JUnit.AntClassFileTest" />
+      <item index="2" class="java.lang.String" itemvalue="Kotlin.ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.example.ExamplePackage" />
     </list>
     <recent_temporary>
-      <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="JUnit.ClassFileTests" />
-        <item index="1" class="java.lang.String" itemvalue="JUnit.ClassFileTests (5)" />
-        <item index="2" class="java.lang.String" itemvalue="JUnit.ClassFileTests (4)" />
-        <item index="3" class="java.lang.String" itemvalue="JUnit.ClassFileTests (3)" />
-        <item index="4" class="java.lang.String" itemvalue="JUnit.ClassFileTests (2)" />
+      <list size="3">
+        <item index="0" class="java.lang.String" itemvalue="JUnit.ClassFileTest" />
+        <item index="1" class="java.lang.String" itemvalue="JUnit.AntClassFileTest" />
+        <item index="2" class="java.lang.String" itemvalue="Kotlin.ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.example.ExamplePackage" />
       </list>
     </recent_temporary>
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
@@ -574,37 +562,37 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="954" height="1045" extended-state="4" />
-    <editor active="true" />
+    <frame x="-2" y="-3" width="1370" height="740" extended-state="6" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32947367" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39871383" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Kotlin" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32842106" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.31672025" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.33052632" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32842106" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2620846" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28456593" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3279743" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
-    <option name="RECENTLY_FILTERED_USERS">
+    <option name="RECENTLY_FILTERED_USER_GROUPS">
       <collection />
     </option>
   </component>
@@ -624,114 +612,340 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/TaskParser.kt">
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/Templates.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="56" selection-start="648" selection-end="650" vertical-scroll-proportion="0.0" vertical-offset="240" max-vertical-offset="375">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="58" column="85" selection-start="2100" selection-end="2100" vertical-scroll-proportion="0.0" vertical-offset="870" max-vertical-offset="1155">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/Ant2KotlinTestCase.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="34" column="37" selection-start="1047" selection-end="1047" vertical-scroll-proportion="0.0" vertical-offset="80" max-vertical-offset="675">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/AntClassFileTest.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="24" column="36" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="360" max-vertical-offset="570">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ClassFileTest.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="42" selection-start="762" selection-end="762" vertical-scroll-proportion="0.0" vertical-offset="315" max-vertical-offset="750">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="51" column="60" selection-start="1876" selection-end="1876" vertical-scroll-proportion="0.0" vertical-offset="765" max-vertical-offset="960">
+          <folding>
+            <element signature="e#44#309#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="22" selection-start="1703" selection-end="1703" vertical-scroll-proportion="0.0" vertical-offset="60" max-vertical-offset="855">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Ant2Kotlin.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="52" selection-start="415" selection-end="415" vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="375" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/Templates.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="53" selection-start="293" selection-end="293" vertical-scroll-proportion="0.0" vertical-offset="75" max-vertical-offset="345">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/Ant2KotlinTestCase.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="34" column="37" selection-start="1047" selection-end="1047" vertical-scroll-proportion="0.0" vertical-offset="80" max-vertical-offset="675">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/AntClassFileTest.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="24" column="36" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="360" max-vertical-offset="570">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ClassFileTest.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="42" selection-start="762" selection-end="762" vertical-scroll-proportion="0.0" vertical-offset="315" max-vertical-offset="750">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="51" column="60" selection-start="1876" selection-end="1876" vertical-scroll-proportion="0.0" vertical-offset="5" max-vertical-offset="960">
+          <folding>
+            <element signature="e#44#309#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="22" selection-start="1703" selection-end="1703" vertical-scroll-proportion="0.0" vertical-offset="60" max-vertical-offset="855">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/Templates.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="53" selection-start="293" selection-end="293" vertical-scroll-proportion="0.0" vertical-offset="75" max-vertical-offset="345">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="40" column="63" selection-start="1396" selection-end="1396" vertical-scroll-proportion="0.0" vertical-offset="570" max-vertical-offset="960">
+          <folding>
+            <element signature="e#44#309#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ClassFileTest.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="54" column="32" selection-start="1746" selection-end="1746" vertical-scroll-proportion="0.0" vertical-offset="810" max-vertical-offset="975">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="46" column="36" selection-start="1487" selection-end="1487" vertical-scroll-proportion="0.0" vertical-offset="390" max-vertical-offset="825">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/Templates.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="9" column="32" selection-start="366" selection-end="366" vertical-scroll-proportion="0.0" vertical-offset="135" max-vertical-offset="255">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="26" column="62" selection-start="807" selection-end="819" vertical-scroll-proportion="0.0" vertical-offset="390" max-vertical-offset="645">
+          <folding>
+            <element signature="e#44#309#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="17" column="18" selection-start="522" selection-end="522" vertical-scroll-proportion="0.0" vertical-offset="255" max-vertical-offset="555">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="20" column="49" selection-start="670" selection-end="670" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="555">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/Ant2KotlinTestCase.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="9" column="42" selection-start="307" selection-end="320" vertical-scroll-proportion="0.0" vertical-offset="135" max-vertical-offset="465">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="14" column="48" selection-start="419" selection-end="419" vertical-scroll-proportion="0.0" vertical-offset="210" max-vertical-offset="645">
+          <folding>
+            <element signature="e#44#309#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ClassFileTest.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="52" selection-start="183" selection-end="183" vertical-scroll-proportion="0.0" vertical-offset="75" max-vertical-offset="975">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="19" selection-start="501" selection-end="501" vertical-scroll-proportion="0.0" vertical-offset="240" max-vertical-offset="540">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="44" selection-start="348" selection-end="348" vertical-scroll-proportion="0.0" vertical-offset="180" max-vertical-offset="540">
+          <folding>
+            <element signature="e#44#309#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="19" selection-start="501" selection-end="501" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="540">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="44" selection-start="348" selection-end="348" vertical-scroll-proportion="0.0" vertical-offset="180" max-vertical-offset="540">
+          <folding>
+            <element signature="e#44#309#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
       <provider selected="true" editor-type-id="text-editor">
         <state line="2" column="26" selection-start="72" selection-end="83" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="540">
-          <folding>
-            <element signature="e#57#108#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/ClassFileTests.kt">
+    <entry file="file://$PROJECT_DIR$/test/ClassFileTest.kt">
       <provider selected="true" editor-type-id="text-editor">
         <state line="19" column="25" selection-start="736" selection-end="736" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="405">
-          <folding>
-            <element signature="e#0#195#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/ClassFile.kt">
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
       <provider selected="true" editor-type-id="text-editor">
         <state line="32" column="43" selection-start="1189" selection-end="1189" vertical-scroll-proportion="0.0" vertical-offset="480" max-vertical-offset="540">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/DSLBase.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="42" selection-start="42" selection-end="42" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1020">
           <folding>
-            <element signature="e#44#95#0" expanded="true" />
+            <element signature="e#44#309#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dslExample/DSLJavacExample.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="3" column="9" selection-start="96" selection-end="96" vertical-scroll-proportion="0.07364976" vertical-offset="0" max-vertical-offset="611">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dslExample/DSLJavac.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="4" selection-start="464" selection-end="464" vertical-scroll-proportion="0.0" vertical-offset="16" max-vertical-offset="2130">
-          <folding>
-            <element signature="e#55#360#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/testData/ClassFile/ClassWithStaticInit.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="21" selection-start="123" selection-end="123" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="270">
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/testData/ClassFile/ClassWithOverrides.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="37" selection-start="333" selection-end="333" vertical-scroll-proportion="0.276273" vertical-offset="0" max-vertical-offset="923">
-          <folding />
-        </state>
+        <state line="13" column="25" selection-start="287" selection-end="294" vertical-scroll-proportion="0.34452298" vertical-offset="0" max-vertical-offset="566" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/testData/ClassFile/Interface.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="8" selection-start="8" selection-end="8" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="240">
-          <folding />
-        </state>
+        <state line="6" column="31" selection-start="140" selection-end="140" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="240" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/testData/ClassFile/SimpleClass.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="8" selection-start="8" selection-end="8" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="611">
+        <state line="9" column="26" selection-start="171" selection-end="171" vertical-scroll-proportion="0.22689076" vertical-offset="0" max-vertical-offset="595" />
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/junit/junit/4.10/junit-4.10-sources.jar!/org/junit/runner/JUnitCore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="161" column="0" selection-start="5651" selection-end="5651" vertical-scroll-proportion="0.3323077" vertical-offset="2157" max-vertical-offset="2730" />
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/junit/junit/4.10/junit-4.10-sources.jar!/org/junit/internal/runners/JUnit38ClassRunner.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="83" column="0" selection-start="2384" selection-end="2384" vertical-scroll-proportion="0.3323077" vertical-offset="897" max-vertical-offset="2160" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Ant2Kotlin.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="52" selection-start="415" selection-end="415" vertical-scroll-proportion="0.1826087" vertical-offset="0" max-vertical-offset="575" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/testData/AntClassFile/exp/Javac.exp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="6" column="25" selection-start="273" selection-end="290" vertical-scroll-proportion="0.15652174" vertical-offset="0" max-vertical-offset="575" />
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/ow2/asm/asm-debug-all/4.2/asm-debug-all-4.2-sources.jar!/org/objectweb/asm/MethodVisitor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="48" column="22" selection-start="2670" selection-end="2670" vertical-scroll-proportion="-3.1462185" vertical-offset="2172" max-vertical-offset="9600" />
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/ow2/asm/asm-debug-all/4.2/asm-debug-all-4.2-sources.jar!/org/objectweb/asm/commons/Method.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="61" column="19" selection-start="2226" selection-end="2237" vertical-scroll-proportion="-4.5966387" vertical-offset="3185" max-vertical-offset="3780">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/ClassFileTests.kt">
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/ClassFile.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="17" selection-start="261" selection-end="261" vertical-scroll-proportion="0.14882943" vertical-offset="46" max-vertical-offset="1110">
+        <state line="16" column="70" selection-start="542" selection-end="542" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="960">
           <folding>
-            <element signature="e#0#195#0" expanded="true" />
+            <element signature="e#44#309#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/Ant2KotlinTestCase.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="50" selection-start="328" selection-end="328" vertical-scroll-proportion="0.22094926" vertical-offset="0" max-vertical-offset="611">
+        <state line="13" column="27" selection-start="442" selection-end="446" vertical-scroll-proportion="0.34526855" vertical-offset="0" max-vertical-offset="615">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/AntClassFileTest.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="24" column="37" selection-start="1001" selection-end="1001" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="480">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ClassFileTest.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="30" column="47" selection-start="1160" selection-end="1199" vertical-scroll-proportion="0.49579832" vertical-offset="65" max-vertical-offset="660">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/AntClassFile.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="67" column="45" selection-start="2330" selection-end="2330" vertical-scroll-proportion="0.0" vertical-offset="246" max-vertical-offset="1155">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/DSLBase.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="87" column="37" selection-start="2723" selection-end="2723" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1830">
           <folding>
-            <element signature="e#0#107#0" expanded="true" />
+            <element signature="e#48#99#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/TaskParser.kt">
+    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/dsl/Templates.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="19" selection-start="501" selection-end="501" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="540">
-          <folding>
-            <element signature="e#57#108#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ru/ifmo/rain/mekhanikov/ant2kotlin/simpleParser/ClassFile.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="45" selection-start="367" selection-end="394" vertical-scroll-proportion="0.15050167" vertical-offset="0" max-vertical-offset="598">
+        <state line="13" column="84" selection-start="897" selection-end="958" vertical-scroll-proportion="0.46650717" vertical-offset="0" max-vertical-offset="495">
           <folding />
         </state>
       </provider>

@@ -1,0 +1,4 @@
+method1()V
+method1(I)Ljava/util/List;
+method2(I)Ljava/lang/String;
+method3()Ljava/lang/Integer;
