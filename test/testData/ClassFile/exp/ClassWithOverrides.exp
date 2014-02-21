@@ -1,6 +1,0 @@
-<init>()V
-<init>(I)V
-<init>(Ljava/lang/String;)V
-method1()V
-method1(I)I
-method1(Ljava/lang/String;)Ljava/lang/String;
