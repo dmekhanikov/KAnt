@@ -6,11 +6,7 @@ import java.net.URLClassLoader
 import java.net.URL
 import java.lang.reflect.Method
 
-import ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLElementTemplate
-import ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLAttributesTemplate
-import java.lang.reflect.Member
-
-class AntClassFile(path : String, className : String) {
+class AntClass(path : String, className : String) {
 
     private val PRIMITIVE_TYPES = HashMap<String, String>();
     {

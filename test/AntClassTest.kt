@@ -1,9 +1,6 @@
-import kotlin.test.assertEquals
-import java.io.FileInputStream
 import java.io.File
-import java.io.Writer
 import java.io.FileWriter
-import ru.ifmo.rain.mekhanikov.ant2kotlin.AntClassFile
+import ru.ifmo.rain.mekhanikov.ant2kotlin.AntClass
 
 class AntClassTest : Ant2KotlinTestCase() {
 
@@ -20,7 +17,7 @@ class AntClassTest : Ant2KotlinTestCase() {
         val fileName = splitClassName[splitClassName.size - 1]
         val expOutFile = File(ANT_CLASS_FILE_TEST_EXP_DIR + fileName + ".exp")
         val actOutFile = File(ANT_CLASS_FILE_TEST_ACT_DIR + fileName + ".act")
-        val antClassFile = AntClassFile(classPath, className)
+        val antClassFile = AntClass(classPath, className)
         val outWriter = FileWriter(actOutFile)
 
         outWriter.write((if (antClassFile.isTask) "Is a task" else "Is not a task") + "\n\n")
