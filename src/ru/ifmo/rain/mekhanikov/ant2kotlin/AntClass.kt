@@ -6,7 +6,12 @@ import java.net.URLClassLoader
 import java.net.URL
 import java.lang.reflect.Method
 
-class AntClass(path : String, className : String) {
+fun createClassLoader(path : String): ClassLoader {
+    val jar = URL("file://" + path)
+    return URLClassLoader(Array<URL>(1){jar})
+}
+
+class AntClass(classLoader : ClassLoader, className : String) {
 
     private val PRIMITIVE_TYPES = HashMap<String, String>();
     {
@@ -21,11 +26,10 @@ class AntClass(path : String, className : String) {
     }
 
     private val classObject : Class<out Any?>
+    public val className : String = className
     public val attributes : List<AntClassAttribute>
     public val isTask : Boolean;
     {
-        val jar = URL("file://" + path)
-        val classLoader = URLClassLoader(Array<URL>(1){jar})
         classObject = classLoader.loadClass(className)!!
         val attributesArrayList = ArrayList<AntClassAttribute>()
         for (method in classObject.getMethods()) {
@@ -37,6 +41,33 @@ class AntClass(path : String, className : String) {
         attributes = attributesArrayList.toList()
 
         isTask = classObject.isSubclassOf("org.apache.tools.ant.Task")
+    }
+
+    public fun toKotlin(): KotlinSourceFile {
+        val res = KotlinSourceFile()
+        val shortName = className.substring(className.lastIndexOf('.') + 1)
+        val qname = shortName.toLowerCase()
+        res.append("class DSL$shortName : ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLElement")}(\"$qname\") {\n")
+
+        for (attr in attributes) {
+            res.append("    var ${attr.name} : ${res.importManager.shorten(attr.typeName)} " +
+            "by ${res.importManager.shorten("kotlin.properties.Delegates")}.mapVar(attributes)\n")
+        }
+        res.append("}\n")
+
+        if (isTask) {
+            res.append("\n")
+            res.append("fun ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLTarget")}"
+                        + ".$qname(init: DSL$shortName.() -> Unit): DSL$shortName =\n")
+            res.append("        initElement(DSL$shortName(), init)\n")
+            /*res.append("    val dslObject = DSL$shortName()\n")
+            res.append("    dslObject.init()\n")
+            res.append("    children.add(dslObject)\n")
+            res.append("    return dslObject\n")
+            res.append("}\n")*/
+        }
+
+        return res
     }
 
     private fun Class<out Any?>.isSubclassOf(className : String): Boolean {
@@ -59,6 +90,13 @@ class AntClass(path : String, className : String) {
                 isEnum()
     }
 
+    private fun Method.isAntAttributeSetter(): Boolean {
+        val methodName = getName()!!
+        return methodName.startsWith("set") && getParameterTypes()!![0].isAntAttribute() &&
+                !methodName.equals("setTaskName") && !methodName.equals("setTaskType") &&
+                !methodName.equals("setLocation") && !methodName.equals("setDescription")
+    }
+
     private fun Class<out Any?>.hasStringConstructor(): Boolean {
         for (constructor in getConstructors()) {
             val parameters = constructor.getParameterTypes()!!
@@ -71,16 +109,14 @@ class AntClass(path : String, className : String) {
 
     private fun parseAttribute(method : Method) : AntClassAttribute? {
         val methodName = method.getName()!!
-        if (methodName.startsWith("set")) {
+        if (method.isAntAttributeSetter()) {
             val attributeType = method.getParameterTypes()!![0]
-            if (attributeType.isAntAttribute()) {
-                val attributeName = cutAttributeName(methodName)
-                var attributeTypeName = attributeType.getName()
-                if (PRIMITIVE_TYPES.containsKey(attributeTypeName)) {
-                    attributeTypeName = PRIMITIVE_TYPES[attributeTypeName]!!
-                }
-                return AntClassAttribute(attributeName, attributeTypeName)
+            val attributeName = cutAttributeName(methodName)
+            var attributeTypeName = attributeType.getName()
+            if (PRIMITIVE_TYPES.containsKey(attributeTypeName)) {
+                attributeTypeName = PRIMITIVE_TYPES[attributeTypeName]!!
             }
+            return AntClassAttribute(attributeName, attributeTypeName, methodName)
         }
         return null
     }
@@ -91,9 +127,10 @@ class AntClass(path : String, className : String) {
     }
 }
 
-class AntClassAttribute(name : String, typeName : String) {
-    val name : String = name
-    val typeName : String = typeName
+class AntClassAttribute(name : String, typeName : String, setterName : String) {
+    public val name : String = name
+    public val typeName : String = typeName
+    public val setterName : String = setterName
 }
 
 class KotlinSourceFile {

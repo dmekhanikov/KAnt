@@ -1,23 +1,23 @@
 package ru.ifmo.rain.mekhanikov.ant2kotlin
 
-import java.util.HashMap
+import java.util.TreeMap
 
 class ImportManager {
-    private val imports = HashMap<String, String>()
+    private val imports = TreeMap<String, String>()
 
-    private fun cutName(name : String): String {
+    private fun cutName(name : String): String? {
         val pos = name.lastIndexOf('.')
         if (pos != -1) {
             return name.substring(pos + 1)
         } else {
-            return name
+            return null
         }
     }
 
     public fun shorten(name : String): String {
         val res = cutName(name)
-        if (!imports.containsKey(res) || imports[res] == name) {
-            imports[res] = name
+        if (res != null && (!imports.containsKey(res) || imports[res] == name)) {
+            imports[res!!] = name
             return res
         } else {
             return name

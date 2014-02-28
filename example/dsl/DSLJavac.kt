@@ -7,8 +7,9 @@ import org.apache.tools.ant.taskdefs.Javac
 
 import ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLElement
 import kotlin.properties.Delegates
+import ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLTarget
 
-class DSLPathElement : DSLElement("pathelement") {
+/*class DSLPathElement : DSLElement() {
     var path: String by Delegates.mapVar(attributes)
     var location: String by Delegates.mapVar(attributes)
 
@@ -22,7 +23,7 @@ class DSLPathElement : DSLElement("pathelement") {
     }
 }
 
-abstract class DSLPathLikeElement(elementName: String) : DSLElement(elementName) {
+abstract class DSLPathLikeElement() : DSLElement() {
     var path: String by Delegates.mapVar(attributes)
     var location: String by Delegates.mapVar(attributes)
     fun pathelement(init: DSLPathElement.() -> Unit) = initElement(DSLPathElement(), init)
@@ -39,13 +40,13 @@ abstract class DSLPathLikeElement(elementName: String) : DSLElement(elementName)
     }
 }
 
-class DSLSrc : DSLPathLikeElement("src")
-class DSLClasspath : DSLPathLikeElement("classpath")
-class DSLSourcepath : DSLPathLikeElement("sourcepath")
-class DSLBootclasspath : DSLPathLikeElement("bootclasspath")
-class DSLExtdirs : DSLPathLikeElement("extdirs")
+class DSLSrc : DSLPathLikeElement()
+class DSLClasspath : DSLPathLikeElement()
+class DSLSourcepath : DSLPathLikeElement()
+class DSLBootclasspath : DSLPathLikeElement()
+class DSLExtdirs : DSLPathLikeElement()
 
-class DSLCompilerarg : DSLElement("compilerarg") {
+class DSLCompilerarg : DSLElement() {
     var value: String by Delegates.mapVar(attributes)
     var line: String by Delegates.mapVar(attributes)
     var file: String by Delegates.mapVar(attributes)
@@ -79,7 +80,7 @@ class DSLCompilerarg : DSLElement("compilerarg") {
         }
         return compilerArgObject!!
     }
-}
+}*/
 
 class DSLJavac : DSLElement("javac") {
     var srcdir: String by Delegates.mapVar(attributes)
@@ -88,48 +89,13 @@ class DSLJavac : DSLElement("javac") {
     var debug: Boolean by Delegates.mapVar(attributes)
     var source: String by Delegates.mapVar(attributes)
 
-    fun src(init: DSLSrc.() -> Unit) : DSLSrc = initElement(DSLSrc(), init)
+    /*fun src(init: DSLSrc.() -> Unit) : DSLSrc = initElement(DSLSrc(), init)
     fun classpath(init: DSLClasspath.() -> Unit) : DSLClasspath = initElement(DSLClasspath(), init)
     fun sourcepath(init: DSLSourcepath.() -> Unit) : DSLSourcepath = initElement(DSLSourcepath(), init)
     fun bootclasspath(init: DSLBootclasspath.() -> Unit) : DSLBootclasspath = initElement(DSLBootclasspath(), init)
     fun extdirs(init: DSLExtdirs.() -> Unit) : DSLExtdirs = initElement(DSLExtdirs(), init)
-    fun compilerarg(init: DSLCompilerarg.() -> Unit) : DSLCompilerarg = initElement(DSLCompilerarg(), init)
-
-    override fun antObject(parent: Any?): Any {
-        val project = parent as Project?
-        val javacObject = Javac()
-        javacObject.setProject(project)
-        javacObject.setTaskType("javac")
-        javacObject.setTaskName("javac")
-        if (attributes.containsKey("srcdir")) {
-            javacObject.setSrcdir(Path(project, srcdir))
-        }
-        if (attributes.containsKey("destdir")) {
-            javacObject.setDestdir(File(destdir))
-        }
-        if (attributes.containsKey("classpath")) {
-            javacObject.setClasspath(Path(project, classpath))
-        }
-        if (attributes.containsKey("debug")) {
-            javacObject.setDebug(debug)
-        }
-        if (attributes.containsKey("source")) {
-            javacObject.setSource(source)
-        }
-        return javacObject
-    }
-
-    fun execute() {
-        val project = Project()
-        project.init()
-        val javacObject = antObject(project) as Javac
-        javacObject.execute()
-    }
+    fun compilerarg(init: DSLCompilerarg.() -> Unit) : DSLCompilerarg = initElement(DSLCompilerarg(), init)*/
 }
 
-fun javac(init: DSLJavac.() -> Unit) : DSLJavac {
-    val javac = DSLJavac()
-    javac.init()
-    javac.execute()
-    return javac
-}
+fun DSLTarget.javac(init: DSLJavac.() -> Unit) : DSLJavac =
+        initElement(DSLJavac(), init)

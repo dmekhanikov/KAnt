@@ -1,6 +1,7 @@
 import java.io.File
 import java.io.FileWriter
 import ru.ifmo.rain.mekhanikov.ant2kotlin.AntClass
+import ru.ifmo.rain.mekhanikov.ant2kotlin.createClassLoader
 
 class AntClassTest : Ant2KotlinTestCase() {
 
@@ -17,18 +18,19 @@ class AntClassTest : Ant2KotlinTestCase() {
         val fileName = splitClassName[splitClassName.size - 1]
         val expOutFile = File(ANT_CLASS_FILE_TEST_EXP_DIR + fileName + ".exp")
         val actOutFile = File(ANT_CLASS_FILE_TEST_ACT_DIR + fileName + ".act")
-        val antClassFile = AntClass(classPath, className)
+        val antClassFile = AntClass(createClassLoader(classPath), className)
         val outWriter = FileWriter(actOutFile)
 
-        outWriter.write((if (antClassFile.isTask) "Is a task" else "Is not a task") + "\n\n")
-        for (attribute in antClassFile.attributes) {
-            outWriter.write(attribute.name + " : " + attribute.typeName + "\n")
-        }
+        outWriter.write(antClassFile.toKotlin().toString())
         outWriter.close()
         assertFilesMatch(expOutFile, actOutFile)
     }
 
     public fun testJavac() {
         testAttributes("org.apache.tools.ant.taskdefs.Javac")
+    }
+
+    public fun testMkdir() {
+        testAttributes("org.apache.tools.ant.taskdefs.Mkdir")
     }
 }
