@@ -3,7 +3,7 @@ package ru.ifmo.rain.mekhanikov.ant2kotlin
 import java.util.TreeMap
 
 class ImportManager {
-    private val imports = TreeMap<String, String>()
+    public val imports : TreeMap<String, String> = TreeMap() // short name -> full name
 
     private fun cutName(name : String): String? {
         val pos = name.lastIndexOf('.')
@@ -17,7 +17,7 @@ class ImportManager {
     public fun shorten(name : String): String {
         val res = cutName(name)
         if (res != null && (!imports.containsKey(res) || imports[res] == name)) {
-            imports[res!!] = name
+            imports[res] = name
             return res
         } else {
             return name

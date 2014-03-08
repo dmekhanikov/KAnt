@@ -1,4 +1,4 @@
-package ru.ifmo.rain.mekhanikov.ant2kotlin.dsl
+package ru.ifmo.rain.mekhanikov.antdsl
 
 import java.util.ArrayList
 import java.util.TreeMap
@@ -10,8 +10,8 @@ import org.apache.tools.ant.RuntimeConfigurable
 import kotlin.properties.Delegates
 import java.io.File
 
-abstract class DSLElement(tag: String) {
-    val tag = tag
+abstract class DSLElement(elementTag: String) {
+    val elementTag = elementTag
     val children = ArrayList<DSLElement>()
     val attributes = TreeMap<String, Any?>()
 
@@ -34,11 +34,11 @@ class DSLProject() : DSLElement("project") {
         project.fireBuildStarted()
         dslTarget.target.setProject(project)
         for (child in dslTarget.children) {
-            val task = UnknownElement(child.tag)
+            val task = UnknownElement(child.elementTag)
             task.setProject(project)
-            task.setQName(child.tag)
-            task.setTaskType(ProjectHelper.genComponentName("", child.tag))
-            task.setTaskName(child.tag)
+            task.setQName(child.elementTag)
+            task.setTaskType(ProjectHelper.genComponentName("", child.elementTag))
+            task.setTaskName(child.elementTag)
             task.setOwningTarget(dslTarget.target)
             dslTarget.target.addTask(task)
             val wrapper = RuntimeConfigurable(task, task.getTaskName())
@@ -51,8 +51,8 @@ class DSLProject() : DSLElement("project") {
     }
 }
 
-class DSLTarget(name : String) : DSLElement("target") {
-    val name = name
+class DSLTarget(targetName: String) : DSLElement("target") {
+    val targetName = targetName
     val target = Target()
 }
 

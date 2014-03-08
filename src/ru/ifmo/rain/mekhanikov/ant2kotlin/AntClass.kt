@@ -2,12 +2,14 @@ package ru.ifmo.rain.mekhanikov.ant2kotlin
 
 import java.util.ArrayList
 import java.util.HashMap
+import java.util.HashSet
 import java.net.URLClassLoader
 import java.net.URL
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 fun createClassLoader(path : String): ClassLoader {
-    val jar = URL("file://" + path)
+    val jar = URL("jar:file:" + path + "!/")
     return URLClassLoader(Array<URL>(1){jar})
 }
 
@@ -32,39 +34,38 @@ class AntClass(classLoader : ClassLoader, className : String) {
     {
         classObject = classLoader.loadClass(className)!!
         val attributesArrayList = ArrayList<AntClassAttribute>()
+        val usedAttributeNames = HashSet<String>()
         for (method in classObject.getMethods()) {
             val attribute = parseAttribute(method)
-            if (attribute != null) {
+            if (attribute != null && !usedAttributeNames.contains(attribute.name)) {
                 attributesArrayList.add(attribute)
+                usedAttributeNames.add(attribute.name)
             }
         }
         attributes = attributesArrayList.toList()
 
-        isTask = classObject.isSubclassOf("org.apache.tools.ant.Task")
+        isTask = classObject.isSubclassOf("org.apache.tools.ant.Task") &&
+                    ((classObject.getModifiers() and Modifier.ABSTRACT) == 0)
     }
 
-    public fun toKotlin(): KotlinSourceFile {
-        val res = KotlinSourceFile()
-        val shortName = className.substring(className.lastIndexOf('.') + 1)
-        val qname = shortName.toLowerCase()
-        res.append("class DSL$shortName : ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLElement")}(\"$qname\") {\n")
+    public fun toKotlin(pkg : String?): KotlinSourceFile {
+        val res = KotlinSourceFile(pkg)
+        val shortName = className.substring(className.lastIndexOf('.') + 1).replace("$", "")
+        val tag = shortName.toLowerCase()
+        res.append("class DSL$shortName : ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLElement")}(\"$tag\") {\n")
 
         for (attr in attributes) {
-            res.append("    var ${attr.name} : ${res.importManager.shorten(attr.typeName)} " +
+            res.append("    var `${attr.name}` : ${res.importManager.shorten(attr.typeName.replace('$', '.'))} " +
             "by ${res.importManager.shorten("kotlin.properties.Delegates")}.mapVar(attributes)\n")
+            res.dependencies.add(attr.typeName)
         }
         res.append("}\n")
 
         if (isTask) {
             res.append("\n")
-            res.append("fun ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLTarget")}"
-                        + ".$qname(init: DSL$shortName.() -> Unit): DSL$shortName =\n")
+            res.append("fun ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLTarget")}"
+                        + ".$tag(init: DSL$shortName.() -> Unit): DSL$shortName =\n")
             res.append("        initElement(DSL$shortName(), init)\n")
-            /*res.append("    val dslObject = DSL$shortName()\n")
-            res.append("    dslObject.init()\n")
-            res.append("    children.add(dslObject)\n")
-            res.append("    return dslObject\n")
-            res.append("}\n")*/
         }
 
         return res
@@ -92,7 +93,7 @@ class AntClass(classLoader : ClassLoader, className : String) {
 
     private fun Method.isAntAttributeSetter(): Boolean {
         val methodName = getName()!!
-        return methodName.startsWith("set") && getParameterTypes()!![0].isAntAttribute() &&
+        return methodName.startsWith("set") && !getParameterTypes()!!.isEmpty() && getParameterTypes()!![0].isAntAttribute() &&
                 !methodName.equals("setTaskName") && !methodName.equals("setTaskType") &&
                 !methodName.equals("setLocation") && !methodName.equals("setDescription")
     }
@@ -123,25 +124,11 @@ class AntClass(classLoader : ClassLoader, className : String) {
 
     private fun cutAttributeName(name : String): String {
         val SETTER_PREFIX_LEN = 3;
-        return Character.toLowerCase(name.charAt(SETTER_PREFIX_LEN)).toString() + name.substring(SETTER_PREFIX_LEN + 1)
+        return name.substring(SETTER_PREFIX_LEN).toLowerCase()
     }
 }
 
 class AntClassAttribute(name : String, typeName : String, setterName : String) {
     public val name : String = name
     public val typeName : String = typeName
-    public val setterName : String = setterName
-}
-
-class KotlinSourceFile {
-    public val importManager : ImportManager = ImportManager()
-    private val body = StringBuilder("")
-
-    public fun append(code : String) {
-        body.append(code)
-    }
-
-    public fun toString(): String {
-        return importManager.toString() + "\n" + body.toString()
-    }
 }

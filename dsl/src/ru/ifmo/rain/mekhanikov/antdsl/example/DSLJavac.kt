@@ -1,13 +1,15 @@
+package ru.ifmo.rain.mekhanikov.antdsl.example
+
 import java.io.File
+import kotlin.properties.Delegates
 
 import org.apache.tools.ant.types.Path
 import org.apache.tools.ant.types.Path.PathElement
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.Javac
 
-import ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLElement
-import kotlin.properties.Delegates
-import ru.ifmo.rain.mekhanikov.ant2kotlin.dsl.DSLTarget
+import ru.ifmo.rain.mekhanikov.antdsl.DSLElement
+import ru.ifmo.rain.mekhanikov.antdsl.DSLTarget
 
 /*class DSLPathElement : DSLElement() {
     var path: String by Delegates.mapVar(attributes)
