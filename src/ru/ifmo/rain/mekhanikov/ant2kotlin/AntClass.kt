@@ -3,18 +3,10 @@ package ru.ifmo.rain.mekhanikov.ant2kotlin
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.HashSet
-import java.net.URLClassLoader
-import java.net.URL
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-fun createClassLoader(path : String): ClassLoader {
-    val jar = URL("jar:file:" + path + "!/")
-    return URLClassLoader(Array<URL>(1){jar})
-}
-
 class AntClass(classLoader : ClassLoader, className : String) {
-
     private val PRIMITIVE_TYPES = HashMap<String, String>();
     {
         PRIMITIVE_TYPES["boolean"] = "Boolean"
@@ -22,17 +14,17 @@ class AntClass(classLoader : ClassLoader, className : String) {
         PRIMITIVE_TYPES["byte"] = "Byte"
         PRIMITIVE_TYPES["short"] = "Short"
         PRIMITIVE_TYPES["int"] = "Int"
+        PRIMITIVE_TYPES["java.lang.Integer"] = "Int"
         PRIMITIVE_TYPES["float"] = "Float"
         PRIMITIVE_TYPES["long"] = "Long"
         PRIMITIVE_TYPES["double"] = "Double"
     }
 
-    private val classObject : Class<out Any?>
     public val className : String = className
     public val attributes : List<AntClassAttribute>
     public val isTask : Boolean;
     {
-        classObject = classLoader.loadClass(className)!!
+        val classObject = classLoader.loadClass(className)!!
         val attributesArrayList = ArrayList<AntClassAttribute>()
         val usedAttributeNames = HashSet<String>()
         for (method in classObject.getMethods()) {
@@ -64,7 +56,7 @@ class AntClass(classLoader : ClassLoader, className : String) {
         if (isTask) {
             res.append("\n")
             res.append("fun ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLTarget")}"
-                        + ".$tag(init: DSL$shortName.() -> Unit): DSL$shortName =\n")
+                        + ".$tag(init: DSL$shortName.() -> ${res.importManager.shorten("jet.Unit")}): DSL$shortName =\n")
             res.append("        initElement(DSL$shortName(), init)\n")
         }
 
@@ -72,7 +64,8 @@ class AntClass(classLoader : ClassLoader, className : String) {
     }
 
     private fun Class<out Any?>.isSubclassOf(className : String): Boolean {
-        var superclass : Class<Any?>? = classObject as Class<Any?>
+        [suppress("UNCHECKED_CAST")]
+        var superclass : Class<Any?>? = this as Class<Any?>
         while (superclass != null) {
             if (superclass!!.getName().equals(className)) {
                 return true

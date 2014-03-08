@@ -3,29 +3,27 @@ package ru.ifmo.rain.mekhanikov.ant2kotlin
 import java.util.HashSet
 import java.io.File
 import java.util.jar.JarInputStream
-import ru.ifmo.rain.mekhanikov.ant2kotlin.createClassLoader
 import java.io.FileInputStream
-
-fun main(args : Array<String>) {
-    DSLGenerator("lib/ant-1.9.3.jar", "dsl/src").generate()
-}
+import ru.ifmo.rain.mekhanikov.createClassLoader
 
 class DSLGenerator(jarPath: String, resultRoot : String) {
     private val ANT_CLASS_PREFIX = "org.apache.tools.ant."
     private val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
+    private val GENERATED_DSL_PACKAGE = DSL_PACKAGE + ".generated"
 
     private val resolved = HashSet<String>()
     private val jarPath = jarPath
     private val classLoader = createClassLoader(jarPath)
-    private val resultRoot = resultRoot + if (!resultRoot.endsWith('/')) {'/'} else {""}
+    private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
 
     private fun resultClassName(srcClassName : String) : String {
         val className = srcClassName.replace("$", "")
-        if (srcClassName.startsWith(ANT_CLASS_PREFIX)) {
-            return DSL_PACKAGE + '.' + className.substring(ANT_CLASS_PREFIX.length)
-        } else {
-            return DSL_PACKAGE + ".other." + className
-        }
+        return GENERATED_DSL_PACKAGE + "." +
+            if (srcClassName.startsWith(ANT_CLASS_PREFIX)) {
+                className.substring(ANT_CLASS_PREFIX.length)
+            } else {
+                ".other." + className
+            }
     }
 
     private fun resultFile(srcClassName : String) : File {
@@ -58,8 +56,8 @@ class DSLGenerator(jarPath: String, resultRoot : String) {
         while (jarEntry != null) {
             val entryName = jarEntry!!.getName()
             if (entryName.startsWith("org/apache/tools/ant/taskdefs/") &&
-                entryName.endsWith(".class") &&
-                !entryName.contains("$")) {
+            entryName.endsWith(".class") &&
+            !entryName.contains("$")) {
                 val className = entryName.substring(0, entryName.lastIndexOf('.')).replace('/', '.')
                 val antClass = AntClass(classLoader, className)
                 if (antClass.isTask) {
@@ -72,7 +70,8 @@ class DSLGenerator(jarPath: String, resultRoot : String) {
     }
 
     public fun generate() {
-        File(resultRoot).mkdirs()
+        val generatedRoot = resultRoot + GENERATED_DSL_PACKAGE.replace('.', '/')
+        File(generatedRoot).mkdirs()
         val jis = JarInputStream(FileInputStream(jarPath))
         var antTaskClass = jis.nextAntTask()
         while (antTaskClass != null) {

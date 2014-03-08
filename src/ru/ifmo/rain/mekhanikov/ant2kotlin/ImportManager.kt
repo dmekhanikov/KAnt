@@ -27,7 +27,7 @@ class ImportManager {
     public fun toString(): String {
         val res = StringBuilder("")
         for (name in imports.values()) {
-            if (!name.startsWith("java.lang.")) {
+            if (!name.startsWith("java.lang.") && !name.startsWith("jet.")) {
                 res.append("import ").append(name).append("\n")
             }
         }

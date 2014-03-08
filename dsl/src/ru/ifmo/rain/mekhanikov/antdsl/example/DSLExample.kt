@@ -2,7 +2,7 @@ package ru.ifmo.rain.mekhanikov.antdsl.example
 
 import java.io.File
 import ru.ifmo.rain.mekhanikov.antdsl.project
-import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.mkdir
+import ru.ifmo.rain.mekhanikov.antdsl.generated.taskdefs.mkdir
 
 fun main(args : Array<String>) =
     project {
