@@ -6,7 +6,8 @@ import kotlin.test.assertEquals
 
 open class Ant2KotlinTestCase : TestCase() {
     val TEST_ROOT = "test/"
-    val TEST_DATA_ROOT = TEST_ROOT + "testData/"
+    val TEST_DATA_ROOT = "testData/"
+    val TEST_RES_ROOT = TEST_DATA_ROOT + "res/"
     val TEST_OUT_ROOT = "out/test/Ant2Kotlin/"
     val TEST_DATA_OUT_ROOT = TEST_OUT_ROOT + "testData/"
 

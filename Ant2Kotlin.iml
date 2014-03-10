@@ -13,6 +13,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="junit:junit:4.10" level="project" />
+    <orderEntry type="library" name="org.jetbrains.kotlin:kotlin-compiler:0.6.1673" level="project" />
   </component>
 </module>
 

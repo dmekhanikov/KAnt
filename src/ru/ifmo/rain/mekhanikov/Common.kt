@@ -4,6 +4,7 @@ import java.io.File
 import java.util.ArrayList
 import java.net.URL
 import java.net.URLClassLoader
+import org.jetbrains.jet.cli.jvm.K2JVMCompiler
 
 fun createClassLoader(vararg jars : String): ClassLoader {
     val path = ArrayList<URL>()
@@ -35,4 +36,9 @@ fun File.cleanDirectory() {
 fun File.deleteRecursively() {
     cleanDirectory()
     delete()
+}
+
+fun compileKotlinCode(src : String, classpath : String, output : String) {
+    val compiler = K2JVMCompiler()
+    compiler.exec(System.out, "-src", src, "-classpath", classpath, "-output", output)
 }
