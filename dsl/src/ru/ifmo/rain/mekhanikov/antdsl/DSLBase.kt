@@ -25,7 +25,7 @@ abstract class DSLElement(elementTag: String) {
 class DSLProject() : DSLElement("project") {
     val project = Project(); { project.init() }
 
-    var default : String by Delegates.mapVar(attributes)
+    var default : DSLTarget? = null
     var basedir : File by Delegates.mapVar(attributes);
 
     public fun target(name : String, init : DSLTarget.() -> Unit) : DSLTarget {
@@ -59,10 +59,10 @@ class DSLTarget(targetName: String) : DSLElement("target") {
 public fun project(init : DSLProject.() -> Unit) : DSLProject {
     val dslProject = DSLProject()
     dslProject.init()
-    if (!dslProject.attributes.containsKey("default")) {
+    if (dslProject.default == null) {
         return dslProject
     }
-    dslProject.project.setDefault(dslProject.default)
+    dslProject.project.setDefault(dslProject.default?.targetName)
     if (dslProject.attributes.containsKey("basedir")) {
         dslProject.project.setBaseDir(dslProject.basedir)
     }

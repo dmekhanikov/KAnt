@@ -6,8 +6,7 @@ import java.io.File
 
 fun main(args : Array<String>) {
     project {
-        default = "Mkdir test"
-        target("Mkdir test") {
+        default = target("Mkdir test") {
             mkdir {
                 dir = File(args[0])
             }
