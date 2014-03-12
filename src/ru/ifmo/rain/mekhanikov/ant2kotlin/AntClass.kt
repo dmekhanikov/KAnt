@@ -40,6 +40,18 @@ class AntClass(classLoader : ClassLoader, className : String) {
                     ((classObject.getModifiers() and Modifier.ABSTRACT) == 0)
     }
 
+    private fun renderConstructorParameters(out: KotlinSourceFile) {
+        var first = true
+        for (attr in attributes) {
+            if (first) {
+                first = false
+            } else {
+                out.append(",\n")
+            }
+            out.append("        `${attr.name}` : ${out.importManager.shorten(attr.typeName.replace('$', '.'))}? = null")
+        }
+    }
+
     public fun toKotlin(pkg : String?): KotlinSourceFile {
         val res = KotlinSourceFile(pkg)
         val shortName = className.substring(className.lastIndexOf('.') + 1).replace("$", "")
@@ -55,9 +67,30 @@ class AntClass(classLoader : ClassLoader, className : String) {
 
         if (isTask) {
             res.append("\n")
-            res.append("fun ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLTarget")}"
-                        + ".$tag(init: DSL$shortName.() -> ${res.importManager.shorten("jet.Unit")}): DSL$shortName =\n")
-            res.append("        initElement(DSL$shortName(), init)\n")
+            val funName = "${res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLTarget")}.`$tag`"
+            res.append("fun $funName(\n")
+            renderConstructorParameters(res)
+            if (!attributes.empty) {
+                res.append(",\n")
+            }
+            res.append("        init: DSL$shortName.() -> ${res.importManager.shorten("jet.Unit")}): DSL$shortName {\n")
+            res.append("    val dslObject = DSL$shortName()\n")
+            for (attr in attributes) {
+                res.append("    if (`${attr.name}` != null) { dslObject.`${attr.name}` = `${attr.name}` }\n")
+            }
+            res.append("    return initElement(dslObject, init)\n")
+            res.append("}\n")
+
+            res.append("\n")
+            res.append("fun $funName(\n")
+            renderConstructorParameters(res)
+            res.append("): DSL$shortName {\n")
+            res.append("    return $tag(\n")
+            for (attr in attributes) {
+                res.append("        `${attr.name}`,\n")
+            }
+            res.append("        {})\n")
+            res.append("}\n")
         }
 
         return res

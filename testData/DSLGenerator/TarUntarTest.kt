@@ -8,8 +8,7 @@ import java.io.File
 fun main(args : Array<String>) {
     project {
         default = target("Tar and untar") {
-            tar {
-                basedir = File(args[0])
+            tar (basedir = File(args[0])) {
                 destfile = File(args[1])
             }
             untar {

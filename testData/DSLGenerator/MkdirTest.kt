@@ -7,9 +7,7 @@ import java.io.File
 fun main(args : Array<String>) {
     project {
         default = target("Mkdir test") {
-            mkdir {
-                dir = File(args[0])
-            }
+            mkdir (dir = File(args[0]))
         }
     }
 }
