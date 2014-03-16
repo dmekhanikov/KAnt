@@ -10,90 +10,127 @@ class AntClass(classLoader : ClassLoader, className : String) {
     private val PRIMITIVE_TYPES = HashMap<String, String>();
     {
         PRIMITIVE_TYPES["boolean"] = "Boolean"
+        PRIMITIVE_TYPES["java.lang.Boolean"] = "Boolean"
         PRIMITIVE_TYPES["char"] = "Char"
+        PRIMITIVE_TYPES["java.lang.Char"] = "Char"
         PRIMITIVE_TYPES["byte"] = "Byte"
+        PRIMITIVE_TYPES["java.lang.Byte"] = "Byte"
         PRIMITIVE_TYPES["short"] = "Short"
+        PRIMITIVE_TYPES["java.lang.Short"] = "Short"
         PRIMITIVE_TYPES["int"] = "Int"
         PRIMITIVE_TYPES["java.lang.Integer"] = "Int"
         PRIMITIVE_TYPES["float"] = "Float"
+        PRIMITIVE_TYPES["java.lang.Float"] = "Float"
         PRIMITIVE_TYPES["long"] = "Long"
+        PRIMITIVE_TYPES["java.lang.Long"] = "Long"
         PRIMITIVE_TYPES["double"] = "Double"
+        PRIMITIVE_TYPES["java.lang.Double"] = "Double"
     }
+    private val ANT_CLASS_PREFIX = "org.apache.tools.ant."
 
     public val className : String = className
-    public val attributes : List<AntClassAttribute>
-    public val isTask : Boolean;
+    public val attributes : List<AntClassElement>
+    public val nestedElements : List<AntClassElement>
+    public val isTask : Boolean
+    public val isTaskContainer : Boolean;
     {
         val classObject = classLoader.loadClass(className)!!
-        val attributesArrayList = ArrayList<AntClassAttribute>()
-        val usedAttributeNames = HashSet<String>()
-        for (method in classObject.getMethods()) {
-            val attribute = parseAttribute(method)
-            if (attribute != null && !usedAttributeNames.contains(attribute.name)) {
-                attributesArrayList.add(attribute)
-                usedAttributeNames.add(attribute.name)
-            }
-        }
-        attributes = attributesArrayList.toList()
-
         isTask = classObject.isSubclassOf("org.apache.tools.ant.Task") &&
                     ((classObject.getModifiers() and Modifier.ABSTRACT) == 0)
-    }
-
-    private fun renderConstructorParameters(out: KotlinSourceFile) {
-        var first = true
-        for (attr in attributes) {
-            if (first) {
-                first = false
-            } else {
-                out.append(",\n")
-            }
-            out.append("        `${attr.name}` : ${out.importManager.shorten(attr.typeName.replace('$', '.'))}? = null")
+        isTaskContainer = classObject.implements("org.apache.tools.ant.TaskContainer")
+        attributes = getElements(classObject, {it -> parseAttribute(it)})
+        nestedElements = if (!isTaskContainer) {
+            getElements(classObject, {it -> parseNestedElement(it)})
+        } else {
+            ArrayList<AntClassElement>()
         }
     }
 
-    public fun toKotlin(pkg : String?): KotlinSourceFile {
-        val res = KotlinSourceFile(pkg)
-        val shortName = className.substring(className.lastIndexOf('.') + 1).replace("$", "")
-        val tag = shortName.toLowerCase()
-        res.append("class DSL$shortName : ${res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLElement")}(\"$tag\") {\n")
-
-        for (attr in attributes) {
-            res.append("    var `${attr.name}` : ${res.importManager.shorten(attr.typeName.replace('$', '.'))} " +
-            "by ${res.importManager.shorten("kotlin.properties.Delegates")}.mapVar(attributes)\n")
-            res.dependencies.add(attr.typeName)
+    private fun getElements(classObject : Class<out Any?>,
+                            parseElement : (method : Method) -> AntClassElement?): List<AntClassElement> {
+        val elements = ArrayList<AntClassElement>()
+        val usedNames = HashSet<String>()
+        for (method in classObject.getMethods()) {
+            val element = parseElement(method)
+            if (element != null && !usedNames.contains(element.name)) {
+                elements.add(element)
+                usedNames.add(element.name)
+            }
         }
-        res.append("}\n")
+        return elements
+    }
 
-        if (isTask) {
-            res.append("\n")
-            val funName = "${res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLTarget")}.`$tag`"
-            res.append("fun $funName(\n")
-            renderConstructorParameters(res)
-            if (!attributes.empty) {
-                res.append(",\n")
+    private fun parseAttribute(method : Method) : AntClassElement? {
+        val methodName = method.getName()!!
+        if (method.isAntAttributeSetter()) {
+            val attributeName = cutElementName(methodName, "set".length)
+            val attributeType = method.getParameterTypes()!![0]
+            var attributeTypeName = attributeType.getName()
+            if (PRIMITIVE_TYPES.containsKey(attributeTypeName)) {
+                attributeTypeName = PRIMITIVE_TYPES[attributeTypeName]!!
             }
-            res.append("        init: DSL$shortName.() -> ${res.importManager.shorten("jet.Unit")}): DSL$shortName {\n")
-            res.append("    val dslObject = DSL$shortName()\n")
-            for (attr in attributes) {
-                res.append("    if (`${attr.name}` != null) { dslObject.`${attr.name}` = `${attr.name}` }\n")
-            }
-            res.append("    return initElement(dslObject, init)\n")
-            res.append("}\n")
-
-            res.append("\n")
-            res.append("fun $funName(\n")
-            renderConstructorParameters(res)
-            res.append("): DSL$shortName {\n")
-            res.append("    return $tag(\n")
-            for (attr in attributes) {
-                res.append("        `${attr.name}`,\n")
-            }
-            res.append("        {})\n")
-            res.append("}\n")
+            return AntClassElement(attributeName, attributeTypeName)
         }
+        return null
+    }
 
-        return res
+    private fun parseNestedElement(method : Method) : AntClassElement? {
+        val methodName = method.getName()!!
+        val returnTypeName = method.getReturnType()!!.getName()
+        if (methodName.startsWith("create") && method.getReturnType()!!.isAntClass()) {
+            val elementName = cutElementName(methodName, "create".length)
+            if (elementName.equals("")) {
+                return null
+            }
+            val elementType = returnTypeName
+            return AntClassElement(elementName, elementType)
+        }
+        if (methodName.startsWith("add") &&
+                !method.getParameterTypes()!!.isEmpty() && method.getParameterTypes()!![0].isAntClass()) {
+            val elementType = method.getParameterTypes()!![0].getName()
+            val prefLen =
+                    if (methodName.startsWith("addConfigured")) {
+                        "addConfigured".length
+                    } else {
+                        "add".length
+                    }
+            if (methodName.length == prefLen) {
+                return null
+            }
+            val elementName = cutElementName(methodName, prefLen)
+            return AntClassElement(elementName, elementType)
+        }
+        return null
+    }
+
+    private fun Class<out Any?>.isAntClass(): Boolean {
+        return getName().startsWith("org.apache.tools.ant.")
+    }
+
+    private fun Method.isAntAttributeSetter(): Boolean {
+        val methodName = getName()!!
+        return methodName.startsWith("set") && !getParameterTypes()!!.isEmpty() && getParameterTypes()!![0].isAntAttribute() &&
+        !methodName.equals("setTaskName") && !methodName.equals("setTaskType") &&
+        !methodName.equals("setLocation") && !methodName.equals("setDescription")
+    }
+
+    private fun Class<out Any?>.isAntAttribute(): Boolean {
+        val className = getName()
+        return PRIMITIVE_TYPES.containsKey(className) || hasStringConstructor() ||
+        className.equals("org.apache.tools.ant.types.Path") ||
+        className.equals("java.lang.Class") ||
+        isSubclassOf("org.apache.tools.ant.types.EnumeratedAttribute") ||
+        isEnum()
+    }
+
+    private fun Class<out Any?>.hasStringConstructor(): Boolean {
+        for (constructor in getConstructors()) {
+            val parameters = constructor.getParameterTypes()!!
+            if (parameters.size == 1 && parameters[0].getName() == "java.lang.String") {
+                return true
+            }
+        }
+        return false
     }
 
     private fun Class<out Any?>.isSubclassOf(className : String): Boolean {
@@ -108,53 +145,21 @@ class AntClass(classLoader : ClassLoader, className : String) {
         return false
     }
 
-    private fun Class<out Any?>.isAntAttribute(): Boolean {
-        val className = getName()
-        return PRIMITIVE_TYPES.containsKey(className) || hasStringConstructor() ||
-                className.equals("org.apache.tools.ant.types.Path") ||
-                className.equals("java.lang.Class") ||
-                isSubclassOf("org.apache.tools.ant.types.EnumeratedAttribute") ||
-                isEnum()
-    }
-
-    private fun Method.isAntAttributeSetter(): Boolean {
-        val methodName = getName()!!
-        return methodName.startsWith("set") && !getParameterTypes()!!.isEmpty() && getParameterTypes()!![0].isAntAttribute() &&
-                !methodName.equals("setTaskName") && !methodName.equals("setTaskType") &&
-                !methodName.equals("setLocation") && !methodName.equals("setDescription")
-    }
-
-    private fun Class<out Any?>.hasStringConstructor(): Boolean {
-        for (constructor in getConstructors()) {
-            val parameters = constructor.getParameterTypes()!!
-            if (parameters.size == 1 && parameters[0].getName() == "java.lang.String") {
+    private fun Class<out Any?>.implements(interfaceName : String): Boolean {
+        for (interface in getInterfaces()) {
+            if (interface.getName().equals(interfaceName)) {
                 return true
             }
         }
         return false
     }
 
-    private fun parseAttribute(method : Method) : AntClassAttribute? {
-        val methodName = method.getName()!!
-        if (method.isAntAttributeSetter()) {
-            val attributeType = method.getParameterTypes()!![0]
-            val attributeName = cutAttributeName(methodName)
-            var attributeTypeName = attributeType.getName()
-            if (PRIMITIVE_TYPES.containsKey(attributeTypeName)) {
-                attributeTypeName = PRIMITIVE_TYPES[attributeTypeName]!!
-            }
-            return AntClassAttribute(attributeName, attributeTypeName, methodName)
-        }
-        return null
-    }
-
-    private fun cutAttributeName(name : String): String {
-        val SETTER_PREFIX_LEN = 3;
-        return name.substring(SETTER_PREFIX_LEN).toLowerCase()
+    private fun cutElementName(methodName : String, prefLen : Int): String {
+        return methodName.substring(prefLen).toLowerCase()
     }
 }
 
-class AntClassAttribute(name : String, typeName : String, setterName : String) {
+class AntClassElement(name : String, typeName : String) {
     public val name : String = name
     public val typeName : String = typeName
 }

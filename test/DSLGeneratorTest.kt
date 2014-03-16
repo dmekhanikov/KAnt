@@ -6,6 +6,8 @@ import ru.ifmo.rain.mekhanikov.createClassLoader
 import java.lang.reflect.Method
 import ru.ifmo.rain.mekhanikov.deleteRecursively
 
+var dslGeneratorTestInitComplete = false
+
 class DSLGeneratorTest : Ant2KotlinTestCase() {
     val ANT_JAR_FILE = "lib/ant-1.9.3.jar"
     val ANT_LAUNCHER_JAR_FILE = "lib/ant-launcher-1.9.3.jar"
@@ -21,12 +23,15 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
     val classLoader = createClassLoader(DSL_GENERATOR_OUT_ROOT,
             ANT_JAR_FILE, ANT_LAUNCHER_JAR_FILE, KOTLIN_RUNTIME_JAR_FILE);
     {
-        File(DSL_GENERATED_ROOT).cleanDirectory()
-        DSLGenerator(ANT_JAR_FILE, DSL_ROOT).generate()
-        File(DSL_GENERATOR_OUT_ROOT).cleanDirectory()
-        compileKotlinCode(DSL_ROOT + ":" + DSL_GENERATOR_TEST_DATA,
-                ANT_JAR_FILE + ":" + KOTLIN_RUNTIME_JAR_FILE,
-                DSL_GENERATOR_OUT_ROOT)
+        if (!dslGeneratorTestInitComplete) {
+            File(DSL_GENERATED_ROOT).cleanDirectory()
+            DSLGenerator(ANT_JAR_FILE, DSL_ROOT).generate()
+            File(DSL_GENERATOR_OUT_ROOT).cleanDirectory()
+            compileKotlinCode(DSL_ROOT + ":" + DSL_GENERATOR_TEST_DATA,
+                    ANT_JAR_FILE + ":" + KOTLIN_RUNTIME_JAR_FILE,
+                    DSL_GENERATOR_OUT_ROOT)
+            dslGeneratorTestInitComplete = true
+        }
     }
 
     private fun getMainMethod(packageName : String): Method {
@@ -48,7 +53,7 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         runDSLGeneratorTest(
                 "mkdir",
                 array(dir.toString()),
-                { !dir.exists() },
+                { File(WORKING_DIR).cleanDirectory(); true },
                 { dir.exists() }
         )
     }
@@ -64,6 +69,19 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
                 array(toTarDir.toString(), destFile.toString(), resDir.toString()),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(toTarFile, resFile); true }
+        )
+    }
+
+    public fun testCopy() {
+        val srcDir = File(DSL_GENERATOR_TEST_RES + "toCopy/")
+        val srcFile = File(srcDir.toString() + "/toCopy.txt")
+        val destDir = File(WORKING_DIR)
+        val resFile = File(destDir.toString() + "/toCopy.txt")
+        runDSLGeneratorTest(
+                "copy",
+                array(srcDir.toString(), destDir.toString()),
+                { File(WORKING_DIR).cleanDirectory(); true },
+                { assertFilesMatch(srcFile, resFile); true }
         )
     }
 }
