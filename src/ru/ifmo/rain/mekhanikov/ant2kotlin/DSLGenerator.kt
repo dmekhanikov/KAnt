@@ -120,7 +120,7 @@ class DSLGenerator(jarPath: String, resultRoot : String) {
         if (!elementClass.attributes.empty) {
             out.append(",\n")
         }
-        out.append("        init: $dslTypeName.() -> ${out.importManager.shorten("jet.Unit")}): $dslTypeName {\n")
+        out.append("        init: $dslTypeName.() -> ${out.importManager.shorten("kotlin.Unit")}): $dslTypeName {\n")
         out.append("    val dslObject = $dslTypeName()\n")
         for (attr in elementClass.attributes) {
             out.append("    if (`${attr.name}` != null) { dslObject.`${attr.name}` = `${attr.name}` }\n")

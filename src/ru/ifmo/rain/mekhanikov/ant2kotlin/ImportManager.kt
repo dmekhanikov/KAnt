@@ -24,10 +24,11 @@ class ImportManager {
         }
     }
 
-    public fun toString(): String {
+    override public fun toString(): String {
         val res = StringBuilder("")
         for (name in imports.values()) {
-            if (!name.startsWith("java.lang.") && !name.startsWith("jet.")) {
+            if (!name.startsWith("java.lang.") &&
+                !(name.startsWith("kotlin.") && name.lastIndexOf('.') == "kotlin.".length - 1)) {
                 res.append("import ").append(name).append("\n")
             }
         }

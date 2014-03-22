@@ -12,7 +12,7 @@ class KotlinSourceFile(pkg : String?) {
         body.append(code)
     }
 
-    public fun toString(): String {
+    override public fun toString(): String {
         return (if (pkg != null) { "package " + pkg + "\n\n" } else { "" }) +
         importManager.toString() + "\n" + body.toString()
     }
