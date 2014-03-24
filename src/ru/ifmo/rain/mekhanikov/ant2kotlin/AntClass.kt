@@ -68,6 +68,8 @@ class AntClass(classLoader : ClassLoader, className : String) {
             var attributeTypeName = attributeType.getName()
             if (PRIMITIVE_TYPES.containsKey(attributeTypeName)) {
                 attributeTypeName = PRIMITIVE_TYPES[attributeTypeName]!!
+            } else {
+                attributeTypeName = "java.lang.String"
             }
             return AntClassElement(attributeName, attributeTypeName)
         }

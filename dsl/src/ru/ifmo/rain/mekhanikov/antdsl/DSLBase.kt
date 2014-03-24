@@ -9,6 +9,8 @@ import org.apache.tools.ant.ProjectHelper
 import org.apache.tools.ant.RuntimeConfigurable
 import kotlin.properties.Delegates
 import java.io.File
+import java.util.HashMap
+import java.util.regex.Pattern
 
 abstract class DSLElement(elementTag: String) {
     val elementTag = elementTag
@@ -86,8 +88,9 @@ class DSLTarget(targetName: String) : DSLTaskContainer("target") {
     }
 }
 
-public fun project(init : DSLProject.() -> Unit) : DSLProject {
+public fun project(args : Array<String>, init : DSLProject.() -> Unit) : DSLProject {
     val dslProject = DSLProject()
+    initProperties(args)
     dslProject.init()
     dslProject.perform(null, null, null, false)
     return dslProject
@@ -97,4 +100,35 @@ public fun DSLProject.target(name : String, init : DSLTarget.() -> Unit) : DSLTa
     val dslTarget = DSLTarget(name)
     initElement(dslTarget, init)
     return dslTarget
+}
+
+val properties : HashMap<String, Any> = HashMap<String, Any>()
+
+fun initProperties(args : Array<String>) {
+    for (arg in args) {
+        val pattern = Pattern.compile("-D(\\w+)=(.*)")!!
+        val matcher = pattern.matcher(arg)!!
+        if (matcher.matches()) {
+            val propName = matcher.group(1)!!
+            val propVal = matcher.group(2)!!
+            properties[propName] = propVal
+        }
+    }
+}
+
+[suppress("BASE_WITH_NULLABLE_UPPER_BOUND", "UNUSED_PARAMETER", "UNCHECKED_CAST")]
+class AntProperty<T>(defaultValue : T? = null) {
+    val defaultValue = defaultValue
+
+    public fun get(thisRef : Any?, prop : PropertyMetadata): T {
+        if (properties.containsKey(prop.name)) {
+            return properties[prop.name]!! as T
+        } else {
+            return defaultValue!!
+        }
+    }
+
+    public fun set(thisRef : Any?, prop : PropertyMetadata, value : T) {
+        properties[prop.name] = value
+    }
 }

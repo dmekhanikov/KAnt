@@ -91,7 +91,6 @@ class DSLGenerator(jarPath: String, resultRoot : String) {
         for (attr in attributes) {
             res.append("    var `${attr.name}` : ${res.importManager.shorten(attr.typeName.replace('$', '.'))} " +
             "by ${res.importManager.shorten("kotlin.properties.Delegates")}.mapVar(attributes)\n")
-            resolveClass(attr.typeName)
         }
         res.append("}\n")
         for (element in nestedElements) {

@@ -52,7 +52,7 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         val dir = File(WORKING_DIR + "temp/")
         runDSLGeneratorTest(
                 "mkdir",
-                array(dir.toString()),
+                array("-Ddir=" + dir.toString()),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { dir.exists() }
         )
@@ -66,7 +66,7 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         val resFile = File(resDir.toString() + "/toTar.txt")
         runDSLGeneratorTest(
                 "tarUntar",
-                array(toTarDir.toString(), destFile.toString(), resDir.toString()),
+                array("-DsourceDir=" + toTarDir.toString(), "-DtarFile=" + destFile.toString(), "-DoutDir=" + resDir.toString()),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(toTarFile, resFile); true }
         )
@@ -79,7 +79,7 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         val resFile = File(destDir.toString() + "/toCopy.txt")
         runDSLGeneratorTest(
                 "copy",
-                array(srcDir.toString(), destDir.toString()),
+                array("-DsrcDir=" + srcDir.toString(), "-DdestDir=" + destDir.toString()),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(srcFile, resFile); true }
         )
