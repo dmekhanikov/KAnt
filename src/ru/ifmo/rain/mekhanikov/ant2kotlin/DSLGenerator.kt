@@ -6,11 +6,10 @@ import java.util.jar.JarInputStream
 import java.io.FileInputStream
 import ru.ifmo.rain.mekhanikov.createClassLoader
 
-class DSLGenerator(jarPath: String, resultRoot : String) {
-    private val ANT_CLASS_PREFIX = "org.apache.tools.ant."
-    private val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
-    private val GENERATED_DSL_PACKAGE = DSL_PACKAGE + ".generated"
+val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
+val GENERATED_DSL_PACKAGE = DSL_PACKAGE + ".generated"
 
+class DSLGenerator(jarPath: String, resultRoot : String) {
     private val resolved = HashMap<String, AntClass>()
     private val jarPath = jarPath
     private val classLoader = createClassLoader(jarPath)
@@ -67,7 +66,7 @@ class DSLGenerator(jarPath: String, resultRoot : String) {
         var jarEntry = getNextJarEntry()
         while (jarEntry != null) {
             val entryName = jarEntry!!.getName()
-            if (entryName.startsWith("org/apache/tools/ant/taskdefs/") &&
+            if (entryName.startsWith(ANT_CLASS_PREFIX.replace('.', '/') + "taskdefs/") &&
             entryName.endsWith(".class") &&
             !entryName.contains("$")) {
                 val className = entryName.substring(0, entryName.lastIndexOf('.')).replace('/', '.')
@@ -85,8 +84,8 @@ class DSLGenerator(jarPath: String, resultRoot : String) {
         val res = KotlinSourceFile(pkg)
         val dslTypeName = "DSL" + cutShortName(className)
         val tag = cutTag(className)
-        val dslElementShorten = res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLElement")
-        val dslTaskContainerShorten = res.importManager.shorten("ru.ifmo.rain.mekhanikov.antdsl.DSLTaskContainer")
+        val dslElementShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLElement")
+        val dslTaskContainerShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLTaskContainer")
         res.append("class $dslTypeName() : ${if (isTaskContainer) {dslTaskContainerShorten} else {dslElementShorten}}(\"$tag\") {\n")
         for (attr in attributes) {
             res.append("    var `${attr.name}` : ${res.importManager.shorten(attr.typeName.replace('$', '.'))} " +

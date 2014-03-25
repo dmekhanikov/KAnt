@@ -6,6 +6,8 @@ import java.util.HashSet
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
+val ANT_CLASS_PREFIX = "org.apache.tools.ant."
+
 class AntClass(classLoader : ClassLoader, className : String) {
     private val PRIMITIVE_TYPES = HashMap<String, String>();
     {
@@ -26,7 +28,6 @@ class AntClass(classLoader : ClassLoader, className : String) {
         PRIMITIVE_TYPES["double"] = "Double"
         PRIMITIVE_TYPES["java.lang.Double"] = "Double"
     }
-    private val ANT_CLASS_PREFIX = "org.apache.tools.ant."
 
     public val className : String = className
     public val attributes : List<AntClassElement>
@@ -35,9 +36,9 @@ class AntClass(classLoader : ClassLoader, className : String) {
     public val isTaskContainer : Boolean;
     {
         val classObject = classLoader.loadClass(className)!!
-        isTask = classObject.isSubclassOf("org.apache.tools.ant.Task") &&
+        isTask = classObject.isSubclassOf(ANT_CLASS_PREFIX + "Task") &&
                     ((classObject.getModifiers() and Modifier.ABSTRACT) == 0)
-        isTaskContainer = classObject.implements("org.apache.tools.ant.TaskContainer")
+        isTaskContainer = classObject.implements(ANT_CLASS_PREFIX + "TaskContainer")
         attributes = getElements(classObject, {it -> parseAttribute(it)})
         nestedElements = if (!isTaskContainer) {
             getElements(classObject, {it -> parseNestedElement(it)})
@@ -106,7 +107,7 @@ class AntClass(classLoader : ClassLoader, className : String) {
     }
 
     private fun Class<out Any?>.isAntClass(): Boolean {
-        return getName().startsWith("org.apache.tools.ant.")
+        return getName().startsWith(ANT_CLASS_PREFIX)
     }
 
     private fun Method.isAntAttributeSetter(): Boolean {
@@ -119,9 +120,9 @@ class AntClass(classLoader : ClassLoader, className : String) {
     private fun Class<out Any?>.isAntAttribute(): Boolean {
         val className = getName()
         return PRIMITIVE_TYPES.containsKey(className) || hasStringConstructor() ||
-        className.equals("org.apache.tools.ant.types.Path") ||
+        className.equals(ANT_CLASS_PREFIX + "types.Path") ||
         className.equals("java.lang.Class") ||
-        isSubclassOf("org.apache.tools.ant.types.EnumeratedAttribute") ||
+        isSubclassOf(ANT_CLASS_PREFIX + "types.EnumeratedAttribute") ||
         isEnum()
     }
 
