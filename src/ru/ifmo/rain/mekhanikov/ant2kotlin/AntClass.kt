@@ -8,7 +8,7 @@ import java.lang.reflect.Modifier
 
 val ANT_CLASS_PREFIX = "org.apache.tools.ant."
 
-class AntClass(classLoader : ClassLoader, className : String) {
+class AntClass(classLoader: ClassLoader, className: String) {
     private val PRIMITIVE_TYPES = HashMap<String, String>();
     {
         PRIMITIVE_TYPES["boolean"] = "Boolean"
@@ -29,11 +29,12 @@ class AntClass(classLoader : ClassLoader, className : String) {
         PRIMITIVE_TYPES["java.lang.Double"] = "Double"
     }
 
-    public val className : String = className
-    public val attributes : List<AntClassElement>
-    public val nestedElements : List<AntClassElement>
-    public val isTask : Boolean
-    public val isTaskContainer : Boolean;
+    public val className: String = className
+    public val attributes: List<Attribute>
+    public val nestedElements: List<Attribute>
+    public val isTask: Boolean
+    public val isTaskContainer: Boolean
+    public val hasRefId: Boolean;
     {
         val classObject = classLoader.loadClass(className)!!
         isTask = classObject.isSubclassOf(ANT_CLASS_PREFIX + "Task") &&
@@ -43,13 +44,16 @@ class AntClass(classLoader : ClassLoader, className : String) {
         nestedElements = if (!isTaskContainer) {
             getElements(classObject, {it -> parseNestedElement(it)})
         } else {
-            ArrayList<AntClassElement>()
+            ArrayList<Attribute>()
         }
+        hasRefId = attributes.firstOrNull({
+            it.name.equals("refid") && it.typeName.equals(ANT_CLASS_PREFIX + "types.Reference")
+        }) != null
     }
 
-    private fun getElements(classObject : Class<out Any?>,
-                            parseElement : (method : Method) -> AntClassElement?): List<AntClassElement> {
-        val elements = ArrayList<AntClassElement>()
+    private fun getElements(classObject: Class<out Any?>,
+                            parseElement: (method: Method) -> Attribute?): List<Attribute> {
+        val elements = ArrayList<Attribute>()
         val usedNames = HashSet<String>()
         for (method in classObject.getMethods()) {
             val element = parseElement(method)
@@ -61,7 +65,7 @@ class AntClass(classLoader : ClassLoader, className : String) {
         return elements
     }
 
-    private fun parseAttribute(method : Method) : AntClassElement? {
+    private fun parseAttribute(method: Method): Attribute? {
         val methodName = method.getName()!!
         if (method.isAntAttributeSetter()) {
             val attributeName = cutElementName(methodName, "set".length)
@@ -69,15 +73,13 @@ class AntClass(classLoader : ClassLoader, className : String) {
             var attributeTypeName = attributeType.getName()
             if (PRIMITIVE_TYPES.containsKey(attributeTypeName)) {
                 attributeTypeName = PRIMITIVE_TYPES[attributeTypeName]!!
-            } else {
-                attributeTypeName = "java.lang.String"
             }
-            return AntClassElement(attributeName, attributeTypeName)
+            return Attribute(attributeName, attributeTypeName)
         }
         return null
     }
 
-    private fun parseNestedElement(method : Method) : AntClassElement? {
+    private fun parseNestedElement(method: Method): Attribute? {
         val methodName = method.getName()!!
         val returnTypeName = method.getReturnType()!!.getName()
         if (methodName.startsWith("create") && method.getReturnType()!!.isAntClass()) {
@@ -86,7 +88,7 @@ class AntClass(classLoader : ClassLoader, className : String) {
                 return null
             }
             val elementType = returnTypeName
-            return AntClassElement(elementName, elementType)
+            return Attribute(elementName, elementType)
         }
         if (methodName.startsWith("add") &&
                 !method.getParameterTypes()!!.isEmpty() && method.getParameterTypes()!![0].isAntClass()) {
@@ -101,7 +103,7 @@ class AntClass(classLoader : ClassLoader, className : String) {
                 return null
             }
             val elementName = cutElementName(methodName, prefLen)
-            return AntClassElement(elementName, elementType)
+            return Attribute(elementName, elementType)
         }
         return null
     }
@@ -136,9 +138,9 @@ class AntClass(classLoader : ClassLoader, className : String) {
         return false
     }
 
-    private fun Class<out Any?>.isSubclassOf(className : String): Boolean {
+    private fun Class<out Any?>.isSubclassOf(className: String): Boolean {
         [suppress("UNCHECKED_CAST")]
-        var superclass : Class<Any?>? = this as Class<Any?>
+        var superclass = this as Class<Any?>?
         while (superclass != null) {
             if (superclass!!.getName().equals(className)) {
                 return true
@@ -148,7 +150,7 @@ class AntClass(classLoader : ClassLoader, className : String) {
         return false
     }
 
-    private fun Class<out Any?>.implements(interfaceName : String): Boolean {
+    private fun Class<out Any?>.implements(interfaceName: String): Boolean {
         for (interface in getInterfaces()) {
             if (interface.getName().equals(interfaceName)) {
                 return true
@@ -157,12 +159,12 @@ class AntClass(classLoader : ClassLoader, className : String) {
         return false
     }
 
-    private fun cutElementName(methodName : String, prefLen : Int): String {
+    private fun cutElementName(methodName: String, prefLen: Int): String {
         return methodName.substring(prefLen).toLowerCase()
     }
 }
 
-class AntClassElement(name : String, typeName : String) {
-    public val name : String = name
-    public val typeName : String = typeName
+class Attribute(name: String, typeName: String) {
+    public val name: String = name
+    public val typeName: String = typeName
 }

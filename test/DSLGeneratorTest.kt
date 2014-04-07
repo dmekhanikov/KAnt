@@ -34,14 +34,14 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         }
     }
 
-    private fun getMainMethod(packageName : String): Method {
+    private fun getMainMethod(packageName: String): Method {
         val fullPackageName = DSL_GENERATOR_TEST_PACKAGE + "." + packageName + "." + packageName.capitalize() + "Package"
         val packageClass = classLoader.loadClass(fullPackageName)!!
         return packageClass.getMethod("main", javaClass<Array<String>?>())
     }
 
-    private fun runDSLGeneratorTest(packageName : String, args : Array<String>?,
-                                    init : () -> Boolean, check : () -> Boolean) {
+    private fun runDSLGeneratorTest(packageName: String, args: Array<String>?,
+                                    init: () -> Boolean, check: () -> Boolean) {
         val mainMethod = getMainMethod(packageName)
         assert(init())
         mainMethod.invoke(null, args)

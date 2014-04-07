@@ -5,8 +5,9 @@ import java.util.ArrayList
 import java.net.URL
 import java.net.URLClassLoader
 import org.jetbrains.jet.cli.jvm.K2JVMCompiler
+import java.util.regex.Pattern
 
-fun createClassLoader(vararg jars : String): ClassLoader {
+fun createClassLoader(vararg jars: String): ClassLoader {
     val path = ArrayList<URL>()
     for (jar in jars) {
         if (jar.endsWith(".jar")) {
@@ -38,7 +39,21 @@ fun File.deleteRecursively() {
     delete()
 }
 
-fun compileKotlinCode(src : String, classpath : String, output : String) {
+fun compileKotlinCode(src: String, classpath: String, output: String) {
     val compiler = K2JVMCompiler()
     compiler.exec(System.out, "-src", src, "-classpath", classpath, "-output", output)
+}
+
+fun explodeTypeName(name: String): List<String> {
+    val result = ArrayList<String>()
+    val pattern = Pattern.compile("([^<>]*)<(.*)>")
+    var remaining = name
+    var matcher = pattern.matcher(remaining)
+    while (matcher.matches()) {
+        result.add(matcher.group(1)!!)
+        remaining = matcher.group(2)!!
+        matcher = pattern.matcher(remaining)
+    }
+    result.add(remaining)
+    return result.toList()
 }
