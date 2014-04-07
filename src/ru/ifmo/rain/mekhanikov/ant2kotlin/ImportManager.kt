@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 import java.util.ArrayList
 import ru.ifmo.rain.mekhanikov.explodeTypeName
 
-class ImportManager {
+class ImportManager(val pkg: String?) {
     public val imports: TreeMap<String, String> = TreeMap() // short name -> full name
 
     private fun cutName(name: String): String? {
@@ -43,6 +43,7 @@ class ImportManager {
         val res = StringBuilder("")
         for (name in imports.values()) {
             if (!name.startsWith("java.lang.") &&
+                !(pkg != null && name.startsWith(pkg) && name.lastIndexOf('.') == pkg.length) &&
                 !(name.startsWith("kotlin.") && name.lastIndexOf('.') == "kotlin.".length - 1)) {
                 res.append("import ").append(name).append("\n")
             }

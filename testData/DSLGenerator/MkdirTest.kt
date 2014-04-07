@@ -1,10 +1,6 @@
 package testData.DSLGenerator.mkdir
 
-import ru.ifmo.rain.mekhanikov.antdsl.StringProperty
-import ru.ifmo.rain.mekhanikov.antdsl.project
-import ru.ifmo.rain.mekhanikov.antdsl.target
-import ru.ifmo.rain.mekhanikov.antdsl.generated.taskdefs.mkdir
-import ru.ifmo.rain.mekhanikov.antdsl.generated.taskdefs.delete
+import ru.ifmo.rain.mekhanikov.antdsl.*
 import java.io.File
 
 val dir: String by StringProperty("")

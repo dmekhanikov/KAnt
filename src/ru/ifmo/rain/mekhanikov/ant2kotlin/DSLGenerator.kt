@@ -9,7 +9,6 @@ import ru.ifmo.rain.mekhanikov.explodeTypeName
 import java.util.HashSet
 
 val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
-val GENERATED_DSL_PACKAGE = DSL_PACKAGE + ".generated"
 
 class DSLGenerator(jarPath: String, resultRoot: String) {
     private val resolved = HashMap<String, AntClass>()
@@ -41,7 +40,7 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
     }
 
     public fun generate() {
-        val generatedRoot = resultRoot + GENERATED_DSL_PACKAGE.replace('.', '/')
+        val generatedRoot = resultRoot + DSL_PACKAGE.replace('.', '/') + "/generated"
         File(generatedRoot).mkdirs()
         val jis = JarInputStream(FileInputStream(jarPath))
         var antTaskClass = jis.nextAntTask()
@@ -54,19 +53,20 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
 
     private fun resultClassName(srcClassName: String): String {
         val className = srcClassName.replace("$", "")
-        val result = StringBuilder()
-        result.append(GENERATED_DSL_PACKAGE + ".")
-        if (srcClassName.startsWith(ANT_CLASS_PREFIX)) {
-            result.append(className.substring(ANT_CLASS_PREFIX.length))
-        } else {
-            result.append("other." + className)
-        }
-        result.insert(result.lastIndexOf(".") + 1, "DSL")
-        return result.toString()
+        return DSL_PACKAGE + ".DSL" + className.substring(className.lastIndexOf('.') + 1)
     }
 
     private fun resultFile(srcClassName: String): File {
-        return File(resultRoot + resultClassName(srcClassName).replace('.', '/') + ".kt")
+        val className = srcClassName.replace("$", "")
+        val relativePath = StringBuilder()
+        relativePath.append(DSL_PACKAGE + ".generated.")
+        if (srcClassName.startsWith(ANT_CLASS_PREFIX)) {
+            relativePath.append(className.substring(ANT_CLASS_PREFIX.length))
+        } else {
+            relativePath.append("other." + className)
+        }
+        relativePath.insert(relativePath.lastIndexOf(".") + 1, "DSL")
+        return File(resultRoot + relativePath.toString().replace('.', '/') + ".kt")
     }
 
     private fun JarInputStream.nextAntTask(): AntClass? {
@@ -96,7 +96,7 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
                     if (attr.name.equals("refid")) {
                         DSL_PACKAGE + ".Reference<${resultClassName(parentName)}>"
                     } else if (attr.name.endsWith("pathref")) {
-                        DSL_PACKAGE + ".Reference<$GENERATED_DSL_PACKAGE.types.DSLPath>"
+                        DSL_PACKAGE + ".Reference<$DSL_PACKAGE.DSLPath>"
                     } else if (attr.name.equals("loaderref")) {
                          DSL_PACKAGE + ".LoaderRef"
                     } else {
