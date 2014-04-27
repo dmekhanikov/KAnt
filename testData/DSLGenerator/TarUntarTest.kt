@@ -1,7 +1,6 @@
 package testData.DSLGenerator.tarUntar
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
-import java.io.File
 
 val sourceDir: String by StringProperty("")
 val tarFile: String by StringProperty("")

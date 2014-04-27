@@ -1,49 +1,60 @@
 package ru.ifmo.rain.mekhanikov.antdsl
 
-import java.util.HashMap
 import java.util.regex.Pattern
-import java.io.File
+import org.apache.tools.ant.Project
+import org.apache.tools.ant.PropertyHelper
 
-val properties = HashMap<String, Any>()
+var propertyHelper: PropertyHelper? = null
 
-fun initProperties(args: Array<String>) {
-    properties.clear()
+fun initProperties(project: Project, args: Array<String>) {
+    propertyHelper = PropertyHelper.getPropertyHelper(project)
     for (arg in args) {
         val pattern = Pattern.compile("-D(\\w+)=(.*)")!!
         val matcher = pattern.matcher(arg)!!
         if (matcher.matches()) {
             val propName = matcher.group(1)!!
             val propVal = matcher.group(2)!!
-            properties[propName] = propVal
+            propertyHelper!!.setUserProperty(propName, propVal)
         }
     }
 }
 
-open class Property<T>(val convert: (value: String) -> T, val defaultValue: () -> T) {
-    public fun get(thisRef: Any?, prop: PropertyMetadata): T {
-        if (properties.containsKey(prop.name)) {
-            val value = properties[prop.name]
-            return if (value is String) {
-                convert(value)
-            } else {
-                value as T
-            }
+open class Property<T>(val convert: (value: String) -> T, val defaultValue: () -> T, val name: String? = null) {
+    private fun getName(prop: PropertyMetadata): String {
+        if (name != null) {
+            return name
         } else {
-            return defaultValue()
+            return prop.name
+        }
+    }
+
+    public fun get(thisRef: Any?, prop: PropertyMetadata): T {
+        val propName = getName(prop)
+        var value = propertyHelper!!.getProperty(propName)
+        if (value == null) {
+            value = defaultValue()
+            propertyHelper!!.setUserProperty(propName, value)
+        }
+        val result = value
+        return if (result is String) {
+            convert(result)
+        } else {
+            value as T
         }
     }
 
     public fun set(thisRef: Any?, prop: PropertyMetadata, value: T) {
-        properties[prop.name] = value
+        val propName = getName(prop)
+        propertyHelper!!.setUserProperty(propName, value)
     }
 }
 
-class BooleanProperty(defaultValue: Boolean) : Property<Boolean>({ java.lang.Boolean.parseBoolean(it) }, { defaultValue })
-class CharProperty(defaultValue: Char) : Property<Char>({ it[0] }, { defaultValue })
-class ByteProperty(defaultValue: Byte) : Property<Byte>({ java.lang.Byte.parseByte(it) }, { defaultValue })
-class ShortProperty(defaultValue: Short) : Property<Short>({ java.lang.Short.parseShort(it) }, { defaultValue })
-class IntProperty(defaultValue: Int) : Property<Int>({ Integer.parseInt(it) }, { defaultValue })
-class FloatProperty(defaultValue: Float) : Property<Float>({ java.lang.Float.parseFloat(it) }, { defaultValue })
-class LongProperty(defaultValue: Long) : Property<Long>({ java.lang.Long.parseLong(it) }, { defaultValue })
-class DoubleProperty(defaultValue: Double) : Property<Double>({ java.lang.Double.parseDouble(it) }, { defaultValue })
-class StringProperty(defaultValue: String) : Property<String>({ it }, { defaultValue })
+class BooleanProperty(defaultValue: Boolean, name: String? = null) : Property<Boolean>({ java.lang.Boolean.parseBoolean(it) }, { defaultValue }, name)
+class CharProperty(defaultValue: Char, name: String? = null) : Property<Char>({ it[0] }, { defaultValue }, name)
+class ByteProperty(defaultValue: Byte, name: String? = null) : Property<Byte>({ java.lang.Byte.parseByte(it) }, { defaultValue }, name)
+class ShortProperty(defaultValue: Short, name: String? = null) : Property<Short>({ java.lang.Short.parseShort(it) }, { defaultValue }, name)
+class IntProperty(defaultValue: Int, name: String? = null) : Property<Int>({ Integer.parseInt(it) }, { defaultValue }, name)
+class FloatProperty(defaultValue: Float, name: String? = null) : Property<Float>({ java.lang.Float.parseFloat(it) }, { defaultValue }, name)
+class LongProperty(defaultValue: Long, name: String? = null) : Property<Long>({ java.lang.Long.parseLong(it) }, { defaultValue }, name)
+class DoubleProperty(defaultValue: Double, name: String? = null) : Property<Double>({ java.lang.Double.parseDouble(it) }, { defaultValue }, name)
+class StringProperty(defaultValue: String, name: String? = null) : Property<String>({ it }, { defaultValue }, name)

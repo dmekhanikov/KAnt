@@ -38,4 +38,13 @@ open class Ant2KotlinTestCase: TestCase() {
         }
         assertEquals(readFile(expected), readFile(actual))
     }
+
+    protected fun assertNotEmpty(file: File) {
+        val br = BufferedReader(FileReader(file));
+        var line = br.readLine()
+        while (line != null && line!!.trim().isEmpty()) {
+            line = br.readLine()
+        }
+        assert(line != null, "File is empty.")
+    }
 }

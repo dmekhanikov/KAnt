@@ -12,7 +12,7 @@ import java.util.TreeMap
 
 abstract class DSLElement(val elementTag: String) {
     val attributes = TreeMap<String, Any?>()
-    val children = ArrayList<DSLElement>();
+    val children = ArrayList<DSLElement>()
 
     public fun initElement<T : DSLElement>(element: T, init: T.() -> Unit): T {
         element.init()
@@ -54,38 +54,40 @@ abstract class DSLElement(val elementTag: String) {
     }
 }
 
-class DSLProject() : DSLElement("project") {
+class DSLProject(val args: Array<String>) : DSLElement("project") {
     var default: DSLTarget? = null
-    var basedir: File by Delegates.mapVar(attributes);
+    var basedir: File by Delegates.mapVar(attributes)
+    val project = Project();
+    {
+        project.init()
+        initProperties(project, args)
+    }
 
     override fun perform(parentWrapper: RuntimeConfigurable?, project: Project?, target: Target?) {
-        [suppress("NAME_SHADOWING")]
-        val project = Project()
-        project.init()
         val implicitTarget = Target()
-        implicitTarget.setProject(project);
-        implicitTarget.setName("");
+        implicitTarget.setProject(this.project)
+        implicitTarget.setName("")
         for (child in children) {
-            child.perform(null, project, implicitTarget)
+            child.perform(null, this.project, implicitTarget)
         }
         implicitTarget.execute()
         if (default != null) {
-            project.setDefault(default!!.targetName)
+            this.project.setDefault(default!!.name)
             if (attributes.containsKey("basedir")) {
-                project.setBaseDir(basedir)
+                this.project.setBaseDir(basedir)
             }
-            project.executeTarget(project.getDefaultTarget())
+            this.project.executeTarget(this.project.getDefaultTarget())
         }
     }
 }
 
 abstract class DSLTaskContainer(elementTag: String) : DSLElement(elementTag)
 
-class DSLTarget(val targetName: String) : DSLTaskContainer("target") {
+class DSLTarget(val name: String) : DSLTaskContainer("target") {
     override fun perform(parentWrapper: RuntimeConfigurable?, project: Project?, target: Target?) {
         [suppress("NAME_SHADOWING")]
         val target = Target()
-        project!!.addTarget(targetName, target)
+        project!!.addTarget(name, target)
         for (child in children) {
             child.perform(null, project, target)
         }
@@ -93,15 +95,14 @@ class DSLTarget(val targetName: String) : DSLTaskContainer("target") {
 }
 
 public fun project(args: Array<String>, init: DSLProject.() -> Unit): DSLProject {
-    val dslProject = DSLProject()
-    initProperties(args)
+    val dslProject = DSLProject(args)
     dslProject.init()
     dslProject.perform(null, null, null)
     return dslProject
 }
 
-public fun DSLProject.target(name: String, init: DSLTarget.() -> Unit): DSLTarget {
-    val dslTarget = DSLTarget(name)
+public fun DSLProject.target(targetName: String, init: DSLTarget.() -> Unit): DSLTarget {
+    val dslTarget = DSLTarget(targetName)
     initElement(dslTarget, init)
     return dslTarget
 }

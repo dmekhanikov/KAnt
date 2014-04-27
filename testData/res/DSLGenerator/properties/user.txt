@@ -1,0 +1,5 @@
+passed value
+true
+42
+21568.3
+default value

@@ -1,7 +1,6 @@
 package testData.DSLGenerator.mkdir
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
-import java.io.File
 
 val dir: String by StringProperty("")
 

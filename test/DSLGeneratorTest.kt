@@ -1,10 +1,9 @@
-import java.io.File
 import ru.ifmo.rain.mekhanikov.ant2kotlin.DSLGenerator
 import ru.ifmo.rain.mekhanikov.compileKotlinCode
 import ru.ifmo.rain.mekhanikov.cleanDirectory
 import ru.ifmo.rain.mekhanikov.createClassLoader
 import java.lang.reflect.Method
-import ru.ifmo.rain.mekhanikov.deleteRecursively
+import java.io.File
 
 var dslGeneratorTestInitComplete = false
 
@@ -82,6 +81,28 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
                 array("-DsrcDir=" + srcDir.toString(), "-DdestDir=" + destDir.toString()),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(srcFile, resFile); true }
+        )
+    }
+
+    public fun testProperties() {
+        val systemPropertiesOutFile = File(WORKING_DIR + "system.txt")
+        val userPropertiesOutFile = File(WORKING_DIR + "user.txt")
+        val propertiesResDir = File(DSL_GENERATOR_TEST_RES + "properties/")
+        val userExpFile = File(propertiesResDir.toString() + "/user.txt")
+        runDSLGeneratorTest(
+                "properties",
+                array("-DsystemPropertiesOutFile=" + systemPropertiesOutFile.toString(),
+                        "-DuserPropertiesOutFile=" + userPropertiesOutFile.toString(),
+                        "-DstringProperty=passed value",
+                        "-DintProperty=42",
+                        "-DbooleanProperty=true",
+                        "-DdoubleProperty=21568.3"),
+                { File(WORKING_DIR).cleanDirectory(); true },
+                {
+                    assertNotEmpty(systemPropertiesOutFile)
+                    assertFilesMatch(userExpFile, userPropertiesOutFile)
+                    true
+                }
         )
     }
 }
