@@ -47,6 +47,14 @@ open class Property<T>(val convert: (value: String) -> T, val defaultValue: () -
         val propName = getName(prop)
         propertyHelper!!.setUserProperty(propName, value)
     }
+
+    public fun isSet(thisRef: Any?, prop: PropertyMetadata): Boolean {
+        return propertyIsSet(getName(prop))
+    }
+}
+
+public fun propertyIsSet(name: String): Boolean {
+    return propertyHelper!!.getProperty(name) != null
 }
 
 class BooleanProperty(defaultValue: Boolean, name: String? = null) : Property<Boolean>({ java.lang.Boolean.parseBoolean(it) }, { defaultValue }, name)
