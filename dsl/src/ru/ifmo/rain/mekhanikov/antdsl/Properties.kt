@@ -47,10 +47,6 @@ open class Property<T>(val convert: (value: String) -> T, val defaultValue: () -
         val propName = getName(prop)
         propertyHelper!!.setUserProperty(propName, value)
     }
-
-    public fun isSet(thisRef: Any?, prop: PropertyMetadata): Boolean {
-        return propertyIsSet(getName(prop))
-    }
 }
 
 public fun propertyIsSet(name: String): Boolean {
