@@ -83,11 +83,20 @@ class DSLProject(val args: Array<String>) : DSLElement("project") {
 
 abstract class DSLTaskContainer(elementTag: String) : DSLElement(elementTag)
 
-class DSLTarget(val name: String) : DSLTaskContainer("target") {
+class DSLTarget(val name: String, val depends: Array<DSLTarget>) : DSLTaskContainer("target") {
     override fun perform(parentWrapper: RuntimeConfigurable?, project: Project?, target: Target?) {
-        [suppress("NAME_SHADOWING")]
         val target = Target()
+        target.setProject(project)
+        target.setName(name)
         project!!.addTarget(name, target)
+        val dependsString = StringBuilder()
+        for (depend in depends) {
+            if (dependsString.length() > 0) {
+                dependsString.append(",")
+            }
+            dependsString.append(depend.name)
+        }
+        target.setDepends(dependsString.toString())
         for (child in children) {
             child.perform(null, project, target)
         }
@@ -101,8 +110,8 @@ public fun project(args: Array<String>, init: DSLProject.() -> Unit): DSLProject
     return dslProject
 }
 
-public fun DSLProject.target(targetName: String, init: DSLTarget.() -> Unit): DSLTarget {
-    val dslTarget = DSLTarget(targetName)
+public fun DSLProject.target(name: String, vararg depends: DSLTarget, init: DSLTarget.() -> Unit): DSLTarget {
+    val dslTarget = DSLTarget(name, depends)
     initElement(dslTarget, init)
     return dslTarget
 }

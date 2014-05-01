@@ -139,7 +139,6 @@ class AntClass(classLoader: ClassLoader, className: String) {
     }
 
     private fun Class<out Any?>.isSubclassOf(className: String): Boolean {
-        [suppress("UNCHECKED_CAST")]
         var superclass = this as Class<Any?>?
         while (superclass != null) {
             if (superclass!!.getName().equals(className)) {

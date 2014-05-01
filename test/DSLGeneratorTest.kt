@@ -105,4 +105,28 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
                 }
         )
     }
+
+    public fun testDepends() {
+        val src1Dir = File(DSL_GENERATOR_TEST_RES + "toCopy/src1")
+        val src1File = File(src1Dir.toString() + "/test1.txt")
+        val src2Dir = File(DSL_GENERATOR_TEST_RES + "toCopy/src2")
+        val src2File = File(src2Dir.toString() + "/test2.txt")
+        val srcDir = File(WORKING_DIR + "src")
+        val destDir = File(WORKING_DIR + "dest")
+        val dest1File = File(destDir.toString() + "/test1.txt")
+        val dest2File = File(destDir.toString() + "/test2.txt")
+        runDSLGeneratorTest(
+                "dependencies",
+                array("-Dsrc1Dir=" + src1Dir.toString(),
+                        "-Dsrc2Dir=" + src2Dir.toString(),
+                        "-DsrcDir=" + srcDir.toString(),
+                        "-DdestDir=" + destDir.toString()),
+                { File(WORKING_DIR).cleanDirectory(); true },
+                {
+                    assertFilesMatch(src1File, dest1File)
+                    assertFilesMatch(src2File, dest2File)
+                    true
+                }
+        )
+    }
 }
