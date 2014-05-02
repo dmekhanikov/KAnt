@@ -47,7 +47,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
             ArrayList<Attribute>()
         }
         hasRefId = attributes.firstOrNull({
-            it.name.equals("refid") && it.typeName.equals(ANT_CLASS_PREFIX + "types.Reference")
+            (it.name == "refid") && (it.typeName == ANT_CLASS_PREFIX + "types.Reference")
         }) != null
     }
 
@@ -84,7 +84,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
         val returnTypeName = method.getReturnType()!!.getName()
         if (methodName.startsWith("create") && method.getReturnType()!!.isAntClass()) {
             val elementName = cutElementName(methodName, "create".length)
-            if (elementName.equals("")) {
+            if (elementName == "") {
                 return null
             }
             val elementType = returnTypeName
@@ -115,15 +115,15 @@ class AntClass(classLoader: ClassLoader, className: String) {
     private fun Method.isAntAttributeSetter(): Boolean {
         val methodName = getName()!!
         return methodName.startsWith("set") && !getParameterTypes()!!.isEmpty() && getParameterTypes()!![0].isAntAttribute() &&
-        !methodName.equals("setTaskName") && !methodName.equals("setTaskType") &&
-        !methodName.equals("setLocation") && !methodName.equals("setDescription")
+        methodName != "setTaskName" && methodName != "setTaskType" &&
+        methodName != "setLocation" && methodName != "setDescription"
     }
 
     private fun Class<out Any?>.isAntAttribute(): Boolean {
         val className = getName()
         return PRIMITIVE_TYPES.containsKey(className) || hasStringConstructor() ||
-        className.equals(ANT_CLASS_PREFIX + "types.Path") ||
-        className.equals("java.lang.Class") ||
+        className == ANT_CLASS_PREFIX + "types.Path" ||
+        className == "java.lang.Class" ||
         isSubclassOf(ANT_CLASS_PREFIX + "types.EnumeratedAttribute") ||
         isEnum()
     }
@@ -141,7 +141,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
     private fun Class<out Any?>.isSubclassOf(className: String): Boolean {
         var superclass = this as Class<Any?>?
         while (superclass != null) {
-            if (superclass!!.getName().equals(className)) {
+            if (superclass!!.getName() == className) {
                 return true
             }
             superclass = superclass!!.getSuperclass()
@@ -151,7 +151,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
 
     private fun Class<out Any?>.implements(interfaceName: String): Boolean {
         for (interface in getInterfaces()) {
-            if (interface.getName().equals(interfaceName)) {
+            if (interface.getName() == interfaceName) {
                 return true
             }
         }

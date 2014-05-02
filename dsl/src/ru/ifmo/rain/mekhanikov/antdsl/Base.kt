@@ -35,7 +35,7 @@ abstract class DSLElement(val elementTag: String) {
         }
         val wrapper = RuntimeConfigurable(task, task.getTaskName())
         for (attr in attributes) {
-            if (attr.key.equals("id")) {
+            if (attr.key == "id") {
                 project!!.addIdReference(attr.value as String, task)
             }
             val storedValue = attr.value

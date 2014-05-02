@@ -92,12 +92,12 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
         val typeName =
                 if (PRIMITIVE_TYPES.contains(attr.typeName)) {
                     attr.typeName
-                } else if (attr.typeName.equals(ANT_CLASS_PREFIX + "types.Reference")) {
-                    if (attr.name.equals("refid")) {
+                } else if (attr.typeName == ANT_CLASS_PREFIX + "types.Reference") {
+                    if (attr.name == "refid") {
                         DSL_PACKAGE + ".Reference<${resultClassName(parentName)}>"
                     } else if (attr.name.endsWith("pathref")) {
                         DSL_PACKAGE + ".Reference<$DSL_PACKAGE.DSLPath>"
-                    } else if (attr.name.equals("loaderref")) {
+                    } else if (attr.name == "loaderref") {
                          DSL_PACKAGE + ".LoaderRef"
                     } else {
                         "java.lang.String"
