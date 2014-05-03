@@ -6,49 +6,60 @@ import java.util.jar.JarInputStream
 import java.io.FileInputStream
 import ru.ifmo.rain.mekhanikov.createClassLoader
 import ru.ifmo.rain.mekhanikov.explodeTypeName
-import java.util.HashSet
+import java.util.regex.Pattern
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
 
 class DSLGenerator(jarPath: String, resultRoot: String) {
-    private val resolved = HashMap<String, AntClass>()
+    private val resolved = HashMap<String, Target>()
     private val jarPath = jarPath
     private val classLoader = createClassLoader(jarPath)
     private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
+
+    private var propertiesReader: BufferedReader? = null
 
     private val PRIMITIVE_TYPES = array("Boolean", "Char", "Byte", "Short", "Int", "Float", "Long", "Double").toSet()
 
     public fun resolveClass(className: String) {
         val names = explodeTypeName(className)
         for (name in names) {
-            if (!name.startsWith(ANT_CLASS_PREFIX) || resolved.containsKey(name)) {
-                return
+            if (!resolved.containsKey(name)) {
+                val antClass: AntClass?
+                try {
+                    antClass = AntClass(classLoader, className)
+                } catch (e: ClassNotFoundException) {
+                    antClass = null
+                }
+                if (antClass != null) {
+                    val target = Target(className)
+                    target.antClass = antClass
+                    resolved[className] = target
+                    val resultClassName = resultClassName(className)
+                    val pkg = resultClassName.substring(0, resultClassName.lastIndexOf('.'))
+                    target.kotlinSrcFile = antClass.toKotlin(pkg)
+                }
             }
-            val antClass = AntClass(classLoader, name)
-            resolveClass(antClass)
         }
-    }
-
-    public fun resolveClass(antClass: AntClass) {
-        if (resolved.containsKey(antClass.className)) {
-            return
-        }
-        resolved[antClass.className] = antClass
-        val resultClassName = resultClassName(antClass.className)
-        val kotlinSrcFile = antClass.toKotlin(resultClassName.substring(0, resultClassName.lastIndexOf('.')))
-        kotlinSrcFile.dump(resultFile(antClass.className))
     }
 
     public fun generate() {
         val generatedRoot = resultRoot + DSL_PACKAGE.replace('.', '/') + "/generated"
         File(generatedRoot).mkdirs()
         val jis = JarInputStream(FileInputStream(jarPath))
-        var antTaskClass = jis.nextAntTask()
-        while (antTaskClass != null) {
-            resolveClass(antTaskClass!!)
-            antTaskClass = jis.nextAntTask()
+        var alias = jis.nextAlias()
+        while (alias != null) {
+            val tag = alias!!.tag
+            val className = alias!!.className
+            resolveClass(className)
+            resolved[className]?.generateConstructors(tag)
+            alias = jis.nextAlias()
         }
         jis.close()
+        for (target in resolved.values()) {
+            target.dumpFile()
+        }
     }
 
     private fun resultClassName(srcClassName: String): String {
@@ -69,22 +80,60 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
         return File(resultRoot + relativePath.toString().replace('.', '/') + ".kt")
     }
 
-    private fun JarInputStream.nextAntTask(): AntClass? {
+    private fun JarInputStream.nextAlias(): Alias? {
+        var line = nextPropertiesLine()
+        while (line != null) {
+            val alias = parseAlias(line!!)
+            if (alias != null) {
+                return alias
+            }
+            line = nextPropertiesLine()
+        }
+        return null
+    }
+
+    private fun updatePropertiesReader(jis: JarInputStream): Boolean {
+        val propertiesFileName = jis.nextPropertiesFileName()
+        if (propertiesFileName == null) {
+            return false
+        }
+        propertiesReader = BufferedReader(InputStreamReader(classLoader.getResourceAsStream(propertiesFileName)!!))
+        return true
+    }
+
+    private fun JarInputStream.nextPropertiesLine(): String? {
+        var line = propertiesReader?.readLine()
+        while (line == null) {
+            if (!updatePropertiesReader(this)) {
+                return null
+            }
+            line = propertiesReader!!.readLine()
+        }
+        return line
+    }
+
+    private fun JarInputStream.nextPropertiesFileName(): String? {
         var jarEntry = getNextJarEntry()
         while (jarEntry != null) {
             val entryName = jarEntry!!.getName()
-            if (entryName.startsWith(ANT_CLASS_PREFIX.replace('.', '/') + "taskdefs/") &&
-            entryName.endsWith(".class") &&
-            !entryName.contains("$")) {
-                val className = entryName.substring(0, entryName.lastIndexOf('.')).replace('/', '.')
-                val antClass = AntClass(classLoader, className)
-                if (antClass.isTask) {
-                    return antClass
-                }
+            if (entryName.endsWith(".properties")) {
+                return entryName
             }
             jarEntry = getNextJarEntry()
         }
         return null
+    }
+
+    private fun parseAlias(line: String): Alias? {
+        val pattern = Pattern.compile("^(\\w*)\\s*=\\s*([\\w.]*)$")
+        val matcher = pattern.matcher(line)
+        if (matcher.matches()) {
+            val tag = matcher.group(1)!!
+            val className = matcher.group(2)!!
+            return Alias(tag, className)
+        } else {
+            return null
+        }
     }
 
     private fun dslAttribute(attr: Attribute, parentName: String): Attribute {
@@ -111,11 +160,9 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
     private fun AntClass.toKotlin(pkg: String?): KotlinSourceFile {
         val res = KotlinSourceFile(pkg)
         val dslTypeName = "DSL" + cutShortName(className)
-        val tag = cutTag(className)
         val dslElementShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLElement")
         val dslTaskContainerShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLTaskContainer")
-        val dslProjectShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLProject")
-        res.append("class $dslTypeName() : ${if (isTaskContainer) {dslTaskContainerShorten} else {dslElementShorten}}(\"$tag\") {\n")
+        res.append("class $dslTypeName : ${if (isTaskContainer) {dslTaskContainerShorten} else {dslElementShorten}}() {\n")
         for (attr in attributes) {
             val dslAttr = dslAttribute(attr, className)
             res.append("    var `${dslAttr.name}`: ${res.importManager.shorten(dslAttr.typeName.replace('$', '.'))} " +
@@ -124,13 +171,6 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
         res.append("}\n")
         for (element in nestedElements) {
             renderNestedElement(res, dslTypeName, element)
-            resolveClass(element.typeName)
-        }
-        if (isTask) {
-            renderNestedElement(res, dslTaskContainerShorten, Attribute(tag, className))
-        }
-        if (hasRefId) {
-            renderNestedElement(res, dslProjectShorten, Attribute(tag, className))
         }
         return res
     }
@@ -147,7 +187,7 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
     private fun AntClass.renderNestedElement(out: KotlinSourceFile,
                                              parentName: String, element: Attribute) {
         resolveClass(element.typeName)
-        val elementClass = resolved[explodeTypeName(element.typeName)[0]]!!
+        val elementClass = resolved[explodeTypeName(element.typeName)[0]]!!.antClass!!
         elementClass.renderConstructor(out, parentName, element.name, true)
         elementClass.renderConstructor(out, parentName, element.name, false)
     }
@@ -190,9 +230,9 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
                 out.append("    if (`${dslAttr.name}` != null) { dslObject.`${dslAttr.name}` = `${dslAttr.name}` }\n")
             }
             if (returnType != null) {
-                out.append("    return ${out.importManager.shorten(returnType)}(initElement(dslObject, init))\n")
+                out.append("    return ${out.importManager.shorten(returnType)}(initElement(\"$tag\", dslObject, init))\n")
             } else {
-                out.append("    initElement(dslObject, init)\n")
+                out.append("    initElement(\"$tag\", dslObject, init)\n")
             }
         } else {
             out.append("    return `$tag`(\n")
@@ -208,7 +248,27 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
         return name.substring(name.lastIndexOf('.') + 1).replace("$", "")
     }
 
-    private fun cutTag(name: String): String {
-        return cutShortName(name).toLowerCase()
+    private inner class Target(val className: String) {
+        var antClass: AntClass? = null
+        var kotlinSrcFile: KotlinSourceFile? = null
+
+        fun generateConstructors(tag: String) {
+            val invAntClass = antClass!!
+            val invKotlinSrcFile = kotlinSrcFile!!
+            val dslTaskContainerShorten = invKotlinSrcFile.importManager.shorten(DSL_PACKAGE + ".DSLTaskContainer")
+            val dslProjectShorten = invKotlinSrcFile.importManager.shorten(DSL_PACKAGE + ".DSLProject")
+            if (invAntClass.isTask) {
+                invAntClass.renderNestedElement(invKotlinSrcFile, dslTaskContainerShorten, Attribute(tag, className))
+            }
+            if (invAntClass.hasRefId) {
+                invAntClass.renderNestedElement(invKotlinSrcFile, dslProjectShorten, Attribute(tag, className))
+            }
+        }
+
+        fun dumpFile() {
+            kotlinSrcFile!!.dump(resultFile(className))
+        }
     }
+
+    private class Alias(val tag: String, val className: String) {}
 }

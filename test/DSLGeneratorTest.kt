@@ -57,15 +57,15 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         )
     }
 
-    public fun testTarUntar() {
-        val toTarDir = File(DSL_GENERATOR_TEST_RES + "toTar/")
-        val toTarFile = File(toTarDir.toString() + "/toTar.txt")
-        val destFile = File(WORKING_DIR + "toUntar.tar")
+    public fun testZipUnzip() {
+        val toTarDir = File(DSL_GENERATOR_TEST_RES + "toZip/")
+        val toTarFile = File(toTarDir.toString() + "/toZip.txt")
+        val destFile = File(WORKING_DIR + "toUnzip.tar")
         val resDir = File(WORKING_DIR)
-        val resFile = File(resDir.toString() + "/toTar.txt")
+        val resFile = File(resDir.toString() + "/toZip.txt")
         runDSLGeneratorTest(
-                "tarUntar",
-                array("-DsourceDir=" + toTarDir.toString(), "-DtarFile=" + destFile.toString(), "-DoutDir=" + resDir.toString()),
+                "zipUnzip",
+                array("-DsourceDir=" + toTarDir.toString(), "-DzipFile=" + destFile.toString(), "-DoutDir=" + resDir.toString()),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(toTarFile, resFile); true }
         )

@@ -4,7 +4,7 @@ import java.io.BufferedReader
 import java.io.FileReader
 import kotlin.test.assertEquals
 
-open class Ant2KotlinTestCase: TestCase() {
+open class Ant2KotlinTestCase : TestCase() {
     val TEST_ROOT = "test/"
     val TEST_DATA_ROOT = "testData/"
     val TEST_RES_ROOT = TEST_DATA_ROOT + "res/"

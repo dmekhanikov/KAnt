@@ -10,11 +10,13 @@ import java.io.File
 import java.util.ArrayList
 import java.util.TreeMap
 
-abstract class DSLElement(val elementTag: String) {
+abstract class DSLElement {
     val attributes = TreeMap<String, Any?>()
     val children = ArrayList<DSLElement>()
+    var elementTag: String? = null
 
-    public fun initElement<T : DSLElement>(element: T, init: T.() -> Unit): T {
+    public fun initElement<T : DSLElement>(elementTag: String, element: T, init: T.() -> Unit): T {
+        element.elementTag = elementTag
         element.init()
         children.add(element)
         return element
@@ -54,7 +56,7 @@ abstract class DSLElement(val elementTag: String) {
     }
 }
 
-class DSLProject(val args: Array<String>) : DSLElement("project") {
+class DSLProject(val args: Array<String>) : DSLElement() {
     var default: DSLTarget? = null
     var basedir: File by Delegates.mapVar(attributes)
     val project = Project();
@@ -81,9 +83,9 @@ class DSLProject(val args: Array<String>) : DSLElement("project") {
     }
 }
 
-abstract class DSLTaskContainer(elementTag: String) : DSLElement(elementTag)
+abstract class DSLTaskContainer : DSLElement()
 
-class DSLTarget(val name: String, val depends: Array<DSLTarget>) : DSLTaskContainer("target") {
+class DSLTarget(val name: String, val depends: Array<DSLTarget>) : DSLTaskContainer() {
     override fun perform(parentWrapper: RuntimeConfigurable?, project: Project?, target: Target?) {
         val target = Target()
         target.setProject(project)
@@ -112,6 +114,6 @@ public fun project(args: Array<String>, init: DSLProject.() -> Unit): DSLProject
 
 public fun DSLProject.target(name: String, vararg depends: DSLTarget, init: DSLTarget.() -> Unit): DSLTarget {
     val dslTarget = DSLTarget(name, depends)
-    initElement(dslTarget, init)
+    initElement("target", dslTarget, init)
     return dslTarget
 }
