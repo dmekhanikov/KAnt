@@ -56,7 +56,9 @@ abstract class DSLElement {
     }
 }
 
-class DSLProject(val args: Array<String>) : DSLElement() {
+abstract class DSLTaskContainer : DSLElement()
+
+class DSLProject(val args: Array<String>) : DSLTaskContainer() {
     var default: DSLTarget? = null
     var basedir: File by Delegates.mapVar(attributes)
     val project = Project();
@@ -82,8 +84,6 @@ class DSLProject(val args: Array<String>) : DSLElement() {
         }
     }
 }
-
-abstract class DSLTaskContainer : DSLElement()
 
 class DSLTarget(val name: String, val depends: Array<DSLTarget>) : DSLTaskContainer() {
     override fun perform(parentWrapper: RuntimeConfigurable?, project: Project?, target: Target?) {

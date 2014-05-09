@@ -10,6 +10,7 @@ var dslGeneratorTestInitComplete = false
 class DSLGeneratorTest : Ant2KotlinTestCase() {
     val ANT_JAR_FILE = "lib/ant-1.9.3.jar"
     val ANT_LAUNCHER_JAR_FILE = "lib/ant-launcher-1.9.3.jar"
+    val ANT_CONTRIB_JAR_FILE = "lib/ant-contrib-1.0b3.jar"
     val KOTLIN_RUNTIME_JAR_FILE = "lib/kotlin-runtime.jar"
     val DSL_GENERATOR_OUT_ROOT = TEST_OUT_ROOT + "DSLGenerator/"
     val DSL_GENERATOR_TEST_DATA = TEST_DATA_ROOT + "DSLGenerator/"
@@ -19,12 +20,12 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
     val DSL_GENERATED_ROOT = DSL_ROOT + "ru/ifmo/rain/mekhanikov/antdsl/generated/"
     val WORKING_DIR = DSL_GENERATOR_OUT_ROOT + "playground/"
 
-    val classLoader = createClassLoader(DSL_GENERATOR_OUT_ROOT,
-            ANT_JAR_FILE, ANT_LAUNCHER_JAR_FILE, KOTLIN_RUNTIME_JAR_FILE);
+    val classLoader = createClassLoader(array(DSL_GENERATOR_OUT_ROOT,
+            ANT_JAR_FILE, ANT_LAUNCHER_JAR_FILE, KOTLIN_RUNTIME_JAR_FILE));
     {
         if (!dslGeneratorTestInitComplete) {
             File(DSL_GENERATED_ROOT).cleanDirectory()
-            DSLGenerator(ANT_JAR_FILE, DSL_ROOT).generate()
+            DSLGenerator(DSL_ROOT, ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE).generate()
             File(DSL_GENERATOR_OUT_ROOT).cleanDirectory()
             compileKotlinCode(DSL_ROOT + ":" + DSL_GENERATOR_TEST_DATA,
                     ANT_JAR_FILE + ":" + KOTLIN_RUNTIME_JAR_FILE,
@@ -127,6 +128,19 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
                     assertFilesMatch(src2File, dest2File)
                     true
                 }
+        )
+    }
+
+    public fun testExternalLibraries() {
+        val destFile = File(WORKING_DIR + "out.txt")
+        val expFile = File(DSL_GENERATOR_TEST_RES + "switch/out.txt")
+        runDSLGeneratorTest(
+                "externalLibraries",
+                array("-DdestFile=" + destFile.toString(),
+                        "-Dvalue=bar",
+                        "-DantContribJarFile=$ANT_CONTRIB_JAR_FILE"),
+                { File(WORKING_DIR).cleanDirectory(); true },
+                { assertFilesMatch(expFile, destFile); true }
         )
     }
 }

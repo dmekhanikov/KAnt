@@ -7,7 +7,7 @@ import java.net.URLClassLoader
 import org.jetbrains.jet.cli.jvm.K2JVMCompiler
 import java.util.regex.Pattern
 
-fun createClassLoader(vararg jars: String): ClassLoader {
+fun createClassLoader(jars: Array<String>): ClassLoader {
     val path = ArrayList<URL>()
     for (jar in jars) {
         if (jar.endsWith(".jar")) {

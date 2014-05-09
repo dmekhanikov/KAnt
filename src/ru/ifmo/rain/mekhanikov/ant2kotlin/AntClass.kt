@@ -109,7 +109,8 @@ class AntClass(classLoader: ClassLoader, className: String) {
     }
 
     private fun Class<out Any?>.isAntClass(): Boolean {
-        return getName().startsWith(ANT_CLASS_PREFIX)
+        val name = getName()
+        return !name.startsWith('[') && !name.startsWith("java.")
     }
 
     private fun Method.isAntAttributeSetter(): Boolean {

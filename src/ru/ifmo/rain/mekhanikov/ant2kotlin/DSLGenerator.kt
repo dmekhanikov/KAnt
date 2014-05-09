@@ -12,10 +12,9 @@ import java.io.InputStreamReader
 
 val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
 
-class DSLGenerator(jarPath: String, resultRoot: String) {
+class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
     private val resolved = HashMap<String, Target>()
-    private val jarPath = jarPath
-    private val classLoader = createClassLoader(jarPath)
+    private var classLoader: ClassLoader = createClassLoader(jarPath)
     private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
 
     private var propertiesReader: BufferedReader? = null
@@ -47,16 +46,18 @@ class DSLGenerator(jarPath: String, resultRoot: String) {
     public fun generate() {
         val generatedRoot = resultRoot + DSL_PACKAGE.replace('.', '/') + "/generated"
         File(generatedRoot).mkdirs()
-        val jis = JarInputStream(FileInputStream(jarPath))
-        var alias = jis.nextAlias()
-        while (alias != null) {
-            val tag = alias!!.tag
-            val className = alias!!.className
-            resolveClass(className)
-            resolved[className]?.generateConstructors(tag)
-            alias = jis.nextAlias()
+        for (jar in jarPath) {
+            val jis = JarInputStream(FileInputStream(jar))
+            var alias = jis.nextAlias()
+            while (alias != null) {
+                val tag = alias!!.tag
+                val className = alias!!.className
+                resolveClass(className)
+                resolved[className]?.generateConstructors(tag)
+                alias = jis.nextAlias()
+            }
+            jis.close()
         }
-        jis.close()
         for (target in resolved.values()) {
             target.dumpFile()
         }
