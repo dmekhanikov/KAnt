@@ -9,11 +9,13 @@ import ru.ifmo.rain.mekhanikov.explodeTypeName
 import java.util.regex.Pattern
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.HashSet
 
 val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
 
 class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
     private val resolved = HashMap<String, Target>()
+    private val containerGenerator = ContainerGenerator()
     private var classLoader: ClassLoader = createClassLoader(jarPath)
     private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
 
@@ -38,6 +40,8 @@ class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
                     val resultClassName = resultClassName(className)
                     val pkg = resultClassName.substring(0, resultClassName.lastIndexOf('.'))
                     target.kotlinSrcFile = antClass.toKotlin(pkg)
+                    containerGenerator.resolveContainers(antClass.implementedInterfaces)
+                    containerGenerator.resolveContainers(antClass.nestedTypes)
                 }
             }
         }
@@ -61,6 +65,7 @@ class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
         for (target in resolved.values()) {
             target.dumpFile()
         }
+        containerGenerator.dump(File(generatedRoot + "/Containers.kt"))
     }
 
     private fun resultClassName(srcClassName: String): String {
@@ -163,7 +168,12 @@ class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
         val dslTypeName = "DSL" + cutShortName(className)
         val dslElementShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLElement")
         val dslTaskContainerShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLTaskContainer")
-        res.append("class $dslTypeName : ${if (isTaskContainer) {dslTaskContainerShorten} else {dslElementShorten}}() {\n")
+        res.append("class $dslTypeName : ${if (isTaskContainer) {dslTaskContainerShorten} else {dslElementShorten}}()")
+        for (nestedType in nestedTypes) {
+            val containerName = containerGenerator.containerName(nestedType)
+            res.append(",\n        $containerName")
+        }
+        res.append(" {\n")
         for (attr in attributes) {
             val dslAttr = dslAttribute(attr, className)
             res.append("    var `${dslAttr.name}`: ${res.importManager.shorten(dslAttr.typeName.replace('$', '.'))} " +
@@ -240,7 +250,7 @@ class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
             for (attr in attributes) {
                 out.append("        `${attr.name}`,\n")
             }
-            out.append("        {})\n")
+            out.append("        {$dslTypeName.() -> })\n")
         }
         out.append("}\n")
     }
@@ -264,6 +274,12 @@ class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
             if (invAntClass.hasRefId) {
                 invAntClass.renderNestedElement(invKotlinSrcFile, dslProjectShorten, Attribute(tag, className))
             }
+            for (interface in invAntClass.implementedInterfaces) {
+                if (containerGenerator.typeNeedsContainer(interface)) {
+                    val containerName = containerGenerator.containerName(interface)
+                    invAntClass.renderNestedElement(invKotlinSrcFile, containerName, Attribute(tag, className))
+                }
+            }
         }
 
         fun dumpFile() {
@@ -271,5 +287,37 @@ class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
         }
     }
 
-    private class Alias(val tag: String, val className: String) {}
+    private class Alias(val tag: String, val className: String)
+}
+
+class ContainerGenerator {
+    private val kotlinSrcFile = KotlinSourceFile(DSL_PACKAGE)
+    private val resolved = HashSet<String>()
+
+    public fun resolveContainers(names: List<String>) {
+        for (name in names) {
+            resolveContainer(name)
+        }
+    }
+
+    public fun containerName(name: String): String {
+        val shortName = name.substring(name.lastIndexOf('.') + 1).replace("$", "")
+        return shortName + "Container"
+    }
+
+    public fun typeNeedsContainer(name: String): Boolean {
+        return !name.startsWith("java.")
+    }
+
+    public fun resolveContainer(name: String) {
+        if (!resolved.contains(name) && typeNeedsContainer(name)) {
+            val dslElementShorten = kotlinSrcFile.importManager.shorten(DSL_PACKAGE + ".DSLElement")
+            kotlinSrcFile.append("\ntrait ${containerName(name)} : $dslElementShorten\n")
+            resolved.add(name)
+        }
+    }
+
+    public fun dump(file: File) {
+        kotlinSrcFile.dump(file)
+    }
 }

@@ -11,13 +11,6 @@ open class Ant2KotlinTestCase : TestCase() {
     val TEST_OUT_ROOT = "out/test/Ant2Kotlin/"
     val TEST_DATA_OUT_ROOT = TEST_OUT_ROOT + "testData/"
 
-    protected fun createDirectory(path: String) {
-        val dir = File(path)
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
-    }
-
     private fun readFile(file: File): String {
         val br = BufferedReader(FileReader(file))
         var line = br.readLine()

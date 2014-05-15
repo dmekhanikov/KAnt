@@ -32,30 +32,50 @@ class AntClass(classLoader: ClassLoader, className: String) {
     public val className: String = className
     public val attributes: List<Attribute>
     public val nestedElements: List<Attribute>
+    public val nestedTypes: List<String>
     public val isTask: Boolean
     public val isTaskContainer: Boolean
-    public val hasRefId: Boolean;
+    public val hasRefId: Boolean
+    public val implementedInterfaces: List<String>;
     {
         val classObject = classLoader.loadClass(className)!!
         isTask = classObject.isSubclassOf(ANT_CLASS_PREFIX + "Task") &&
                     ((classObject.getModifiers() and Modifier.ABSTRACT) == 0)
-        isTaskContainer = classObject.implements(ANT_CLASS_PREFIX + "TaskContainer")
-        attributes = getElements(classObject, {it -> parseAttribute(it)})
-        nestedElements = if (!isTaskContainer) {
-            getElements(classObject, {it -> parseNestedElement(it)})
+        attributes = classObject.getElements({parseAttribute(it)})
+        implementedInterfaces = classObject.getImplementedInterfaces();
+        isTaskContainer = implementedInterfaces.contains(ANT_CLASS_PREFIX + "TaskContainer")
+        if (!isTaskContainer) {
+            nestedElements = classObject.getElements({parseNestedElement(it)})
+            nestedTypes = classObject.getNestedTypes()
         } else {
-            ArrayList<Attribute>()
+            nestedElements = ArrayList<Attribute>()
+            nestedTypes = ArrayList<String>()
         }
         hasRefId = attributes.firstOrNull({
             (it.name == "refid") && (it.typeName == ANT_CLASS_PREFIX + "types.Reference")
         }) != null
     }
 
-    private fun getElements(classObject: Class<out Any?>,
-                            parseElement: (method: Method) -> Attribute?): List<Attribute> {
+    private fun Class<out Any?>.getNestedTypes(): List<String> {
+        val res = ArrayList<String>()
+        for (method in getMethods()) {
+            val methodName = method.getName()!!
+            val parameterTypes = method.getParameterTypes()!!
+            if ((methodName == "add" || methodName == "addConfigured") &&
+                    parameterTypes.size == 1 && parameterTypes[0].isAntClass()) {
+                val typeName = parameterTypes[0].getName()
+                if (!res.contains(typeName)) {
+                    res.add(typeName)
+                }
+            }
+        }
+        return res
+    }
+
+    private fun Class<out Any?>.getElements(parseElement: (method: Method) -> Attribute?): List<Attribute> {
         val elements = ArrayList<Attribute>()
         val usedNames = HashSet<String>()
-        for (method in classObject.getMethods()) {
+        for (method in getMethods()) {
             val element = parseElement(method)
             if (element != null && !usedNames.contains(element.name)) {
                 elements.add(element)
@@ -90,8 +110,9 @@ class AntClass(classLoader: ClassLoader, className: String) {
             val elementType = returnTypeName
             return Attribute(elementName, elementType)
         }
+        val parameterTypes = method.getParameterTypes()!!
         if (methodName.startsWith("add") &&
-                !method.getParameterTypes()!!.isEmpty() && method.getParameterTypes()!![0].isAntClass()) {
+                parameterTypes.size == 1 && parameterTypes[0].isAntClass()) {
             val elementType = method.getParameterTypes()!![0].getName()
             val prefLen =
                     if (methodName.startsWith("addConfigured")) {
@@ -150,13 +171,27 @@ class AntClass(classLoader: ClassLoader, className: String) {
         return false
     }
 
-    private fun Class<out Any?>.implements(interfaceName: String): Boolean {
+    private fun Class<out Any?>.getSuperclasses(): List<String> {
+        val res = ArrayList<String>()
+
+        return res
+    }
+
+    private fun Class<out Any?>.getImplementedInterfaces(): List<String> {
+        val candidates = ArrayList<Class<out Any?>>()
+        val res = HashSet<String>()
         for (interface in getInterfaces()) {
-            if (interface.getName() == interfaceName) {
-                return true
-            }
+            res.add(interface.getName())
+            candidates.add(interface)
         }
-        return false
+        val parent = (this as Class<Any?>).getSuperclass()
+        if (parent != null) {
+            candidates.add(parent)
+        }
+        for (candidate in candidates) {
+            res.addAll(candidate.getImplementedInterfaces())
+        }
+        return res.toList()
     }
 
     private fun cutElementName(methodName: String, prefLen: Int): String {

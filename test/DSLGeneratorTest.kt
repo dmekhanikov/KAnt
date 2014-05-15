@@ -143,4 +143,18 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
                 { assertFilesMatch(expFile, destFile); true }
         )
     }
+
+    public fun testCutDirsMapper() {
+        val srcDir = File(DSL_GENERATOR_TEST_RES + "toCopyAndCut/")
+        val destDir = File(WORKING_DIR + "dest")
+        val expFile = File(srcDir.toString() + "/foo/bar/toCopy.txt")
+        val actFile = File(destDir.toString() + "/toCopy.txt")
+        runDSLGeneratorTest(
+                "cutdirsmapper",
+                array("-DsrcDir=" + srcDir.toString(),
+                        "-DdestDir=" + destDir.toString()),
+                { File(WORKING_DIR).cleanDirectory(); true },
+                { assertFilesMatch(expFile, actFile); true }
+        )
+    }
 }
