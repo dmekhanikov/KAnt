@@ -1,26 +1,27 @@
 import ru.ifmo.rain.mekhanikov.antdsl.*
 
+val basedirProp: String by StringProperty("", "basedir")
 val osTag: String by StringProperty("tar.gz", "os.tag")
-val basedir: String by StringProperty("")
 val androidOsTag: String by StringProperty("linux", "android.os.tag")
 
-val jbBuildserverBuildId: String by StringProperty("2405457", "jb.buildserver.build.id")
-val publicBuildserverBuildId: String by StringProperty("119597", "public.buildserver.build.id")
-val ideaBuildNumber: String by StringProperty("134.SNAPSHOT", "idea.build.number")
+val androidVersion: String by StringProperty("", "android.version")
+val androidBuildVersion: String by StringProperty("", "android.build.version")
+
+val jbBuildserverBuildId: String by StringProperty("2490715", "jb.buildserver.build.id")
+val publicBuildserverBuildId: String by StringProperty("131091", "public.buildserver.build.id")
+val ideaBuildNumber: String by StringProperty("135.SNAPSHOT", "idea.build.number")
 val ideaArchiveName: String by StringProperty("ideaIC-$ideaBuildNumber.$osTag", "idea.archive.name")
 val ideaSdkFetchNeeded: Boolean by BooleanProperty(true, "idea.sdk.fetch.needed")
 val continuousIdeaVersion: String by StringProperty(".lastSuccessful", "continuous.idea.version")
 val core: String by StringProperty("ideaSDK/core", "core")
 val jps: String by StringProperty("ideaSDK/jps", "jps")
 val jpsTest: String by StringProperty("$jps/test", "jps-test")
-val androidVersion: String by StringProperty("0.4.6", "android.version")
-val androidBuildVersion: String by StringProperty("133.1028713", "android.build.version")
 val androidFileName: String by StringProperty("android-studio-ide-$androidBuildVersion-$androidOsTag.zip", "android.file.name")
 val androidStudioUrl: String by StringProperty("http://dl.google.com/dl/android/studio/ide-zips/$androidVersion/$androidFileName", "android.studio.url")
 val androidDestinationDir: String by StringProperty("android-studio/sdk", "android.destination.dir")
 
 fun DSLTaskContainer.getMavenLibrary(prefix: String, lib: String, version: String, bin: Boolean = true, src: Boolean = true, server: String = "http://repository.jetbrains.com/remote-repos", jarNameBase: String = "$lib-$version", targetJarNameBase: String = jarNameBase, path: String = "$prefix/$lib/$version/$jarNameBase", download: String = "dependencies/download", dependencies: String = "dependencies") {
-    taskdef(resource = "net/sf/antcontrib/antcontrib.properties", classpath = "$basedir/dependencies/ant-contrib.jar")
+    taskdef(resource = "net/sf/antcontrib/antcontrib.properties", classpath = "$basedirProp/dependencies/ant-contrib.jar")
     if (bin) {
         get(src = "$server/$path.jar", dest = "$download/$jarNameBase.jar", usetimestamp = true)
         copy(file = "$download/$jarNameBase.jar", tofile = "$dependencies/$targetJarNameBase.jar", overwrite = true)
@@ -39,26 +40,25 @@ fun DSLTaskContainer.getAntLibrary(version: String, foldername: String) {
     move(file = "dependencies/apache-ant-$version", tofile = "dependencies/$foldername")
 }
 
-fun DSLTaskContainer.getAsm4AndRenamePackages() {
-    get(src = "http://teamcity.jetbrains.com/guestAuth/repository/download/bt410/83470:id/jps/asm4-all.jar", dest = "dependencies/jetbrains-asm-debug-all-4.0.jar", usetimestamp = true)
-    getMavenLibrary(prefix = "org/ow2/asm", lib = "asm-debug-all", version = "4.0", bin = false)
+fun DSLTaskContainer.getAsmSourcesAndRenamePackages(asmVersion: String) {
+    getMavenLibrary(prefix = "org/ow2/asm", lib = "asm-debug-all", version = asmVersion, bin = false)
     delete(dir = "dependencies/download/asm-src", failonerror = false)
-    expand(src = "dependencies/download/asm-debug-all-4.0-sources.jar", dest = "dependencies/download/asm-src") {
+    unzip(src = "dependencies/download/asm-debug-all-$asmVersion-sources.jar", dest = "dependencies/download/asm-src") {
         patternset {
             include(name = "**/*")
         }
     }
-    replaceregexp(match = "org\.objectweb\.asm", replace = "org.jetbrains.asm4", flags = "g") {
+    replaceregexp(match = "org\\.objectweb\\.asm", replace = "org.jetbrains.org.objectweb.asm", flags = "g") {
         fileset(dir = "dependencies/download/asm-src/") {
             include(name = "**/*.java")
         }
     }
-    move(file = "dependencies/download/asm-src/org/objectweb/asm", tofile = "dependencies/download/asm-src/org/jetbrains/asm4")
-    zip(destfile = "dependencies/jetbrains-asm-all-4.0-src.zip", basedir = "dependencies/download/asm-src")
+    move(file = "dependencies/download/asm-src/org/objectweb/asm", tofile = "dependencies/download/asm-src/org/jetbrains/org/objectweb/asm")
+    zip(destfile = "dependencies/jetbrains-asm-all-$asmVersion-src.zip", basedir = "dependencies/download/asm-src")
 }
 
 fun DSLTaskContainer.executeUpdate(baseUrl: String = "http://teamcity.example.com/guestAuth/repository/download/btXXX/XXXX:id", baseUrlForCore: String = baseUrl, buildZip: String = "ideaIC-XXX.SNAPSHOT.win.zip") {
-    taskdef(resource = "net/sf/antcontrib/antcontrib.properties", classpath = "$basedir/dependencies/ant-contrib.jar")
+    taskdef(resource = "net/sf/antcontrib/antcontrib.properties", classpath = "$basedirProp/dependencies/ant-contrib.jar")
     if (ideaSdkFetchNeeded) {
         delete(dir = "ideaSDK", failonerror = false) {
             exclude(name = "config/**")
@@ -73,7 +73,6 @@ fun DSLTaskContainer.executeUpdate(baseUrl: String = "http://teamcity.example.co
         get(src = "$baseUrl/core/guava-14.0.1.jar", dest = "$core/guava-14.0.1.jar", usetimestamp = true)
         get(src = "$baseUrl/core/picocontainer.jar", dest = "$core/picocontainer.jar", usetimestamp = true)
         get(src = "$baseUrl/core/trove4j.jar", dest = "$core/trove4j.jar", usetimestamp = true)
-        copy(file = "dependencies/jetbrains-asm-debug-all-4.0.jar", todir = jps)
         get(src = "$baseUrl/jps/groovy-jps-plugin.jar", dest = "$jps/groovy-jps-plugin.jar", usetimestamp = true)
         get(src = "$baseUrl/jps/groovy_rt.jar", dest = "$jps/groovy_rt.jar", usetimestamp = true)
         get(src = "$baseUrl/jps/jdom.jar", dest = "$jps/jdom.jar", usetimestamp = true)
@@ -92,13 +91,13 @@ fun DSLTaskContainer.executeUpdate(baseUrl: String = "http://teamcity.example.co
         delete(file = "dependencies/download/idea-sdk-sources.zip", failonerror = false)
         get(src = "$baseUrl/sources.zip", dest = "dependencies/download/idea-sdk-sources.zip", usetimestamp = true)
     }
-    if (matches(pattern = ".+\.win\.zip", string = buildZip)) {
-        expand(src = "dependencies/download/$buildZip", dest = "ideaSDK")
-    } else if (matches(pattern = ".+\.mac\.zip", string = buildZip)) {
-        expand(src = "dependencies/download/$buildZip", dest = "ideaSDK") {
-            cutdirsmapper(dirs = "1")
+    if (matches(pattern = ".+\\.win\\.zip", string = buildZip)) {
+            unzip(src = "dependencies/download/$buildZip", dest = "ideaSDK")
+    } else if (matches(pattern = ".+\\.mac\\.zip", string = buildZip)) {
+        unzip(src = "dependencies/download/$buildZip", dest = "ideaSDK") {
+            cutdirsmapper(dirs = 1)
         }
-        exectask(executable = "chmod") {
+        exec(executable = "chmod") {
             arg(value = "a+x")
             arg(path = "ideaSDK/bin/fsnotifier")
             arg(path = "ideaSDK/bin/inspect.sh")
@@ -107,9 +106,9 @@ fun DSLTaskContainer.executeUpdate(baseUrl: String = "http://teamcity.example.co
         }
     } else {
         untar(src = "dependencies/download/$buildZip", dest = "ideaSDK", compression = "gzip") {
-            cutdirsmapper(dirs = "1")
+            cutdirsmapper(dirs = 1)
         }
-        exectask(executable = "chmod") {
+        exec(executable = "chmod") {
             arg(value = "a+x")
             arg(path = "ideaSDK/bin/fsnotifier")
             arg(path = "ideaSDK/bin/fsnotifier64")
@@ -118,54 +117,34 @@ fun DSLTaskContainer.executeUpdate(baseUrl: String = "http://teamcity.example.co
         }
     }
     mkdir(dir = "ideaSDK/sources")
-    copy(file = "dependencies/download/idea-sdk-sources.zip", tofile = "ideaSDK/sources/sources.zip")
+    copy(file = "dependencies/download/idea-sdk-sources.zip", tofile = "ideaSDK/sources/sources.zip", overwrite = true)
     copy(file = "ideaSDK/lib/jdom.jar", todir = core)
     copy(file = "ideaSDK/lib/jna.jar", todir = core)
     copy(file = "ideaSDK/lib/log4j.jar", todir = core)
     copy(file = "ideaSDK/lib/xstream-1.4.3.jar", todir = core)
     copy(file = "ideaSDK/lib/xpp3-1.1.4-min.jar", todir = core)
     copy(file = "ideaSDK/lib/jsr166e.jar", todir = core)
-    copy(file = "dependencies/jetbrains-asm-debug-all-4.0.jar", todir = core)
-    copy(file = "dependencies/jetbrains-asm-debug-all-4.0.jar", todir = "ideaSDK/lib")
+    copy(file = "ideaSDK/lib/asm-all.jar", todir = core)
     copy(file = "ideaSDK/lib/util.jar", todir = core)
     delete(file = "ideaSDK/lib/junit.jar")
-    delete(file = "ideaSDK/lib/asm4-all.jar")
 }
 
 fun main(args: Array<String>) {
-    project(name = "Update Dependencies", default = "update") {
-        condition(property = "os.tag", value = "win.zip") {
-            os(family = "windows")
+    project(args) {
+        basedir = basedirProp
+
+        val fetchAnnotations = target(name = "fetch-annotations") {
+            mkdir(dir = "dependencies/annotations")
+            get(src = "http://teamcity.jetbrains.com/guestAuth/repository/download/Kotlin_KAnnotator_InferJdkAnnotations/shipWithKotlin.tcbuildtag/kotlin-jdk-annotations.jar", dest = "dependencies/annotations/kotlin-jdk-annotations.jar", usetimestamp = true)
+            get(src = "http://teamcity.jetbrains.com/guestAuth/repository/download/Kotlin_KAnnotator_InferJdkAnnotations/shipWithKotlin.tcbuildtag/kotlin-android-sdk-annotations.jar", dest = "dependencies/annotations/kotlin-android-sdk-annotations.jar", usetimestamp = true)
         }
-        condition(property = "os.tag", value = "mac.zip") {
-            os(family = "mac")
-        }
-        condition(property = "os.tag", value = "tar.gz") {
-            and {
-                os(family = "unix")
-                not {
-                    os(family = "mac")
-                }
-            }
-        }
-        target(name = "update", depends = "fetch-third-party,fetch-annotations") {
-            executeUpdate(baseUrl = "http://teamcity.jetbrains.com/guestAuth/repository/download/bt410/$publicBuildserverBuildId:id", buildZip = ideaArchiveName)
-        }
-        target(name = "jb_update", depends = "fetch-third-party,fetch-annotations") {
-            executeUpdate(baseUrl = "http://buildserver.labs.intellij.net/guestAuth/repository/download/bt3498/$jbBuildserverBuildId:id", buildZip = ideaArchiveName)
-        }
-        target(name = "jb_update_continuous_local", depends = "fetch-third-party,fetch-annotations") {
-            executeUpdate(baseUrl = "http://buildserver.labs.intellij.net/guestAuth/repository/download/ijplatform_IjPlatform13_IdeaTrunk_Installers/$continuousIdeaVersion", buildZip = "ideaIC-{build.number}.win.zip")
-        }
-        target(name = "jb_update_continuous", depends = "fetch-third-party,fetch-annotations") {
-            executeUpdate(baseUrl = "file:///$basedir/idea_artifacts", buildZip = ideaArchiveName)
-        }
-        target(name = "fetch-third-party") {
+
+        val fetchThirdParty = target(name = "fetch-third-party") {
             mkdir(dir = "dependencies")
             mkdir(dir = "dependencies/download")
             get(src = "http://heanet.dl.sourceforge.net/project/proguard/proguard%20beta/4.8beta/proguard4.8beta1.zip", dest = "dependencies/download/proguard4.8beta1.zip", usetimestamp = true)
             delete(file = "dependencies/proguard.jar", failonerror = false)
-            expand(src = "dependencies/download/proguard4.8beta1.zip", dest = "dependencies") {
+            unzip(src = "dependencies/download/proguard4.8beta1.zip", dest = "dependencies") {
                 patternset {
                     include(name = "proguard4.8beta1/lib/proguard.jar")
                 }
@@ -173,7 +152,7 @@ fun main(args: Array<String>) {
             }
             get(src = "http://heanet.dl.sourceforge.net/project/ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3-bin.zip", dest = "dependencies/download/ant-contrib-1.0b3-bin.zip", usetimestamp = true)
             delete(file = "dependencies/ant-contrib.jar", failonerror = false)
-            expand(src = "dependencies/download/ant-contrib-1.0b3-bin.zip", dest = "dependencies") {
+            unzip(src = "dependencies/download/ant-contrib-1.0b3-bin.zip", dest = "dependencies") {
                 patternset {
                     include(name = "ant-contrib/ant-contrib-1.0b3.jar")
                 }
@@ -184,18 +163,19 @@ fun main(args: Array<String>) {
             getAntLibrary(version = "1.7.0", foldername = "ant-1.7")
             getAntLibrary(version = "1.8.0", foldername = "ant-1.8")
             getMavenLibrary(prefix = "com/google/android/tools", lib = "dx", version = "1.7", targetJarNameBase = "dx")
-            getMavenLibrary(prefix = "org/hamcrest", lib = "hamcrest-core", version = "1.3", targetJarNameBase = "hamcrest-core")
             mkdir(dir = "dependencies/jflex")
             get(src = "https://raw.github.com/JetBrains/intellij-community/master/tools/lexer/jflex-1.4/lib/JFlex.jar", dest = "dependencies/jflex/JFlex.jar", usetimestamp = true)
             get(src = "https://raw.github.com/JetBrains/intellij-community/master/tools/lexer/idea-flex.skeleton", dest = "dependencies/jflex/idea-flex.skeleton", usetimestamp = true)
             getMavenLibrary(prefix = "jline", lib = "jline", version = "2.9", targetJarNameBase = "jline")
             getMavenLibrary(prefix = "com/google/guava", lib = "guava", version = "14.0.1", bin = false)
-            getAsm4AndRenamePackages()
+            get(src = "https://raw.github.com/JetBrains/intellij-community/master/lib/src/asm5-src.zip", dest = "dependencies/asm5-src.zip")
+            getMavenLibrary(prefix = "junit", lib = "junit", version = "4.11", bin = false)
+            getMavenLibrary(prefix = "org/hamcrest", lib = "hamcrest-core", version = "1.3", bin = false)
             getMavenLibrary(prefix = "com/google/protobuf", lib = "protobuf-java", version = "2.5.0", bin = false)
             getMavenLibrary(prefix = "com/github/spullara/cli-parser", lib = "cli-parser", version = "1.1.1")
             get(src = "http://dl.google.com/closure-compiler/compiler-20131014.zip", dest = "dependencies/download/closure-compiler.zip", usetimestamp = true)
             delete(file = "dependencies/closure-compiler.jar", failonerror = false)
-            expand(src = "dependencies/download/closure-compiler.zip", dest = "dependencies") {
+            unzip(src = "dependencies/download/closure-compiler.zip", dest = "dependencies") {
                 patternset {
                     include(name = "compiler.jar")
                 }
@@ -203,7 +183,7 @@ fun main(args: Array<String>) {
             }
             delete(file = "dependencies/android.jar", failonerror = false)
             get(src = "http://dl-ssl.google.com/android/repository/android-19_r02.zip", dest = "dependencies/download/android-sdk.zip", usetimestamp = true)
-            expand(src = "dependencies/download/android-sdk.zip", dest = "dependencies") {
+            unzip(src = "dependencies/download/android-sdk.zip", dest = "dependencies") {
                 patternset {
                     include(name = "**/android.jar")
                 }
@@ -211,49 +191,68 @@ fun main(args: Array<String>) {
             }
             get(src = "http://teamcity.jetbrains.com/guestAuth/repository/download/bt345/bootstrap.tcbuildtag/kotlin-plugin-{build.number}.zip", dest = "dependencies/download/bootstrap-compiler.zip", usetimestamp = true)
             delete(dir = "dependencies/bootstrap-compiler", failonerror = false)
-            expand(src = "dependencies/download/bootstrap-compiler.zip", dest = "dependencies/bootstrap-compiler")
+            unzip(src = "dependencies/download/bootstrap-compiler.zip", dest = "dependencies/bootstrap-compiler")
         }
-        target(name = "fetch-annotations") {
-            mkdir(dir = "dependencies/annotations")
-            get(src = "http://teamcity.jetbrains.com/guestAuth/repository/download/Kotlin_KAnnotator_InferJdkAnnotations/shipWithKotlin.tcbuildtag/kotlin-jdk-annotations.jar", dest = "dependencies/annotations/kotlin-jdk-annotations.jar", usetimestamp = true)
-            get(src = "http://teamcity.jetbrains.com/guestAuth/repository/download/Kotlin_KAnnotator_InferJdkAnnotations/shipWithKotlin.tcbuildtag/kotlin-android-sdk-annotations.jar", dest = "dependencies/annotations/kotlin-android-sdk-annotations.jar", usetimestamp = true)
+
+        default = target("update", fetchThirdParty, fetchAnnotations) {
+            executeUpdate(baseUrl = "http://teamcity.jetbrains.com/guestAuth/repository/download/bt410/$publicBuildserverBuildId:id", buildZip = ideaArchiveName)
         }
+
+        val jbUpdate = target("jb_update", fetchThirdParty, fetchAnnotations) {
+            executeUpdate(baseUrl = "http://buildserver.labs.intellij.net/guestAuth/repository/download/bt3498/$jbBuildserverBuildId:id", buildZip = ideaArchiveName)
+        }
+
+        val jbUpdateContinuousLocal = target("jb_update_continuous_local", fetchThirdParty, fetchAnnotations) {
+            executeUpdate(baseUrl = "http://buildserver.labs.intellij.net/guestAuth/repository/download/ijplatform_IjPlatform13_IdeaTrunk_Installers/$continuousIdeaVersion", buildZip = "ideaIC-{build.number}.win.zip")
+        }
+
+        val jbUpdateContinuous = target("jb_update_continuous", fetchThirdParty, fetchAnnotations) {
+            executeUpdate(baseUrl = "file:///$basedir/idea_artifacts", buildZip = ideaArchiveName)
+        }
+
         target(name = "get_android_studio") {
-            condition(property = "android.os.tag", value = "windows") {
-                os(family = "windows")
-            }
-            condition(property = "android.os.tag", value = "mac") {
-                os(family = "mac")
-            }
-            condition(property = "android.os.tag", value = "linux") {
-                and {
-                    os(family = "unix")
-                    not {
-                        os(family = "mac")
+            taskdef(resource = "net/sf/antcontrib/antcontrib.properties", classpath = "$basedir/dependencies/ant-contrib.jar")
+            if (!(propertyIsSet("android.version") && propertyIsSet("android.build.version"))) {
+                loadresource(property = "android.version") {
+                    url(url = "http://tools.android.com/download/studio/canary/latest")
+                    filterchain {
+                        tokenfilter {
+                            filetokenizer()
+                            replaceregex(pattern = "^(.*)http://dl\\.google\\.com/dl/android/studio/ide-zips/([\\d\\.]+)/android-studio-ide(.*)$", replace = "\\2", flags = "s")
+                        }
+                    }
+                }
+                loadresource(property = "android.build.version") {
+                    url(url = "http://tools.android.com/download/studio/canary/latest")
+                    filterchain {
+                        tokenfilter {
+                            filetokenizer()
+                            replaceregex(pattern = "^(.*)http://dl\\.google\\.com/dl/android/studio/ide-zips/[\\d\\.]+/android-studio-ide-([\\d\\.]+)-(.*)$", replace = "\\2", flags = "s")
+                        }
                     }
                 }
             }
+            echo(message = "Download android studio: $androidVersion $androidBuildVersion")
             mkdir(dir = "dependencies/download")
             get(src = androidStudioUrl, dest = "dependencies/download", usetimestamp = true)
             delete(dir = androidDestinationDir, failonerror = false, includeemptydirs = true) {
                 exclude(name = "config/**")
                 exclude(name = "system/**")
             }
-            expand(src = "dependencies/download/$androidFileName", dest = androidDestinationDir) {
-                cutdirsmapper(dirs = "1")
+            unzip(src = "dependencies/download/$androidFileName", dest = androidDestinationDir) {
+                cutdirsmapper(dirs = 1)
             }
-            taskdef(resource = "net/sf/antcontrib/antcontrib.properties", classpath = "$basedir/dependencies/ant-contrib.jar")
-            if (matches(pattern = ".+windows\.zip", string = androidFileName)) {
-            } else if (matches(pattern = ".+mac\.zip", string = androidFileName)) {
-                exectask(executable = "chmod") {
+            if (matches(pattern = ".+windows\\.zip", string = androidFileName)) {
+            } else if (matches(pattern = ".+mac\\.zip", string = androidFileName)) {
+                exec(executable = "chmod") {
                     arg(value = "a+x")
                     arg(path = "$androidDestinationDir/bin/fsnotifier")
                     arg(path = "$androidDestinationDir/bin/inspect.sh")
                     arg(path = "$androidDestinationDir/bin/printenv.py")
                     arg(path = "$androidDestinationDir/bin/update_studio.sh")
                 }
-            } else if (matches(pattern = ".+linux\.zip", string = androidFileName)) {
-                exectask(executable = "chmod") {
+            } else if (matches(pattern = ".+linux\\.zip", string = androidFileName)) {
+                exec(executable = "chmod") {
                     arg(value = "a+x")
                     arg(path = "$androidDestinationDir/bin/fsnotifier")
                     arg(path = "$androidDestinationDir/bin/fsnotifier64")
@@ -262,7 +261,7 @@ fun main(args: Array<String>) {
                     arg(path = "$androidDestinationDir/bin/update_studio.sh")
                 }
             } else {
-                exit(message = "File name '$androidFileName' wasn't matched")
+                fail(message = "File name '$androidFileName' wasn't matched")
             }
         }
     }

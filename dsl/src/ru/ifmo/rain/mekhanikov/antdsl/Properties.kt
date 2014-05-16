@@ -30,10 +30,10 @@ open class Property<T>(val convert: (value: String) -> T, val defaultValue: () -
 
     public fun get(thisRef: Any?, prop: PropertyMetadata): T {
         val propName = getName(prop)
-        var value = propertyHelper!!.getProperty(propName)
+        var value = propertyHelper?.getProperty(propName)
         if (value == null) {
             value = defaultValue()
-            propertyHelper!!.setUserProperty(propName, value)
+            propertyHelper?.setUserProperty(propName, value)
         }
         val result = value
         return if (result is String) {

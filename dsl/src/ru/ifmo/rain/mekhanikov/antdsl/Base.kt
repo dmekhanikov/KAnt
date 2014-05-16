@@ -60,7 +60,7 @@ abstract class DSLTaskContainer : DSLElement()
 
 class DSLProject(val args: Array<String>) : DSLTaskContainer() {
     var default: DSLTarget? = null
-    var basedir: File by Delegates.mapVar(attributes)
+    var basedir: String by Delegates.mapVar(attributes)
     val project = Project();
     {
         project.init()
@@ -78,7 +78,7 @@ class DSLProject(val args: Array<String>) : DSLTaskContainer() {
         if (default != null) {
             this.project.setDefault(default!!.name)
             if (attributes.containsKey("basedir")) {
-                this.project.setBaseDir(basedir)
+                this.project.setBaseDir(File(basedir))
             }
             this.project.executeTarget(this.project.getDefaultTarget())
         }
