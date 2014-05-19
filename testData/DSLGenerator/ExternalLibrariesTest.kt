@@ -2,9 +2,9 @@ package testData.DSLGenerator.externalLibraries
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
 
-val value: String by StringProperty("")
-val destFile: String by StringProperty("")
-val antContribJarFile: String by StringProperty("")
+val value: String by StringProperty { "" }
+val destFile: String by StringProperty { "" }
+val antContribJarFile: String by StringProperty { "" }
 
 fun main(args: Array<String>) {
     project(args) {

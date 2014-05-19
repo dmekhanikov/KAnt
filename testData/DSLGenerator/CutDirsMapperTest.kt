@@ -2,8 +2,8 @@ package testData.DSLGenerator.cutdirsmapper
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
 
-val srcDir: String by StringProperty("")
-val destDir: String by StringProperty("")
+val srcDir: String by StringProperty { "" }
+val destDir: String by StringProperty { "" }
 
 fun main(args: Array<String>) {
     project(args) {
