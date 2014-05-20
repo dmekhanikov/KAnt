@@ -6,6 +6,11 @@ import java.net.URL
 import java.net.URLClassLoader
 import org.jetbrains.jet.cli.jvm.K2JVMCompiler
 import java.util.regex.Pattern
+import java.io.FileOutputStream
+import java.util.jar.JarOutputStream
+
+public val KOTLIN_RUNTIME_JAR_FILE: String = "lib/kotlin-runtime.jar"
+public val ANT_JAR_FILE: String = "lib/ant-1.9.3.jar"
 
 fun createClassLoader(jars: Array<String>): ClassLoader {
     val path = ArrayList<URL>()
@@ -24,8 +29,7 @@ fun File.cleanDirectory() {
         return
     }
     val files = listFiles()
-    for (i in 0..files!!.size - 1) {
-        val file = files[i]
+    for (file in files!!) {
         if (file.isDirectory()) {
             file.cleanDirectory()
         }

@@ -6,14 +6,43 @@ import java.util.jar.JarInputStream
 import java.io.FileInputStream
 import ru.ifmo.rain.mekhanikov.createClassLoader
 import ru.ifmo.rain.mekhanikov.explodeTypeName
+import ru.ifmo.rain.mekhanikov.compileKotlinCode
+import ru.ifmo.rain.mekhanikov.KOTLIN_RUNTIME_JAR_FILE
+import ru.ifmo.rain.mekhanikov.ANT_JAR_FILE
 import java.util.regex.Pattern
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.HashSet
 
+public val DSL_ROOT: String = "dsl/src/"
 val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
+val BASE_DSL_FILE_NAMES = array("Base.kt", "Properties.kt", "References.kt")
 
-class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
+fun main(args: Array<String>) {
+    if (args.size < 2) {
+        System.out.println("Usage:\n\tAnt2kotlinPackage <output directory> <ant jars>")
+    }
+    val destDir = File(args[0])
+    val srcDir = File("$destDir/src")
+    val outDir = File("$destDir/out")
+    val binDir = File("$outDir/bin")
+    val jars = Array<String>(args.size - 1, { i -> args[i + 1] })
+    copyBaseFiles(srcDir)
+    DSLGenerator(srcDir.toString(), jars).generate()
+    compileKotlinCode(srcDir.toString(), "$ANT_JAR_FILE:$KOTLIN_RUNTIME_JAR_FILE", binDir.toString())
+}
+
+private fun copyBaseFiles(dest: File) {
+    val srcPrefix = "$DSL_ROOT${DSL_PACKAGE.replace('.', '/')}/"
+    val destPrefix = "$dest/${DSL_PACKAGE.replace('.', '/')}/"
+    for (fileName in BASE_DSL_FILE_NAMES) {
+        val srcFile = File(srcPrefix + fileName)
+        val destFile = File(destPrefix + fileName)
+        srcFile.copyTo(destFile)
+    }
+}
+
+class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
     private val resolved = HashMap<String, Target>()
     private val containerGenerator = ContainerGenerator()
     private var classLoader: ClassLoader = createClassLoader(jarPath)
@@ -168,7 +197,7 @@ class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
         val dslTypeName = "DSL" + cutShortName(className)
         val dslElementShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLElement")
         val dslTaskContainerShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLTaskContainer")
-        res.append("class $dslTypeName : ${if (isTaskContainer) {dslTaskContainerShorten} else {dslElementShorten}}()")
+        res.append("public class $dslTypeName : ${if (isTaskContainer) {dslTaskContainerShorten} else {dslElementShorten}}()")
         for (nestedType in nestedTypes) {
             val containerName = containerGenerator.containerName(nestedType)
             res.append(",\n        $containerName")
@@ -220,7 +249,7 @@ class DSLGenerator(resultRoot: String, vararg val jarPath: String) {
                                            parentName: String, tag: String, withInit: Boolean) {
         val dslTypeName = out.importManager.shorten(resultClassName(className))
         out.append("\n")
-        out.append("fun $parentName.`$tag`(\n")
+        out.append("public fun $parentName.`$tag`(\n")
         renderConstructorParameters(out)
         if (withInit) {
             if (!attributes.empty) {

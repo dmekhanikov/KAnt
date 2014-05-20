@@ -2,21 +2,21 @@ import ru.ifmo.rain.mekhanikov.ant2kotlin.DSLGenerator
 import ru.ifmo.rain.mekhanikov.compileKotlinCode
 import ru.ifmo.rain.mekhanikov.cleanDirectory
 import ru.ifmo.rain.mekhanikov.createClassLoader
+import ru.ifmo.rain.mekhanikov.ant2kotlin.DSL_ROOT
+import ru.ifmo.rain.mekhanikov.KOTLIN_RUNTIME_JAR_FILE
+import ru.ifmo.rain.mekhanikov.ANT_JAR_FILE
 import java.lang.reflect.Method
 import java.io.File
 
 var dslGeneratorTestInitComplete = false
 
 class DSLGeneratorTest : Ant2KotlinTestCase() {
-    val ANT_JAR_FILE = "lib/ant-1.9.3.jar"
     val ANT_LAUNCHER_JAR_FILE = "lib/ant-launcher-1.9.3.jar"
     val ANT_CONTRIB_JAR_FILE = "lib/ant-contrib-1.0b3.jar"
-    val KOTLIN_RUNTIME_JAR_FILE = "lib/kotlin-runtime.jar"
-    val DSL_GENERATOR_OUT_ROOT = TEST_OUT_ROOT + "DSLGenerator/"
+    val DSL_GENERATOR_OUT_ROOT = TEST_OUT_ROOT + "DSLGenrator/"
     val DSL_GENERATOR_TEST_DATA = TEST_DATA_ROOT + "DSLGenerator/"
     val DSL_GENERATOR_TEST_RES = TEST_RES_ROOT + "DSLGenerator/"
     val DSL_GENERATOR_TEST_PACKAGE = "testData.DSLGenerator"
-    val DSL_ROOT = "dsl/src/"
     val DSL_GENERATED_ROOT = DSL_ROOT + "ru/ifmo/rain/mekhanikov/antdsl/generated/"
     val WORKING_DIR = DSL_GENERATOR_OUT_ROOT + "playground/"
 
@@ -25,10 +25,10 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
     {
         if (!dslGeneratorTestInitComplete) {
             File(DSL_GENERATED_ROOT).cleanDirectory()
-            DSLGenerator(DSL_ROOT, ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE).generate()
+            DSLGenerator(DSL_ROOT, array(ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE)).generate()
             File(DSL_GENERATOR_OUT_ROOT).cleanDirectory()
             compileKotlinCode(DSL_ROOT + ":" + DSL_GENERATOR_TEST_DATA,
-                    ANT_JAR_FILE + ":" + KOTLIN_RUNTIME_JAR_FILE,
+                    "$ANT_JAR_FILE:$KOTLIN_RUNTIME_JAR_FILE",
                     DSL_GENERATOR_OUT_ROOT)
             dslGeneratorTestInitComplete = true
         }
