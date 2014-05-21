@@ -49,6 +49,7 @@ public class Translator {
         boolean closingBracesNeeded;
         boolean bareFunction;
         Macrodef macrodef;
+        int macrodefDepth;
         int macrodefPlace;
 
         private void swapIndents() {
@@ -69,13 +70,17 @@ public class Translator {
             if (attrs.getLength() != 2) {
                 throw new SAXException("Illegal attributes for property");
             }
-            properties.append("val ").append(StringProcessor.toCamelCase(name)).append(": ");
+            String ccName = StringProcessor.toCamelCase(name);
+            properties.append("val ").append(ccName).append(": ");
             if (value.equals("true") || value.equals("false") || value.equals("yes") || value.equals("no")) {
-                properties.append("Boolean by BooleanProperty(").append(StringProcessor.prepareValue(value));
+                properties.append("Boolean by BooleanProperty");
             } else {
-                properties.append("String by StringProperty(").append(StringProcessor.prepareValue(value));
+                properties.append("String by StringProperty");
             }
-            properties.append(", \"").append(name).append("\")\n");
+            if (!name.equals(ccName)) {
+                properties.append("(\"").append(name).append("\")");
+            }
+            properties.append(" { ").append(StringProcessor.prepareValue(value)).append(" }\n");
         }
 
         private void renderElement(String name, Attributes attributes) {
@@ -98,7 +103,7 @@ public class Translator {
         }
 
         @Override
-        public void startDocument () throws SAXException {
+        public void startDocument() throws SAXException {
             stack = new ArrayList<>();
             indent = new StringBuilder(TAB);
             properties = new StringBuilder();
@@ -123,6 +128,7 @@ public class Translator {
                 result.append(" {\n");
                 closingBracesNeeded = true;
             }
+            macrodefDepth++;
             bareFunction = false;
             switch (qName) {
                 case "property":
@@ -134,16 +140,15 @@ public class Translator {
                     result.append(" {\n");
                     swapIndents();
                     indent.append(TAB);
+                    macrodefDepth = 0;
                     break;
-                case "attribute":
-                    if (macrodef != null) {
-                        macrodef.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
-                        break;
-                    } else {
-                        throw new SAXException("Unexpected attribute element");
-                    }
                 case "sequential":
                     break;
+                case "attribute":
+                    if (macrodef != null && macrodefDepth == 1) {
+                        macrodef.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
+                        break;
+                    }
                 default:
                     renderElement(qName, attrs);
                     stack.add(qName);
@@ -153,6 +158,7 @@ public class Translator {
 
         @Override
         public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
+            macrodefDepth--;
             if (!stack.isEmpty() && stack.get(stack.size() - 1).equals(qName)) {
                 stack.remove(stack.size() - 1);
                 indent.delete(0, TAB.length());
