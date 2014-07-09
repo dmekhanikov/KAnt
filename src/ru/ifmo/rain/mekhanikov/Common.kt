@@ -10,7 +10,7 @@ import java.io.FileOutputStream
 import java.util.jar.JarOutputStream
 
 public val KOTLIN_RUNTIME_JAR_FILE: String = "lib/kotlin-runtime.jar"
-public val ANT_JAR_FILE: String = "lib/ant-1.9.3.jar"
+public val ANT_JAR_FILE: String = "lib/ant-1.9.4.jar"
 
 fun createClassLoader(jars: Array<String>): ClassLoader {
     val path = ArrayList<URL>()

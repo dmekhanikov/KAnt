@@ -11,7 +11,7 @@ import java.io.File
 var dslGeneratorTestInitComplete = false
 
 class DSLGeneratorTest : Ant2KotlinTestCase() {
-    val ANT_LAUNCHER_JAR_FILE = "lib/ant-launcher-1.9.3.jar"
+    val ANT_LAUNCHER_JAR_FILE = "lib/ant-launcher-1.9.4.jar"
     val ANT_CONTRIB_JAR_FILE = "lib/ant-contrib-1.0b3.jar"
     val DSL_GENERATOR_OUT_ROOT = TEST_OUT_ROOT + "DSLGenrator/"
     val DSL_GENERATOR_TEST_DATA = TEST_DATA_ROOT + "DSLGenerator/"
