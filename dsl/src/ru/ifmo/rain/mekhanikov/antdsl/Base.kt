@@ -5,6 +5,8 @@ import org.apache.tools.ant.Project
 import org.apache.tools.ant.UnknownElement
 import org.apache.tools.ant.ProjectHelper
 import org.apache.tools.ant.RuntimeConfigurable
+import org.apache.tools.ant.BuildLogger
+import org.apache.tools.ant.DefaultLogger
 import kotlin.properties.Delegates
 import java.io.File
 import java.util.ArrayList
@@ -66,7 +68,19 @@ class DSLProject(val args: Array<String>) : DSLTaskContainer() {
     val project = Project();
     {
         project.init()
+        project.addBuildListener(createLogger())
         initProperties(project, args)
+    }
+
+    private fun createLogger(): BuildLogger {
+        val logger = DefaultLogger()
+        val msgOutputLevel = Project.MSG_INFO
+        val emacsMode = false
+        logger.setMessageOutputLevel(msgOutputLevel)
+        logger.setOutputPrintStream(System.out)
+        logger.setErrorPrintStream(System.err)
+        logger.setEmacsMode(emacsMode)
+        return logger
     }
 
     override fun perform(parentWrapper: RuntimeConfigurable?, project: Project?, target: Target?) {
@@ -116,7 +130,15 @@ class DSLTarget(val name: String, val depends: Array<DSLTarget>) : DSLTaskContai
 public fun project(args: Array<String>, init: DSLProject.() -> Unit): DSLProject {
     val dslProject = DSLProject(args)
     dslProject.init()
-    dslProject.perform(null, null, null)
+    try {
+        dslProject.perform(null, null, null)
+    } catch(t: Throwable) {
+        val message = t.getMessage()
+        if (message != null) {
+            System.err.println(message)
+        }
+        System.exit(1);
+    }
     return dslProject
 }
 
