@@ -89,10 +89,12 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         val systemPropertiesOutFile = File(WORKING_DIR + "system.txt")
         val userPropertiesOutFile = File(WORKING_DIR + "user.txt")
         val propertiesResDir = File(DSL_GENERATOR_TEST_RES + "properties/")
+        val propertiesFile = File(propertiesResDir.toString() + "/manifest.properties")
         val userExpFile = File(propertiesResDir.toString() + "/user.txt")
         runDSLGeneratorTest(
                 "properties",
-                array("-DsystemPropertiesOutFile=" + systemPropertiesOutFile.toString(),
+                array("-DpropertiesFile=" + propertiesFile,
+                        "-DsystemPropertiesOutFile=" + systemPropertiesOutFile.toString(),
                         "-DuserPropertiesOutFile=" + userPropertiesOutFile.toString(),
                         "-DstringProperty=passed value",
                         "-DintProperty=42",

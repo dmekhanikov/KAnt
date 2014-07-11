@@ -9,6 +9,7 @@ import kotlin.properties.Delegates
 import java.io.File
 import java.util.ArrayList
 import java.util.TreeMap
+import java.util.HashMap
 
 abstract class DSLElement {
     val attributes = TreeMap<String, Any?>()
@@ -61,6 +62,7 @@ abstract class DSLTaskContainer : DSLElement()
 class DSLProject(val args: Array<String>) : DSLTaskContainer() {
     var default: DSLTarget? = null
     var basedir: String by Delegates.mapVar(attributes)
+    val targets = HashMap<DSLTarget, DSLTarget.() -> Unit>()
     val project = Project();
     {
         project.init()
@@ -75,6 +77,12 @@ class DSLProject(val args: Array<String>) : DSLTaskContainer() {
             child.perform(null, this.project, implicitTarget)
         }
         implicitTarget.execute()
+        for (entry in targets) {
+            val target = entry.key
+            val init = entry.value
+            initElement("target", target, init)
+            target.perform(null, this.project, null)
+        }
         if (default != null) {
             this.project.setDefault(default!!.name)
             if (attributes.containsKey("basedir")) {
@@ -114,6 +122,6 @@ public fun project(args: Array<String>, init: DSLProject.() -> Unit): DSLProject
 
 public fun DSLProject.target(name: String, vararg depends: DSLTarget, init: DSLTarget.() -> Unit): DSLTarget {
     val dslTarget = DSLTarget(name, depends)
-    initElement("target", dslTarget, init)
+    targets.put(dslTarget, init)
     return dslTarget
 }

@@ -3,3 +3,6 @@ true
 42
 21568.3
 default value
+String file property
+9000
+146.47

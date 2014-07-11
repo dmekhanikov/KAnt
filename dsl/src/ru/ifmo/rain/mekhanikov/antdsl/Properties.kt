@@ -39,7 +39,7 @@ open class Property<T>(val name: String? = null, val convert: (value: String) ->
         return if (result is String) {
             convert(result)
         } else {
-            value as T
+            result as T
         }
     }
 
