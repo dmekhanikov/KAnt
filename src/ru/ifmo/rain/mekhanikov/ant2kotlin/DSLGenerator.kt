@@ -16,7 +16,7 @@ import java.util.HashSet
 
 public val DSL_ROOT: String = "dsl/src/"
 val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
-val BASE_DSL_FILE_NAMES = array("Base.kt", "Properties.kt", "References.kt")
+val BASE_DSL_FILE_NAMES = array("Base.kt", "Properties.kt", "References.kt", "Misc.kt", "LazyTask.kt")
 
 fun main(args: Array<String>) {
     if (args.size < 2) {
