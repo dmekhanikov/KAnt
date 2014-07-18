@@ -9,14 +9,12 @@ val outDir: String by StringProperty { "" }
 fun main(args: Array<String>) {
     project(args) {
         default = target("Zip and unzip") {
-            sequential {
-                zip (basedir = sourceDir) {
-                    destfile = zipFile
-                }
-                unzip {
-                    src = zipFile
-                    dest = outDir
-                }
+            zip (basedir = sourceDir) {
+                destfile = zipFile
+            }
+            unzip {
+                src = zipFile
+                dest = outDir
             }
         }
     }

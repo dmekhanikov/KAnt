@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
     val srcDir = File("$destDir/src")
     val outDir = File("$destDir/out")
     val binDir = File("$outDir/bin")
-    val jars = Array<String>(args.size - 1, { i -> args[i + 1] })
+    val jars = Array(args.size - 1, { i -> args[i + 1] })
     copyBaseFiles(srcDir)
     DSLGenerator(srcDir.toString(), jars).generate()
     compileKotlinCode(srcDir.toString(), "$ANT_JAR_FILE:$KOTLIN_RUNTIME_JAR_FILE", binDir.toString())
@@ -66,9 +66,7 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
                     val target = Target(className)
                     target.antClass = antClass
                     resolved[className] = target
-                    val resultClassName = resultClassName(className)
-                    val pkg = resultClassName.substring(0, resultClassName.lastIndexOf('.'))
-                    target.kotlinSrcFile = antClass.toKotlin(pkg)
+                    target.kotlinSrcFile = antClass.toKotlin(DSL_PACKAGE)
                     containerGenerator.resolveContainers(antClass.implementedInterfaces)
                     containerGenerator.resolveContainers(antClass.nestedTypes)
                 }
@@ -99,7 +97,7 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
 
     private fun resultClassName(srcClassName: String): String {
         val className = srcClassName.replace("$", "")
-        return DSL_PACKAGE + ".DSL" + className.substring(className.lastIndexOf('.') + 1)
+        return "DSL" + className.substring(className.lastIndexOf('.') + 1)
     }
 
     private fun resultFile(srcClassName: String): File {
@@ -178,11 +176,11 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
                     attr.typeName
                 } else if (attr.typeName == ANT_CLASS_PREFIX + "types.Reference") {
                     if (attr.name == "refid") {
-                        DSL_PACKAGE + ".Reference<${resultClassName(parentName)}>"
+                        "DSLReference<${resultClassName(parentName)}>"
                     } else if (attr.name.endsWith("pathref")) {
-                        DSL_PACKAGE + ".Reference<$DSL_PACKAGE.DSLPath>"
+                        "DSLReference<DSLPath>"
                     } else if (attr.name == "loaderref") {
-                         DSL_PACKAGE + ".LoaderRef"
+                         "DSLLoaderRef"
                     } else {
                         "java.lang.String"
                     }
@@ -195,9 +193,11 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
     private fun AntClass.toKotlin(pkg: String?): KotlinSourceFile {
         val res = KotlinSourceFile(pkg)
         val dslTypeName = "DSL" + cutShortName(className)
-        val dslElementShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLElement")
-        val dslTaskContainerShorten = res.importManager.shorten(DSL_PACKAGE + ".DSLTaskContainer")
-        res.append("public class $dslTypeName : ${if (isTaskContainer) {dslTaskContainerShorten} else {dslElementShorten}}()")
+        val projectShorten = res.importManager.shorten(ANT_CLASS_PREFIX + "Project")
+        val targetShorten = res.importManager.shorten(ANT_CLASS_PREFIX + "Target")
+        val rcShorten = res.importManager.shorten(ANT_CLASS_PREFIX + "RuntimeConfigurable")
+        res.append("public class $dslTypeName(projectAO: $projectShorten, targetAO: $targetShorten, parentWrapperAO: $rcShorten?, elementTag: String, nearestExecutable: DSLTask?)")
+        res.append(": ${if (isTaskContainer) {"DSLTaskContainerTask"} else {"DSLTask"}}(projectAO, targetAO, parentWrapperAO, elementTag, nearestExecutable)")
         for (nestedType in nestedTypes) {
             val containerName = containerGenerator.containerName(nestedType)
             res.append(",\n        $containerName")
@@ -218,7 +218,7 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
     private fun AntClass.constructorReturnType(): String? {
         val typeName = resultClassName(className)
         if (hasRefId) {
-            return DSL_PACKAGE + ".Reference<$typeName>"
+            return "DSLReference<$typeName>"
         } else {
             return null
         }
@@ -247,7 +247,12 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
 
     private fun AntClass.renderConstructor(out: KotlinSourceFile,
                                            parentName: String, tag: String, withInit: Boolean) {
-        val dslTypeName = out.importManager.shorten(resultClassName(className))
+        val dslTypeName = resultClassName(className)
+        val initReceiverTypeName = if (isTaskContainer) {
+            "DSLTaskContainer"
+        } else {
+            dslTypeName
+        }
         out.append("\n")
         out.append("public fun $parentName.`$tag`(\n")
         renderConstructorParameters(out)
@@ -255,7 +260,7 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
             if (!attributes.empty) {
                 out.append(",\n")
             }
-            out.append("        init: $dslTypeName.() -> ${out.importManager.shorten("kotlin.Unit")}")
+            out.append("        init: $initReceiverTypeName.() -> ${out.importManager.shorten("kotlin.Unit")}")
         }
         out.append(")")
         val returnType = constructorReturnType()
@@ -264,22 +269,37 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
         }
         out.append(" {\n")
         if (withInit) {
-            out.append("    val dslObject = $dslTypeName()\n")
+            val mustBeExecuted = (parentName == "DSLTaskContainer" || parentName == "DSLProject")
+            out.append("    val dslObject = $dslTypeName(this.projectAO, this.targetAO, ${if (mustBeExecuted) {"null"} else {"this.wrapperAO"}}, \"$tag\", ")
+            out.append(if (mustBeExecuted) {"null"} else {"this"})
+            out.append(")\n")
             for (attr in attributes) {
                 val dslAttr = dslAttribute(attr, className)
                 out.append("    if (`${dslAttr.name}` != null) { dslObject.`${dslAttr.name}` = `${dslAttr.name}` }\n")
             }
+
+            if (!isTaskContainer) {
+                out.append("    dslObject.init()\n")
+            }
             if (returnType != null) {
-                out.append("    return ${out.importManager.shorten(returnType)}(initElement(\"$tag\", dslObject, init))\n")
-            } else {
-                out.append("    initElement(\"$tag\", dslObject, init)\n")
+                out.append("    val reference = DSLReference(dslObject)\n")
+            }
+            out.append("    dslObject.configure()\n")
+            if (isTaskContainer) {
+                out.append("    dslObject.addTaskContainer(dslObject, init)\n")
+            }
+            if (mustBeExecuted) {
+                out.append("    dslObject.execute()\n")
+            }
+            if (returnType != null) {
+                out.append("    return reference\n")
             }
         } else {
             out.append("    return `$tag`(\n")
             for (attr in attributes) {
                 out.append("        `${attr.name}`,\n")
             }
-            out.append("        {$dslTypeName.() -> })\n")
+            out.append("        {$initReceiverTypeName.() -> })\n")
         }
         out.append("}\n")
     }
@@ -295,13 +315,10 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
         fun generateConstructors(tag: String) {
             val invAntClass = antClass!!
             val invKotlinSrcFile = kotlinSrcFile!!
-            val dslTaskContainerShorten = invKotlinSrcFile.importManager.shorten(DSL_PACKAGE + ".DSLTaskContainer")
-            val dslProjectShorten = invKotlinSrcFile.importManager.shorten(DSL_PACKAGE + ".DSLProject")
             if (invAntClass.isTask) {
-                invAntClass.renderNestedElement(invKotlinSrcFile, dslTaskContainerShorten, Attribute(tag, className))
-            }
-            if (invAntClass.hasRefId) {
-                invAntClass.renderNestedElement(invKotlinSrcFile, dslProjectShorten, Attribute(tag, className))
+                invAntClass.renderNestedElement(invKotlinSrcFile, "DSLTaskContainer", Attribute(tag, className))
+            } else  if (invAntClass.hasRefId) {
+                invAntClass.renderNestedElement(invKotlinSrcFile, "DSLProject", Attribute(tag, className))
             }
             for (interface in invAntClass.implementedInterfaces) {
                 if (containerGenerator.typeNeedsContainer(interface)) {
@@ -340,8 +357,7 @@ class ContainerGenerator {
 
     public fun resolveContainer(name: String) {
         if (!resolved.contains(name) && typeNeedsContainer(name)) {
-            val dslElementShorten = kotlinSrcFile.importManager.shorten(DSL_PACKAGE + ".DSLElement")
-            kotlinSrcFile.append("\ntrait ${containerName(name)} : $dslElementShorten\n")
+            kotlinSrcFile.append("\ntrait ${containerName(name)} : DSLTask\n")
             resolved.add(name)
         }
     }

@@ -133,13 +133,12 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         )
     }
 
-    public fun testExternalLibraries() {
+    public fun testMath() {
         val destFile = File(WORKING_DIR + "out.txt")
-        val expFile = File(DSL_GENERATOR_TEST_RES + "switch/out.txt")
+        val expFile = File(DSL_GENERATOR_TEST_RES + "math/out.txt")
         runDSLGeneratorTest(
-                "externalLibraries",
+                "math",
                 array("-DdestFile=" + destFile.toString(),
-                        "-Dvalue=bar",
                         "-DantContribJarFile=$ANT_CONTRIB_JAR_FILE"),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, destFile); true }
