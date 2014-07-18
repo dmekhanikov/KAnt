@@ -157,13 +157,25 @@ class DSLTarget(projectAO: Project, val name: String,
 
 public fun project(args: Array<String>, init: DSLProject.() -> Unit): DSLProject {
     val dslProject = DSLProject(args)
-    dslProject.init()
+    var error: Throwable? = null
     try {
+        dslProject.projectAO.fireBuildStarted()
+        dslProject.init()
         dslProject.perform()
-    } catch(t: Throwable) {
-        val message = t.getMessage()
-        if (message != null) {
-            System.err.println(message)
+    } catch (t: Throwable) {
+        error = t
+    } finally {
+        try {
+            dslProject.projectAO.fireBuildFinished(error);
+        } catch (t: Throwable) {
+            System.err.println("Caught an exception while logging the"
+                    + " end of the build.  Exception was:");
+            t.printStackTrace();
+            if (error != null) {
+                System.err.println("There has been an error prior to"
+                        + " that:");
+                error!!.printStackTrace();
+            }
         }
     }
     return dslProject
