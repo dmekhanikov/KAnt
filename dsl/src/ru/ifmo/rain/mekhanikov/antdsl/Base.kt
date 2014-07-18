@@ -6,9 +6,7 @@ import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
 
-abstract class DSLElement(val projectAO: Project, val targetAO: Target) {
-    val attributes = HashMap<String, Any?>()
-}
+abstract class DSLElement(val projectAO: Project, val targetAO: Target)
 
 abstract class DSLTask(projectAO: Project, targetAO: Target,
                        val parentWrapperAO: RuntimeConfigurable?, // if it is null then it can be executed
@@ -16,6 +14,7 @@ abstract class DSLTask(projectAO: Project, targetAO: Target,
                        nearestExecutable: DSLTask?) : DSLElement(projectAO, targetAO) {
     val taskAO: UnknownElement
     val wrapperAO: RuntimeConfigurable
+    val attributes = HashMap<String, Any?>()
     val taskContainers: ArrayList<Pair<DSLTaskContainer, DSLTaskContainer.() -> Unit>>?
     val nearestExecutable: DSLTask;
     {
@@ -104,7 +103,6 @@ abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
 
 class DSLProject(val args: Array<String>) : DSLElement(Project(), Target()), DSLTaskContainer {
     var default: DSLTarget? = null
-    var basedir: String by Delegates.mapVar(attributes)
     val targets = ArrayList<DSLTarget>();
     {
         targetAO.setProject(projectAO)
@@ -128,7 +126,8 @@ class DSLProject(val args: Array<String>) : DSLElement(Project(), Target()), DSL
     fun perform() {
         if (default != null) {
             projectAO.setDefault(default!!.name)
-            if (attributes.containsKey("basedir")) {
+            val basedir = propertyHelper!!.getProperty("basedir")
+            if (basedir is String) {
                 projectAO.setBaseDir(File(basedir))
             }
             projectAO.executeTarget(projectAO.getDefaultTarget())
