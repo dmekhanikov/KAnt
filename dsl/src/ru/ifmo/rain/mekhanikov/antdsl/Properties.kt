@@ -33,7 +33,6 @@ open class Property<T>(val name: String? = null, val convert: (value: String) ->
         var value = propertyHelper?.getProperty(propName)
         if (value == null) {
             value = defaultValue()
-            propertyHelper?.setUserProperty(propName, value)
         }
         val result = value
         return if (result is String) {
