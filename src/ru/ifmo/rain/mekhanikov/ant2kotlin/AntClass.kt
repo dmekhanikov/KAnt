@@ -138,7 +138,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
         val methodName = getName()!!
         return methodName.startsWith("set") && !getParameterTypes()!!.isEmpty() && getParameterTypes()!![0].isAntAttribute() &&
         methodName != "setTaskName" && methodName != "setTaskType" &&
-        methodName != "setLocation" && methodName != "setDescription"
+        methodName != "setDescription"
     }
 
     private fun Class<out Any?>.isAntAttribute(): Boolean {
