@@ -1,35 +1,52 @@
 package ru.ifmo.rain.mekhanikov.ant2kotlin
 
+import ru.ifmo.rain.mekhanikov.*
 import java.util.HashMap
-import java.io.File
-import java.util.jar.JarInputStream
-import java.io.FileInputStream
-import ru.ifmo.rain.mekhanikov.createClassLoader
-import ru.ifmo.rain.mekhanikov.explodeTypeName
-import ru.ifmo.rain.mekhanikov.compileKotlinCode
-import ru.ifmo.rain.mekhanikov.KOTLIN_RUNTIME_JAR_FILE
-import ru.ifmo.rain.mekhanikov.ANT_JAR_FILE
-import java.util.regex.Pattern
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.util.HashSet
+import java.util.regex.Pattern
+import java.util.jar.JarInputStream
+import java.io.*
+import java.io.File.pathSeparator
+import org.kohsuke.args4j.*
+
 
 public val DSL_ROOT: String = "dsl/src/"
 val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
 val BASE_DSL_FILE_NAMES = array("Base.kt", "Properties.kt", "References.kt", "Misc.kt", "LazyTask.kt")
 
 fun main(args: Array<String>) {
-    if (args.size < 2) {
-        System.out.println("Usage:\n\tAnt2kotlinPackage <output directory> <ant jars>")
+    GeneratorRunner().doMain(args)
+}
+
+class GeneratorRunner {
+    [Option(name = "-cp", usage = "classpath")]
+    private val classpath: String = ""
+
+    [Option(name = "-o", usage = "output directory", required = true)]
+    private val outDir: File? = null
+
+    [Option(name = "--seek", usage = "seek alias files")]
+    private val seek = false
+
+    [Argument]
+    private val aliasFiles: Array<String> = array()
+
+    fun doMain(args: Array<String>) {
+        val parser = CmdLineParser(this);
+        parser.setUsageWidth(80);
+        try {
+            parser.parseArgument(args.toArrayList());
+        } catch(e: CmdLineException) {
+            System.err.println(e.getMessage());
+            System.err.println("java Ant2KotlinPackage [options...] arguments...");
+            parser.printUsage(System.err);
+            System.err.println();
+            return;
+        }
+        val classpathArray = classpath.split(pathSeparator)
+        copyBaseFiles(outDir!!)
+        DSLGenerator(outDir.toString(), classpathArray, aliasFiles, seek).generate()
     }
-    val destDir = File(args[0])
-    val srcDir = File("$destDir/src")
-    val outDir = File("$destDir/out")
-    val binDir = File("$outDir/bin")
-    val jars = Array(args.size - 1, { i -> args[i + 1] })
-    copyBaseFiles(srcDir)
-    DSLGenerator(srcDir.toString(), jars).generate()
-    compileKotlinCode(srcDir.toString(), "$ANT_JAR_FILE:$KOTLIN_RUNTIME_JAR_FILE", binDir.toString())
 }
 
 private fun copyBaseFiles(dest: File) {
@@ -42,13 +59,13 @@ private fun copyBaseFiles(dest: File) {
     }
 }
 
-class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
+class DSLGenerator(resultRoot: String, val classpath: Array<String>, val aliasFiles: Array<String>, val seekForAliasFiles: Boolean = false) {
     private val resolved = HashMap<String, Target>()
     private val containerGenerator = ContainerGenerator()
-    private var classLoader: ClassLoader = createClassLoader(jarPath)
+    private var classLoader: ClassLoader = createClassLoader(classpath)
     private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
 
-    private var propertiesReader: BufferedReader? = null
+    private var aliasReader: BufferedReader? = null
 
     private val PRIMITIVE_TYPES = array("Boolean", "Char", "Byte", "Short", "Int", "Float", "Long", "Double").toSet()
 
@@ -77,22 +94,51 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
     public fun generate() {
         val generatedRoot = resultRoot + DSL_PACKAGE.replace('.', '/') + "/generated"
         File(generatedRoot).mkdirs()
-        for (jar in jarPath) {
-            val jis = JarInputStream(FileInputStream(jar))
-            var alias = jis.nextAlias()
-            while (alias != null) {
-                val tag = alias!!.tag
-                val className = alias!!.className
-                resolveClass(className)
-                resolved[className]?.generateConstructors(tag)
-                alias = jis.nextAlias()
+        if (seekForAliasFiles) {
+            for (jar in classpath) {
+                if (!jar.endsWith(".jar")) {
+                    continue
+                }
+                val jis = JarInputStream(FileInputStream(jar))
+                var alias = jis.nextAlias()
+                while (alias != null) {
+                    resolveAlias(alias!!)
+                    alias = jis.nextAlias()
+                }
+                jis.close()
             }
-            jis.close()
+        }
+        for (aliasFileName in aliasFiles) {
+            var stream = classLoader.getResourceAsStream(aliasFileName)
+            if (stream == null) {
+                val aliasFile = File(aliasFileName)
+                if (!aliasFile.exists()) {
+                    System.err.println("File $aliasFile was not found")
+                    continue
+                }
+                stream = FileInputStream(aliasFile)
+            }
+            val bf = BufferedReader(InputStreamReader(stream!!))
+            var line = bf.readLine()
+            while (line != null) {
+                val alias = parseAlias(line!!)
+                if (alias != null) {
+                    resolveAlias(alias)
+                }
+                line = bf.readLine()
+            }
         }
         for (target in resolved.values()) {
             target.dumpFile()
         }
         containerGenerator.dump(File(generatedRoot + "/Containers.kt"))
+    }
+
+    private fun resolveAlias(alias: Alias) {
+        val tag = alias.tag
+        val className = alias.className
+        resolveClass(className)
+        resolved[className]?.generateConstructors(tag)
     }
 
     private fun resultClassName(srcClassName: String): String {
@@ -126,21 +172,21 @@ class DSLGenerator(resultRoot: String, val jarPath: Array<String>) {
     }
 
     private fun updatePropertiesReader(jis: JarInputStream): Boolean {
-        val propertiesFileName = jis.nextPropertiesFileName()
-        if (propertiesFileName == null) {
+        val aliasFileName = jis.nextPropertiesFileName()
+        if (aliasFileName == null) {
             return false
         }
-        propertiesReader = BufferedReader(InputStreamReader(classLoader.getResourceAsStream(propertiesFileName)!!))
+        aliasReader = BufferedReader(InputStreamReader(classLoader.getResourceAsStream(aliasFileName)!!))
         return true
     }
 
     private fun JarInputStream.nextPropertiesLine(): String? {
-        var line = propertiesReader?.readLine()
+        var line = aliasReader?.readLine()
         while (line == null) {
             if (!updatePropertiesReader(this)) {
                 return null
             }
-            line = propertiesReader!!.readLine()
+            line = aliasReader!!.readLine()
         }
         return line
     }

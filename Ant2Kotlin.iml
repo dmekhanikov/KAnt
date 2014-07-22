@@ -14,6 +14,7 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="junit:junit:4.10" level="project" />
     <orderEntry type="library" name="org.jetbrains.kotlin:kotlin-compiler:0.8.11" level="project" />
+    <orderEntry type="library" name="args4j:args4j:2.0.29" level="project" />
   </component>
 </module>
 

@@ -1,12 +1,9 @@
 import ru.ifmo.rain.mekhanikov.ant2kotlin.DSLGenerator
-import ru.ifmo.rain.mekhanikov.compileKotlinCode
-import ru.ifmo.rain.mekhanikov.cleanDirectory
-import ru.ifmo.rain.mekhanikov.createClassLoader
 import ru.ifmo.rain.mekhanikov.ant2kotlin.DSL_ROOT
-import ru.ifmo.rain.mekhanikov.KOTLIN_RUNTIME_JAR_FILE
-import ru.ifmo.rain.mekhanikov.ANT_JAR_FILE
+import ru.ifmo.rain.mekhanikov.*
 import java.lang.reflect.Method
 import java.io.File
+import java.io.File.pathSeparator
 
 var dslGeneratorTestInitComplete = false
 
@@ -25,10 +22,10 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
     {
         if (!dslGeneratorTestInitComplete) {
             File(DSL_GENERATED_ROOT).cleanDirectory()
-            DSLGenerator(DSL_ROOT, array(ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE)).generate()
+            DSLGenerator(DSL_ROOT, array(ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE), array(), true).generate()
             File(DSL_GENERATOR_OUT_ROOT).cleanDirectory()
-            compileKotlinCode(DSL_ROOT + ":" + DSL_GENERATOR_TEST_DATA,
-                    "$ANT_JAR_FILE:$KOTLIN_RUNTIME_JAR_FILE",
+            compileKotlinCode(DSL_ROOT + pathSeparator + DSL_GENERATOR_TEST_DATA,
+                    "$ANT_JAR_FILE${pathSeparator}$KOTLIN_RUNTIME_JAR_FILE",
                     DSL_GENERATOR_OUT_ROOT)
             dslGeneratorTestInitComplete = true
         }
