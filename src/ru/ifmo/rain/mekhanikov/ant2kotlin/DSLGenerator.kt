@@ -244,6 +244,9 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, val aliasFi
         val rcShorten = res.importManager.shorten(ANT_CLASS_PREFIX + "RuntimeConfigurable")
         res.append("public class $dslTypeName(projectAO: $projectShorten, targetAO: $targetShorten, parentWrapperAO: $rcShorten?, elementTag: String, nearestExecutable: DSLTask?)")
         res.append(": ${if (isTaskContainer) {"DSLTaskContainerTask"} else {"DSLTask"}}(projectAO, targetAO, parentWrapperAO, elementTag, nearestExecutable)")
+        if (isTextContainer) {
+            res.append(",\n        DSLTextContainer")
+        }
         for (nestedType in nestedTypes) {
             val containerName = containerGenerator.containerName(nestedType)
             res.append(",\n        $containerName")
@@ -394,7 +397,7 @@ class ContainerGenerator {
 
     public fun containerName(name: String): String {
         val shortName = name.substring(name.lastIndexOf('.') + 1).replace("$", "")
-        return shortName + "Container"
+        return "DSL" + shortName + "Container"
     }
 
     public fun typeNeedsContainer(name: String): Boolean {

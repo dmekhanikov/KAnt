@@ -16,7 +16,8 @@ abstract class DSLTask(projectAO: Project, targetAO: Target,
     val wrapperAO: RuntimeConfigurable
     val attributes = HashMap<String, Any?>()
     val taskContainers: ArrayList<Pair<DSLTaskContainer, DSLTaskContainer.() -> Unit>>?
-    val nearestExecutable: DSLTask;
+    val nearestExecutable: DSLTask
+    var nestedText: String? = null;
     {
         taskAO = UnknownElement(elementTag)
         taskAO.setProject(projectAO)
@@ -47,6 +48,9 @@ abstract class DSLTask(projectAO: Project, targetAO: Target,
                         storedValue
                     }
             wrapperAO.setAttribute(attr.key, value)
+        }
+        if (nestedText != null) {
+            wrapperAO.addText(nestedText)
         }
         if (parentWrapperAO != null) {
             val parent = parentWrapperAO.getProxy() as UnknownElement

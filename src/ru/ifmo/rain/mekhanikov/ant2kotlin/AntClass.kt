@@ -35,6 +35,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
     public val nestedTypes: List<String>
     public val isTask: Boolean
     public val isTaskContainer: Boolean
+    public val isTextContainer: Boolean
     public val hasRefId: Boolean
     public val implementedInterfaces: List<String>;
     {
@@ -51,6 +52,11 @@ class AntClass(classLoader: ClassLoader, className: String) {
             nestedElements = ArrayList<Attribute>()
             nestedTypes = ArrayList<String>()
         }
+        isTextContainer = classObject.getMethods().firstOrNull({
+            val name = it.getName()
+            val parameters = it.getParameterTypes()!!
+            name == "addText" && parameters.size == 1 && parameters[0].getName() == "java.lang.String"
+        }) != null
         hasRefId = attributes.firstOrNull({
             (it.name == "refid") && (it.typeName == ANT_CLASS_PREFIX + "types.Reference")
         }) != null
