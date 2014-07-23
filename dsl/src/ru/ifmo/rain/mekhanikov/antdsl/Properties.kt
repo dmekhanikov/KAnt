@@ -3,11 +3,14 @@ package ru.ifmo.rain.mekhanikov.antdsl
 import java.util.regex.Pattern
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.PropertyHelper
+import java.io.File
 
 var propertyHelper: PropertyHelper? = null
 
 fun initProperties(project: Project, args: Array<String>) {
     propertyHelper = PropertyHelper.getPropertyHelper(project)
+    val basedir = File(".").getAbsoluteFile().getParent()
+    propertyHelper!!.setUserProperty("basedir", basedir)
     for (arg in args) {
         val pattern = Pattern.compile("-D(\\w+)=(.*)")!!
         val matcher = pattern.matcher(arg)!!

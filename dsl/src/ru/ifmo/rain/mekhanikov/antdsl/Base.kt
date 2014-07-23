@@ -130,10 +130,8 @@ class DSLProject(val args: Array<String>) : DSLElement(Project(), Target()), DSL
     fun perform() {
         if (default != null) {
             projectAO.setDefault(default!!.name)
-            val basedir = propertyHelper!!.getProperty("basedir")
-            if (basedir is String) {
-                projectAO.setBaseDir(File(basedir))
-            }
+            val basedir = propertyHelper!!.getProperty("basedir") as String
+            projectAO.setBaseDir(File(basedir))
             projectAO.executeTarget(projectAO.getDefaultTarget())
         }
     }
