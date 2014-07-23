@@ -12,7 +12,7 @@ import org.kohsuke.args4j.*
 
 public val DSL_ROOT: String = "dsl/src/"
 val DSL_PACKAGE = "ru.ifmo.rain.mekhanikov.antdsl"
-val BASE_DSL_FILE_NAMES = array("Base.kt", "Properties.kt", "References.kt", "Misc.kt", "LazyTask.kt")
+val BASE_DSL_FILE_NAMES = array("Base.kt", "Properties.kt", "References.kt", "Misc.kt", "LazyTask.kt", "Text.kt")
 
 fun main(args: Array<String>) {
     GeneratorRunner().doMain(args)

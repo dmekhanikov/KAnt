@@ -155,6 +155,17 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
         )
     }
 
+    public fun testReplace() {
+        val file = File(WORKING_DIR + "out.txt")
+        val expFile = File(DSL_GENERATOR_TEST_RES + "replace/out.txt")
+        runDSLGeneratorTest(
+                "replace",
+                array("-Dfile=" + file.toString()),
+                { File(WORKING_DIR).cleanDirectory(); true },
+                { assertFilesMatch(expFile, file); true }
+        )
+    }
+
     public fun testCutDirsMapper() {
         val srcDir = File(DSL_GENERATOR_TEST_RES + "toCopyAndCut/")
         val destDir = File(WORKING_DIR + "dest")
