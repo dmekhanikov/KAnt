@@ -9,7 +9,7 @@ var propertyHelper: PropertyHelper? = null
 
 fun initProperties(project: Project, args: Array<String>) {
     propertyHelper = PropertyHelper.getPropertyHelper(project)
-    val basedir = File(".").getAbsoluteFile().getParent()
+    val basedir = File(".").getAbsoluteFile()!!.getParent()
     propertyHelper!!.setUserProperty("basedir", basedir)
     for (arg in args) {
         val pattern = Pattern.compile("-D(\\w+)=(.*)")!!
