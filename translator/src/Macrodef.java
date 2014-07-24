@@ -1,9 +1,6 @@
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Macrodef extends Wrapper {
     private String macrodefName;
 
@@ -20,11 +17,8 @@ public class Macrodef extends Wrapper {
     }
 
     public String toString() {
-        StringBuilder result = new StringBuilder(indent + "fun DSLTaskContainer." + macrodefName);
-        result.append(renderAttributes(true));
-        result.append(" {\n");
-        result.append(renderChildren()).append("\n");
-        result.append(indent).append("}");
-        return result.toString();
+        return indent + "fun DSLTaskContainer." + macrodefName + renderAttributes(true) + " {\n"
+                + renderChildren() + "\n"
+                + indent + "}";
     }
 }

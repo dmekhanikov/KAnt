@@ -14,6 +14,10 @@ public class StringProcessor {
                 }
             }
         }
+        if (stringBuilder.charAt(0) == '\"' && stringBuilder.charAt(stringBuilder.length() - 1) == '\"') {
+            stringBuilder.deleteCharAt(0);
+            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        }
         return stringBuilder.toString();
     }
 

@@ -8,6 +8,7 @@ public class Wrapper {
 
     protected String name;
     protected String indent = "";
+    protected String id;
     protected List<Wrapper> children = new ArrayList<>();
     protected List<Attribute> attributes;
     protected Wrapper parent;
@@ -19,12 +20,16 @@ public class Wrapper {
             for (int i = 0; i < attributes.getLength(); i++) {
                 String attrName = attributes.getQName(i);
                 String attrVal = attributes.getValue(i);
-                addAttribute(attrName, attrVal);
+                if (attrName.equals("id")) {
+                    id = attrVal;
+                } else {
+                    addAttribute(attrName, attrVal);
+                }
             }
         }
     }
 
-    protected Wrapper(Wrapper wrapper) {
+    public Wrapper(Wrapper wrapper) {
         name = wrapper.name;
         indent = wrapper.indent;
         children = wrapper.children;
@@ -65,7 +70,7 @@ public class Wrapper {
     protected String renderAttributes(boolean includeTypes) {
         StringBuilder result = new StringBuilder("(");
         for (int i = 0; i < attributes.size(); i++) {
-            if (i != 0) {
+            if (i > 0) {
                 result.append(", ");
             }
             result.append(attributes.get(i).toString(includeTypes));
@@ -87,7 +92,11 @@ public class Wrapper {
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(indent + name);
+        StringBuilder result = new StringBuilder(indent);
+        if (id != null) {
+            result.append("val ").append(StringProcessor.toCamelCase(id)).append(" = ");
+        }
+        result.append(StringProcessor.toCamelCase(name));
         if (!attributes.isEmpty()) {
             result.append(renderAttributes(false));
         } else if (children.isEmpty()) {

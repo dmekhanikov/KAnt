@@ -1,13 +1,11 @@
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.*;
 
-import javax.crypto.Mac;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Translator {
     public static final String TAB = "    ";
@@ -80,11 +78,8 @@ public class Translator {
 
         @Override
         public void endDocument () throws SAXException {
-            if (!stack.isEmpty()) {
-                throw new SAXException("Unclosed tags");
-            }
             result.append("}\n");
-            result.insert(0, "import ru.ifmo.rain.mekhanikov.antdsl.*\n\n" + properties + "\n" + macrodefs + "\n");
+            result.insert(0, "import ru.ifmo.rain.mekhanikov.antdsl.*\n\n" + properties + "\n" + macrodefs);
         }
 
         private void processChild(Wrapper child, Wrapper parent) throws SAXException {
@@ -113,7 +108,16 @@ public class Translator {
                 case "if":
                     IfStatement ifStatement = new IfStatement();
                     processChild(ifStatement, parent);
+                    break;
                 case "sequential":
+                    break;
+                case "project":
+                    Wrapper project = new Project(attrs);
+                    processChild(project, parent);
+                    break;
+                case "target":
+                    Target target = new Target(attrs);
+                    processChild(target, parent);
                     break;
                 case "attribute":
                     if (parent != null && parent instanceof Macrodef) {
@@ -131,14 +135,12 @@ public class Translator {
             if (!stack.isEmpty() && stack.get(stack.size() - 1).name.equals(qName)) {
                 Wrapper wrapper = stack.get(stack.size() - 1);
                 if (wrapper instanceof Macrodef) {
-                    macrodefs.append(wrapper.toString()).append("\n");
+                    macrodefs.append(wrapper.toString()).append("\n\n");
                 } else if (stack.size() == 1) {
                     result.append(stack.get(0).toString());
                     result.append("\n");
                 }
                 stack.remove(stack.size() - 1);
-            } else if (!qName.equals("property") && !qName.equals("attribute") && !qName.equals("sequential")) {
-                throw new SAXException("Unexpected closing tag: " + qName);
             }
         }
     }

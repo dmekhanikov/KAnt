@@ -28,7 +28,12 @@ public class Attribute {
             result.append(": ").append(type);
         }
         if (defaultValue != null) {
-            result.append(" = ").append(defaultValue);
+            result.append(" = ");
+            if (name.equals("refid") || name.endsWith("pathref")) {
+                result.append(StringProcessor.toCamelCase(defaultValue));
+            } else {
+                result.append(defaultValue);
+            }
         }
         return result.toString();
     }
