@@ -1,5 +1,7 @@
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.*;
+
+import javax.crypto.Mac;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -8,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Translator {
+    public static final String TAB = "    ";
     private StringBuilder result;
 
     public static void main(String ... args) {
@@ -15,12 +18,10 @@ public class Translator {
             System.out.println("Usage:\n\tjava Translator <input file> <output file>");
             System.exit(1);
         }
-        try {
+        try (Writer writer = new FileWriter(new File(args[1]))) {
             InputStream inputStream = new FileInputStream(new File(args[0]));
-            Writer writer = new FileWriter(new File(args[1]));
             Translator translator = new Translator();
             translator.translate(inputStream, writer);
-            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,24 +40,9 @@ public class Translator {
     }
 
     private class AntXMLHandler extends DefaultHandler {
-        final String TAB = "    ";
-
-        List<String> stack;
-        StringBuilder indent;
+        List<Wrapper> stack;
         StringBuilder properties;
         StringBuilder macrodefs;
-        StringBuilder macrodefIndent;
-        boolean closingBracesNeeded;
-        boolean bareFunction;
-        Macrodef macrodef;
-        int macrodefDepth;
-        int macrodefPlace;
-
-        private void swapIndents() {
-            StringBuilder temp = macrodefIndent;
-            macrodefIndent = indent;
-            indent = temp;
-        }
 
         private void renderProperty(Attributes attrs) throws SAXException {
             if (attrs.getValue("file") != null) {
@@ -83,104 +69,76 @@ public class Translator {
             properties.append(" { ").append(StringProcessor.prepareValue(value)).append(" }\n");
         }
 
-        private void renderElement(String name, Attributes attributes) {
-            result.append(indent).append(StringProcessor.toCamelCase(name));
-            if (attributes.getLength() != 0) {
-                result.append("(");
-                for (int i = 0; i < attributes.getLength(); i++) {
-                    String attrName = StringProcessor.toCamelCase(attributes.getQName(i));
-                    String attrVal = attributes.getValue(i);
-                    if (i != 0) {
-                        result.append(", ");
-                    }
-                    result.append(attrName).append(" = ").append(StringProcessor.prepareValue(attrVal));
-                }
-                result.append(")");
-            } else {
-                bareFunction = true;
-            }
-            closingBracesNeeded = false;
-        }
-
         @Override
         public void startDocument() throws SAXException {
             stack = new ArrayList<>();
-            indent = new StringBuilder(TAB);
             properties = new StringBuilder();
             macrodefs = new StringBuilder();
-            macrodefIndent = new StringBuilder();
             result = new StringBuilder();
-            result.append("fun main(args: Array<String>)");
+            result.append("fun main(args: Array<String>) {\n");
         }
 
         @Override
-        public void endDocument ()throws SAXException {
+        public void endDocument () throws SAXException {
             if (!stack.isEmpty()) {
                 throw new SAXException("Unclosed tags");
             }
-            result.append("}");
+            result.append("}\n");
             result.insert(0, "import ru.ifmo.rain.mekhanikov.antdsl.*\n\n" + properties + "\n" + macrodefs + "\n");
+        }
+
+        private void processChild(Wrapper child, Wrapper parent) throws SAXException {
+            if (parent != null) {
+                child = parent.addChild(child);
+            } else {
+                child.setIndent(TAB);
+            }
+            stack.add(child);
         }
 
         @Override
         public void startElement(String namespaceURI, String localName, String qName, Attributes attrs) throws SAXException {
-            if (!closingBracesNeeded) {
-                result.append(" {\n");
-                closingBracesNeeded = true;
+            Wrapper parent = null;
+            if (!stack.isEmpty()) {
+                parent = stack.get(stack.size() - 1);
             }
-            macrodefDepth++;
-            bareFunction = false;
             switch (qName) {
                 case "property":
                     renderProperty(attrs);
                     break;
                 case "macrodef":
-                    macrodef = new Macrodef(attrs);
-                    macrodefPlace = result.length();
-                    result.append(" {\n");
-                    swapIndents();
-                    indent.append(TAB);
-                    macrodefDepth = 0;
+                    Macrodef macrodef = new Macrodef(attrs);
+                    stack.add(macrodef);
                     break;
+                case "if":
+                    IfStatement ifStatement = new IfStatement();
+                    processChild(ifStatement, parent);
                 case "sequential":
                     break;
                 case "attribute":
-                    if (macrodef != null && macrodefDepth == 1) {
-                        macrodef.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
+                    if (parent != null && parent instanceof Macrodef) {
+                        parent.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
                         break;
                     }
                 default:
-                    renderElement(qName, attrs);
-                    stack.add(qName);
-                    indent.append(TAB);
+                    Wrapper wrapper = new Wrapper(qName, attrs);
+                    processChild(wrapper, parent);
             }
         }
 
         @Override
         public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
-            macrodefDepth--;
-            if (!stack.isEmpty() && stack.get(stack.size() - 1).equals(qName)) {
-                stack.remove(stack.size() - 1);
-                indent.delete(0, TAB.length());
-                if (bareFunction) {
-                    result.append("()");
-                }
-                if (closingBracesNeeded) {
-                    result.append(indent).append("}\n");
-                } else {
+            if (!stack.isEmpty() && stack.get(stack.size() - 1).name.equals(qName)) {
+                Wrapper wrapper = stack.get(stack.size() - 1);
+                if (wrapper instanceof Macrodef) {
+                    macrodefs.append(wrapper.toString()).append("\n");
+                } else if (stack.size() == 1) {
+                    result.append(stack.get(0).toString());
                     result.append("\n");
                 }
-                closingBracesNeeded = true;
-            } else if (macrodef != null && qName.equals("macrodef")) {
-                if (macrodefs.length() != 0) {
-                    macrodefs.append("\n");
-                }
-                macrodefs.append(macrodef.toString());
-                macrodefs.append(result.substring(macrodefPlace)).append("}\n");
-                result.delete(macrodefPlace, result.length());
-                indent.delete(0, TAB.length());
-                swapIndents();
-                macrodef = null;
+                stack.remove(stack.size() - 1);
+            } else if (!qName.equals("property") && !qName.equals("attribute") && !qName.equals("sequential")) {
+                throw new SAXException("Unexpected closing tag: " + qName);
             }
         }
     }

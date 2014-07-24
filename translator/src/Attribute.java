@@ -1,8 +1,8 @@
 
 public class Attribute {
-    public String name;
-    public String type;
-    public String defaultValue;
+    private String name;
+    private String type;
+    private String defaultValue;
 
     public Attribute(String name, String type, String defaultValue) {
         this.name = name;
@@ -10,11 +10,31 @@ public class Attribute {
         this.defaultValue = defaultValue;
     }
 
-    public String toString() {
-        String result = name + ": " + type;
-        if (defaultValue != null) {
-            result += " = " + defaultValue;
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public String toString(boolean includeType) {
+        StringBuilder result = new StringBuilder(name);
+        if (includeType && type != null) {
+            result.append(": ").append(type);
         }
-        return result;
+        if (defaultValue != null) {
+            result.append(" = ").append(defaultValue);
+        }
+        return result.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toString(false);
     }
 }

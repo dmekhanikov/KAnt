@@ -9,10 +9,21 @@ public class StringProcessor {
             String separator = String.valueOf(separators.charAt(i));
             for (int j = stringBuilder.indexOf(separator); j != -1; j = stringBuilder.indexOf(separator, j)) {
                 stringBuilder.deleteCharAt(j);
-                stringBuilder.setCharAt(j, Character.toUpperCase(stringBuilder.charAt(j)));
+                if (stringBuilder.length() > j) {
+                    stringBuilder.setCharAt(j, Character.toUpperCase(stringBuilder.charAt(j)));
+                }
             }
         }
         return stringBuilder.toString();
+    }
+
+    public static String getType(String value) {
+        if (value != null && (value.equals("true") || value.equals("false")
+                || value.equals("yes") || value.equals("no"))) {
+            return "Boolean";
+        } else {
+            return "String";
+        }
     }
 
     public static String prepareValue(String value) {
@@ -49,6 +60,10 @@ public class StringProcessor {
             }
         }
         result.append("\"");
+        for (int i = result.indexOf("\\"); i != -1; i = result.indexOf("\\", i)) {
+            result.replace(i, i + 1, "\\\\");
+            i += 2;
+        }
         String pattern = "\"\\$(\\w*)\"";
         Matcher matcher = Pattern.compile(pattern).matcher(result);
         if (matcher.matches()) {

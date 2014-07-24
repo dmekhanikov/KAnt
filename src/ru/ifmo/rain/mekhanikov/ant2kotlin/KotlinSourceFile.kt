@@ -12,8 +12,15 @@ class KotlinSourceFile(public val pkg: String?) {
     }
 
     override public fun toString(): String {
-        return (if (pkg != null) { "package " + pkg + "\n\n" } else { "" }) +
-        importManager.toString() + "\n" + body.toString()
+        val result = StringBuilder()
+        if (pkg != null) {
+            result.append("package " + pkg + "\n\n")
+        }
+        if (!importManager.imports.empty) {
+            result.append(importManager.toString()).append("\n")
+        }
+        result.append(body.toString())
+        return result.toString()
     }
 
     public fun dump(file: File) {

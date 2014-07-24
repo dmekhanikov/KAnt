@@ -1,0 +1,103 @@
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Wrapper {
+    protected final String TAB = Translator.TAB;
+
+    protected String name;
+    protected String indent = "";
+    protected List<Wrapper> children = new ArrayList<>();
+    protected List<Attribute> attributes;
+    protected Wrapper parent;
+
+    public Wrapper(String name, Attributes attributes) {
+        this.name = name;
+        this.attributes = new ArrayList<>();
+        if (attributes != null) {
+            for (int i = 0; i < attributes.getLength(); i++) {
+                String attrName = attributes.getQName(i);
+                String attrVal = attributes.getValue(i);
+                addAttribute(attrName, attrVal);
+            }
+        }
+    }
+
+    protected Wrapper(Wrapper wrapper) {
+        name = wrapper.name;
+        indent = wrapper.indent;
+        children = wrapper.children;
+        attributes = wrapper.attributes;
+        parent = wrapper.parent;
+    }
+
+    public void addAttribute(Attribute attribute) {
+        attributes.add(attribute);
+    }
+
+    public void addAttribute(String name, String defaultValue) {
+        name = StringProcessor.toCamelCase(name);
+        String type = StringProcessor.getType(defaultValue);
+        defaultValue = StringProcessor.prepareValue(defaultValue);
+        addAttribute(new Attribute(name, type, defaultValue));
+    }
+
+    public void setIndent(String indent) {
+        this.indent = indent;
+    }
+
+    public Wrapper addChild(Wrapper child) throws SAXException {
+        child.setIndent(indent + TAB);
+        child.setParent(this);
+        children.add(child);
+        return child;
+    }
+
+    public Wrapper getParent() {
+        return parent;
+    }
+
+    public void setParent(Wrapper parent) {
+        this.parent = parent;
+    }
+
+    protected String renderAttributes(boolean includeTypes) {
+        StringBuilder result = new StringBuilder("(");
+        for (int i = 0; i < attributes.size(); i++) {
+            if (i != 0) {
+                result.append(", ");
+            }
+            result.append(attributes.get(i).toString(includeTypes));
+        }
+        result.append(')');
+        return result.toString();
+    }
+
+    protected String renderChildren() {
+        StringBuilder result = new StringBuilder();
+        if (!children.isEmpty()) {
+            result.append(children.get(0).toString());
+            for (Wrapper child : children.subList(1, children.size())) {
+                result.append("\n").append(child.toString());
+            }
+        }
+        return result.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder(indent + name);
+        if (!attributes.isEmpty()) {
+            result.append(renderAttributes(false));
+        } else if (children.isEmpty()) {
+            result.append("()");
+        }
+        if (!children.isEmpty()) {
+            result.append(" {\n");
+            result.append(renderChildren());
+            result.append("\n").append(indent).append("}");
+        }
+        return result.toString();
+    }
+}
