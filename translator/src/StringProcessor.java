@@ -30,20 +30,8 @@ public class StringProcessor {
         }
     }
 
-    public static String prepareValue(String value) {
-        if (value == null) {
-            return null;
-        }
-        switch (value) {
-            case "true":
-            case "yes":
-                return "true";
-            case "false":
-            case "no":
-                return "false";
-            default:
-        }
-        StringBuilder result = new StringBuilder("\"");
+    public static String processProperties(String value) {
+        StringBuilder result = new StringBuilder();
         for (int i = 0; i < value.length(); i++) {
             if (i + 1 < value.length() &&
                     (value.charAt(i) == '$' || value.charAt(i) == '@') &&
@@ -63,6 +51,38 @@ public class StringProcessor {
                 result.append(value.charAt(i));
             }
         }
+        return result.toString();
+    }
+
+    public static String escapeTemplates(String value) {
+        StringBuilder result = new StringBuilder(value);
+        for (int i = result.indexOf("$"); i != -1; i = result.indexOf("$", i)) {
+            if (result.length() > i + 1 &&
+                    (Character.isLetter(result.charAt(i + 1)) || result.charAt(i + 1) == '_')) {
+                result.replace(i, i + 1, "${\"$\"}");
+                i += 6;
+            } else {
+                i++;
+            }
+        }
+        return result.toString();
+    }
+
+    public static String prepareValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        switch (value) {
+            case "true":
+            case "yes":
+                return "true";
+            case "false":
+            case "no":
+                return "false";
+            default:
+        }
+        StringBuilder result = new StringBuilder("\"");
+        result.append(processProperties(escapeTemplates(value)));
         result.append("\"");
         for (int i = result.indexOf("\\"); i != -1; i = result.indexOf("\\", i)) {
             result.replace(i, i + 1, "\\\\");

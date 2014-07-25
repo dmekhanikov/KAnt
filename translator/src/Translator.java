@@ -131,6 +131,17 @@ public class Translator {
         }
 
         @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            String value = new String(ch, start, length);
+            if (!value.trim().isEmpty()) {
+                Wrapper parent = stack.get(stack.size() - 1);
+                Text text = new Text();
+                text.setText(value);
+                parent.addChild(text);
+            }
+        }
+
+        @Override
         public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
             if (!stack.isEmpty() && stack.get(stack.size() - 1).name.equals(qName)) {
                 Wrapper wrapper = stack.get(stack.size() - 1);
