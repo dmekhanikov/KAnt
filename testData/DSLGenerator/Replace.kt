@@ -2,7 +2,7 @@ package testData.DSLGenerator.replace
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
 
-val file: String by StringProperty { "" }
+val file by StringProperty()
 
 fun main(args: Array<String>) {
     project(args) {

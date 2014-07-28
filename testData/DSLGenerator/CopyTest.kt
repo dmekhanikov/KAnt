@@ -2,8 +2,8 @@ package testData.DSLGenerator.copy
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
 
-val srcDir: String by StringProperty { "" }
-val destDir: String by StringProperty { "" }
+val srcDir by StringProperty()
+val destDir by StringProperty()
 
 fun main(args: Array<String>) {
     project(args) {

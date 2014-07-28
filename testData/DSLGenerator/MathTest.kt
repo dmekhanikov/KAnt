@@ -2,9 +2,9 @@ package testData.DSLGenerator.math
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
 
-val destFile: String by StringProperty { "" }
-val antContribJarFile: String by StringProperty { "" }
-val fact: Double by DoubleProperty { 0.0 }
+val destFile by StringProperty()
+val antContribJarFile by StringProperty()
+val fact by DoubleProperty()
 
 fun main(args: Array<String>) {
     project(args) {

@@ -55,12 +55,12 @@ public fun propertyIsSet(name: String): Boolean {
     return propertyHelper!!.getProperty(name) != null
 }
 
-class BooleanProperty(name: String? = null, defaultValue: () -> Boolean) : Property<Boolean>(name, { java.lang.Boolean.parseBoolean(it) }, defaultValue)
-class CharProperty(name: String? = null, defaultValue: () -> Char) : Property<Char>(name, { it[0] }, defaultValue)
-class ByteProperty(name: String? = null, defaultValue: () -> Byte) : Property<Byte>(name, { java.lang.Byte.parseByte(it) }, defaultValue)
-class ShortProperty(name: String? = null, defaultValue: () -> Short) : Property<Short>(name, { java.lang.Short.parseShort(it) }, defaultValue)
-class IntProperty(name: String? = null, defaultValue: () -> Int) : Property<Int>(name, { java.lang.Integer.parseInt(it) }, defaultValue)
-class FloatProperty(name: String? = null, defaultValue: () -> Float) : Property<Float>(name, { java.lang.Float.parseFloat(it) }, defaultValue)
-class LongProperty(name: String? = null, defaultValue: () -> Long) : Property<Long>(name, { java.lang.Long.parseLong(it) }, defaultValue)
-class DoubleProperty(name: String? = null, defaultValue: () -> Double) : Property<Double>(name, { java.lang.Double.parseDouble(it) }, defaultValue)
-class StringProperty(name: String? = null, defaultValue: () -> String) : Property<String>(name, { it }, defaultValue)
+class BooleanProperty(name: String? = null, defaultValue: () -> Boolean = { false }) : Property<Boolean>(name, { java.lang.Boolean.parseBoolean(it) }, defaultValue)
+class CharProperty(name: String? = null, defaultValue: () -> Char = { '\u0000' }) : Property<Char>(name, { it[0] }, defaultValue)
+class ByteProperty(name: String? = null, defaultValue: () -> Byte = { 0 }) : Property<Byte>(name, { java.lang.Byte.parseByte(it) }, defaultValue)
+class ShortProperty(name: String? = null, defaultValue: () -> Short = { 0 }) : Property<Short>(name, { java.lang.Short.parseShort(it) }, defaultValue)
+class IntProperty(name: String? = null, defaultValue: () -> Int = { 0 }) : Property<Int>(name, { java.lang.Integer.parseInt(it) }, defaultValue)
+class FloatProperty(name: String? = null, defaultValue: () -> Float = { 0.0f }) : Property<Float>(name, { java.lang.Float.parseFloat(it) }, defaultValue)
+class LongProperty(name: String? = null, defaultValue: () -> Long = { 0 }) : Property<Long>(name, { java.lang.Long.parseLong(it) }, defaultValue)
+class DoubleProperty(name: String? = null, defaultValue: () -> Double = { 0.0 }) : Property<Double>(name, { java.lang.Double.parseDouble(it) }, defaultValue)
+class StringProperty(name: String? = null, defaultValue: () -> String = { "" }) : Property<String>(name, { it }, defaultValue)
