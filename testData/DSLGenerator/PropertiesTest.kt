@@ -1,6 +1,7 @@
 package testData.DSLGenerator.properties
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
+import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.*
 
 val systemPropertiesOutFile by StringProperty()
 val userPropertiesOutFile by StringProperty()
@@ -22,7 +23,7 @@ fun main(args: Array<String>) {
         default = target("Properties test") {
             echo(message = antVersion, file = systemPropertiesOutFile)
             val message = "$stringProperty\n$booleanProperty\n$intProperty\n$doubleProperty\n$defaultProperty\n" +
-                            "$stringFileProperty\n$intFileProperty\n$doubleFileProperty\n"
+                    "$stringFileProperty\n$intFileProperty\n$doubleFileProperty\n"
             echo(message = message, file = userPropertiesOutFile)
         }
     }

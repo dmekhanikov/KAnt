@@ -8,7 +8,7 @@ import java.util.HashMap
 
 abstract class DSLElement(val projectAO: Project, val targetAO: Target)
 
-abstract class DSLTask(projectAO: Project, targetAO: Target,
+open class DSLTask(projectAO: Project, targetAO: Target,
                        val parentWrapperAO: RuntimeConfigurable?, // if it is null then it can be executed
                        val elementTag: String,
                        nearestExecutable: DSLTask?) : DSLElement(projectAO, targetAO) {
@@ -20,10 +20,10 @@ abstract class DSLTask(projectAO: Project, targetAO: Target,
     var nestedText: String? = null;
     {
         taskAO = UnknownElement(elementTag)
-        taskAO.setProject(projectAO)
         taskAO.setQName(elementTag)
         taskAO.setTaskType(ProjectHelper.genComponentName("", elementTag))
         taskAO.setTaskName(elementTag)
+        taskAO.setProject(projectAO)
         taskAO.setOwningTarget(targetAO)
         wrapperAO = RuntimeConfigurable(taskAO, taskAO.getTaskName())
         if (parentWrapperAO == null) {
@@ -35,7 +35,7 @@ abstract class DSLTask(projectAO: Project, targetAO: Target,
         }
     }
 
-    public fun configure() {
+    protected fun setAttributes() {
         for (attr in attributes) {
             if (attr.key == "id") {
                 projectAO.addIdReference(attr.value as String, taskAO)
@@ -52,6 +52,10 @@ abstract class DSLTask(projectAO: Project, targetAO: Target,
         if (nestedText != null) {
             wrapperAO.addText(nestedText)
         }
+    }
+
+    open public fun configure() {
+        setAttributes()
         if (parentWrapperAO != null) {
             val parent = parentWrapperAO.getProxy() as UnknownElement
             parent.addChild(taskAO)
@@ -79,7 +83,7 @@ abstract class DSLTask(projectAO: Project, targetAO: Target,
     public fun execute() {
         assert(parentWrapperAO == null)
         initTaskContainers()
-        (taskAO as Task).perform()
+        taskAO.perform()
     }
 }
 

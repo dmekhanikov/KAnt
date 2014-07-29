@@ -7,8 +7,9 @@ class KotlinSourceFile(public val pkg: String?) {
     public val importManager: ImportManager = ImportManager(pkg)
     private val body = StringBuilder("")
 
-    public fun append(code: String) {
+    public fun append(code: String): KotlinSourceFile {
         body.append(code)
+        return this
     }
 
     override public fun toString(): String {

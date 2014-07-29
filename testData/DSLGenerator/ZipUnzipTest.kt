@@ -1,6 +1,7 @@
 package testData.DSLGenerator.zipUnzip
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
+import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.*
 
 val sourceDir by StringProperty()
 val zipFile by StringProperty()

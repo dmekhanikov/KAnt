@@ -1,6 +1,7 @@
 package testData.DSLGenerator.replace
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
+import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.*
 
 val file by StringProperty()
 

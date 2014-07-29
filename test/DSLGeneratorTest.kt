@@ -179,4 +179,18 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
                 { assertFilesMatch(expFile, actFile); true }
         )
     }
+
+    public fun testConditions() {
+        val expFile = File(DSL_GENERATOR_TEST_RES + "conditions/out.txt")
+        val actFile = File(WORKING_DIR + "/toCopy.txt")
+        runDSLGeneratorTest(
+                "conditions",
+                array("-Dfile=" + actFile,
+                        "-DbooleanProperty=true",
+                        "-Dstring=Hello, World!", "-Dpattern=.*World!",
+                        "-Darg1=15", "-Darg2=fifteen"),
+                { File(WORKING_DIR).cleanDirectory(); true },
+                { assertFilesMatch(expFile, actFile); true }
+        )
+    }
 }

@@ -1,6 +1,8 @@
 package testData.DSLGenerator.copy
 
 import ru.ifmo.rain.mekhanikov.antdsl.*
+import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.*
+import ru.ifmo.rain.mekhanikov.antdsl.types.fileset
 
 val srcDir by StringProperty()
 val destDir by StringProperty()

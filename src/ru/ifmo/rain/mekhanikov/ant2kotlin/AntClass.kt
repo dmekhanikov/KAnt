@@ -36,15 +36,25 @@ class AntClass(classLoader: ClassLoader, className: String) {
     public val isTask: Boolean
     public val isTaskContainer: Boolean
     public val isTextContainer: Boolean
+    public val isCondition: Boolean
     public val hasRefId: Boolean
     public val implementedInterfaces: List<String>;
     {
         val classObject = classLoader.loadClass(className)!!
         isTask = classObject.isSubclassOf(ANT_CLASS_PREFIX + "Task") &&
                     ((classObject.getModifiers() and Modifier.ABSTRACT) == 0)
-        attributes = classObject.getElements({parseAttribute(it)})
         implementedInterfaces = classObject.getImplementedInterfaces();
         isTaskContainer = implementedInterfaces.contains(ANT_CLASS_PREFIX + "TaskContainer")
+        isTextContainer = classObject.getMethods().firstOrNull({
+            val name = it.getName()
+            val parameters = it.getParameterTypes()!!
+            name == "addText" && parameters.size == 1 && parameters[0].getName() == "java.lang.String"
+        }) != null
+        isCondition = implementedInterfaces.contains(ANT_CLASS_PREFIX + "taskdefs.condition.Condition");
+        attributes = classObject.getElements({parseAttribute(it)})
+        hasRefId = attributes.firstOrNull({
+            (it.name == "refid") && (it.typeName == ANT_CLASS_PREFIX + "types.Reference")
+        }) != null
         if (!isTaskContainer) {
             nestedElements = classObject.getElements({parseNestedElement(it)})
             nestedTypes = classObject.getNestedTypes()
@@ -52,14 +62,6 @@ class AntClass(classLoader: ClassLoader, className: String) {
             nestedElements = ArrayList<Attribute>()
             nestedTypes = ArrayList<String>()
         }
-        isTextContainer = classObject.getMethods().firstOrNull({
-            val name = it.getName()
-            val parameters = it.getParameterTypes()!!
-            name == "addText" && parameters.size == 1 && parameters[0].getName() == "java.lang.String"
-        }) != null
-        hasRefId = attributes.firstOrNull({
-            (it.name == "refid") && (it.typeName == ANT_CLASS_PREFIX + "types.Reference")
-        }) != null
     }
 
     private fun Class<out Any?>.getNestedTypes(): List<String> {
@@ -95,6 +97,9 @@ class AntClass(classLoader: ClassLoader, className: String) {
         val methodName = method.getName()!!
         if (method.isAntAttributeSetter()) {
             val attributeName = cutElementName(methodName, "set".length)
+            if (isCondition && attributeName == "refid") {
+                return null
+            }
             val attributeType = method.getParameterTypes()!![0]
             var attributeTypeName = attributeType.getName()
             if (PRIMITIVE_TYPES.containsKey(attributeTypeName)) {
