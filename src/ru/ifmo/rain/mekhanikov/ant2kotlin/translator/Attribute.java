@@ -1,12 +1,14 @@
 package ru.ifmo.rain.mekhanikov.ant2kotlin.translator;
 
+import static ru.ifmo.rain.mekhanikov.MekhanikovPackage.escapeKeywords;
+
 public class Attribute {
     private String name;
     private String type;
     private String defaultValue;
 
     public Attribute(String name, String type, String defaultValue) {
-        this.name = name;
+        this.name = escapeKeywords(name);
         this.type = type;
         this.defaultValue = defaultValue;
     }

@@ -3,6 +3,8 @@ package ru.ifmo.rain.mekhanikov.ant2kotlin.translator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ru.ifmo.rain.mekhanikov.MekhanikovPackage.escapeKeywords;
+
 public class StringProcessor {
     public static String toCamelCase(String name) {
         StringBuilder stringBuilder = new StringBuilder(name.toLowerCase());
@@ -20,7 +22,7 @@ public class StringProcessor {
             stringBuilder.deleteCharAt(0);
             stringBuilder.deleteCharAt(stringBuilder.length() - 1);
         }
-        return stringBuilder.toString();
+        return escapeKeywords(stringBuilder.toString());
     }
 
     public static String getType(String value) {

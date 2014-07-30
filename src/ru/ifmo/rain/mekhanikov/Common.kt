@@ -8,11 +8,50 @@ import org.jetbrains.jet.cli.jvm.K2JVMCompiler
 import java.util.regex.Pattern
 import java.io.FileOutputStream
 import java.util.jar.JarOutputStream
+import java.util.HashSet
 
 public val KOTLIN_RUNTIME_JAR_FILE: String = "lib/kotlin-runtime.jar"
 public val ANT_JAR_FILE: String = "lib/ant-1.9.4.jar"
+public val keywords: HashSet<String> = array(
+        "package",
+        "as",
+        "type",
+        "class",
+        "this",
+        "super",
+        "val",
+        "var",
+        "fun",
+        "for",
+        "null",
+        "true",
+        "false",
+        "is",
+        "in",
+        "throw",
+        "return",
+        "break",
+        "continue",
+        "object",
+        "if",
+        "try",
+        "else",
+        "while",
+        "do",
+        "when",
+        "trait",
+        "This"
+).toHashSet()
 
-fun createClassLoader(jars: Array<String>): ClassLoader {
+public fun escapeKeywords(string: String): String {
+    return if (keywords.contains(string)) {
+        "`$string`"
+    } else {
+        string
+    }
+}
+
+public fun createClassLoader(jars: Array<String>): ClassLoader {
     val path = ArrayList<URL>()
     for (jar in jars) {
         if (jar.endsWith(".jar")) {
@@ -24,7 +63,7 @@ fun createClassLoader(jars: Array<String>): ClassLoader {
     return URLClassLoader(path.toArray(array(path[0])))
 }
 
-fun File.cleanDirectory() {
+public fun File.cleanDirectory() {
     if (!exists()) {
         return
     }
@@ -38,17 +77,17 @@ fun File.cleanDirectory() {
     delete()
 }
 
-fun File.deleteRecursively() {
+public fun File.deleteRecursively() {
     cleanDirectory()
     delete()
 }
 
-fun compileKotlinCode(src: String, classpath: String, output: String) {
+public fun compileKotlinCode(src: String, classpath: String, output: String) {
     val compiler = K2JVMCompiler()
     compiler.exec(System.out, "-src", src, "-classpath", classpath, "-output", output)
 }
 
-fun explodeTypeName(name: String): List<String> {
+public fun explodeTypeName(name: String): List<String> {
     val result = ArrayList<String>()
     val pattern = Pattern.compile("([^<>]*)<(.*)>")
     var remaining = name

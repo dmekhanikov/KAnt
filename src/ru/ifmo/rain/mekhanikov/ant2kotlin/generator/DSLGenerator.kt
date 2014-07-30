@@ -223,7 +223,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         res.append(" {\n")
         for (attr in attributes) {
             val dslAttr = dslAttribute(attr, className)
-            res.append("    var `${dslAttr.name}`: ${res.importManager.shorten(dslAttr.typeName.replace('$', '.'))} " +
+            res.append("    var ${escapeKeywords(dslAttr.name)}: ${res.importManager.shorten(dslAttr.typeName.replace('$', '.'))} " +
                     "by ${res.importManager.shorten("kotlin.properties.Delegates")}.mapVar(attributes)\n")
         }
         res.append("}\n")
@@ -265,7 +265,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             } else {
                 out.append(",\n")
             }
-            out.append("        `${dslAttr.name}`: ${out.importManager.shorten(dslAttr.typeName.replace('$', '.'))}? = null")
+            out.append("        ${escapeKeywords(dslAttr.name)}: ${out.importManager.shorten(dslAttr.typeName.replace('$', '.'))}? = null")
         }
     }
 
@@ -280,7 +280,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             dslTypeName
         }
         out.append("\n")
-        out.append("public fun ${out.importManager.shorten(parentName)}.`$tag`(\n")
+        out.append("public fun ${out.importManager.shorten(parentName)}.${escapeKeywords(tag)}(\n")
         renderConstructorParameters(out)
         if (withInit) {
             if (!attributes.empty) {
@@ -301,7 +301,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             out.append(")\n")
             for (attr in attributes) {
                 val dslAttr = dslAttribute(attr, className)
-                out.append("    if (`${dslAttr.name}` != null) { dslObject.`${dslAttr.name}` = `${dslAttr.name}` }\n")
+                out.append("    if (${escapeKeywords(dslAttr.name)} != null) { dslObject.${escapeKeywords(dslAttr.name)} = ${escapeKeywords(dslAttr.name)} }\n")
             }
 
             if (!isTaskContainer) {
@@ -326,9 +326,9 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                 }).append("\n")
             }
         } else {
-            out.append("    return `$tag`(\n")
+            out.append("    return ${escapeKeywords(tag)}(\n")
             for (attr in attributes) {
-                out.append("        `${attr.name}`,\n")
+                out.append("        ${escapeKeywords(attr.name)},\n")
             }
             out.append("        {$initReceiverTypeName.() -> })\n")
         }
