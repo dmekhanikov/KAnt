@@ -14,37 +14,37 @@ public class Condition extends Wrapper {
     }
 
     @Override
-    public String toString() {
+    public String toString(PropertyManager propertyManager) {
         String result;
         switch (name) {
             case "not":
-                return "!" + children.get(0).toString();
+                return "!" + children.get(0).toString(propertyManager);
             case "and":
-                result = children.get(0).toString() + " && " + children.get(1).toString();
+                result = children.get(0).toString(propertyManager) + " && " + children.get(1).toString(propertyManager);
                 if (parent != null && parent.name.equals("not")) {
                     result = "(" + result + ")";
                 }
                 return result;
             case "or":
-                result = children.get(0).toString() + " or " + children.get(1).toString();
+                result = children.get(0).toString(propertyManager) + " || " + children.get(1).toString(propertyManager);
                 if (parent != null && (parent.name.equals("not") || parent.name.equals("and"))) {
                     result = "(" + result + ")";
                 }
                 return result;
             case "xor":
-                result = children.get(0).toString() + " xor " + children.get(1).toString();
+                result = children.get(0).toString(propertyManager) + " ^ " + children.get(1).toString(propertyManager);
                 if (parent != null && (parent.name.equals("not") || parent.name.equals("and"))) {
                     result = "(" + result + ")";
                 }
                 return result;
             case "isset":
-                return "propertyIsSet(" + attributes.get(0).getDefaultValue() + ")";
+                return "propertyIsSet(" + attributes.get(0).getDefaultValue(propertyManager) + ")";
             case "istrue":
-                return attributes.get(0).getDefaultValue();
+                return attributes.get(0).getDefaultValue(propertyManager);
             case "isfalse":
-                return "!" + attributes.get(0).getDefaultValue();
+                return "!" + attributes.get(0).getDefaultValue(propertyManager);
             default:
-                return super.toString();
+                return super.toString(propertyManager);
         }
     }
 }

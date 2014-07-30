@@ -39,39 +39,14 @@ public class Translator {
 
     private class AntXMLHandler extends DefaultHandler {
         List<Wrapper> stack;
-        StringBuilder properties;
         StringBuilder macrodefs;
-
-        private void renderProperty(Attributes attrs) throws SAXException {
-            if (attrs.getValue("file") != null) {
-                return;
-            }
-            String name = attrs.getValue("name");
-            String value = attrs.getValue("value");
-            if (name == null || value == null) {
-                throw new SAXException("Not enough attributes for property");
-            }
-            if (attrs.getLength() != 2) {
-                throw new SAXException("Illegal attributes for property");
-            }
-            String ccName = StringProcessor.toCamelCase(name);
-            properties.append("val ").append(ccName).append(": ");
-            if (value.equals("true") || value.equals("false") || value.equals("yes") || value.equals("no")) {
-                properties.append("Boolean by BooleanProperty");
-            } else {
-                properties.append("String by StringProperty");
-            }
-            if (!name.equals(ccName)) {
-                properties.append("(\"").append(name).append("\")");
-            }
-            properties.append(" { ").append(StringProcessor.prepareValue(value)).append(" }\n");
-        }
+        PropertyManager propertyManager;
 
         @Override
         public void startDocument() throws SAXException {
             stack = new ArrayList<>();
-            properties = new StringBuilder();
             macrodefs = new StringBuilder();
+            propertyManager = new PropertyManager();
             result = new StringBuilder();
             result.append("fun main(args: Array<String>) {\n");
         }
@@ -79,7 +54,7 @@ public class Translator {
         @Override
         public void endDocument () throws SAXException {
             result.append("}\n");
-            result.insert(0, "import ru.ifmo.rain.mekhanikov.antdsl.*\n\n" + properties + "\n" + macrodefs);
+            result.insert(0, "import ru.ifmo.rain.mekhanikov.antdsl.*\n\n" + propertyManager + "\n" + macrodefs);
         }
 
         private void processChild(Wrapper child, Wrapper parent) throws SAXException {
@@ -99,23 +74,31 @@ public class Translator {
             }
             switch (qName) {
                 case "property":
-                    renderProperty(attrs);
+                    Property property = new Property(attrs);
+                    propertyManager.writeAccess(property);
+                    String propName = attrs.getValue("name");
+                    if (propName == null || !propertyManager.isDeclaring()) {
+                        processChild(property, parent);
+                    }
                     break;
                 case "macrodef":
                     Macrodef macrodef = new Macrodef(attrs);
                     stack.add(macrodef);
                     break;
                 case "if":
+                    propertyManager.finishDeclaring();
                     IfStatement ifStatement = new IfStatement();
                     processChild(ifStatement, parent);
                     break;
                 case "sequential":
+                    propertyManager.finishDeclaring();
                     break;
                 case "project":
                     Wrapper project = new Project(attrs);
                     processChild(project, parent);
                     break;
                 case "target":
+                    propertyManager.finishDeclaring();
                     Target target = new Target(attrs);
                     processChild(target, parent);
                     break;
@@ -124,7 +107,9 @@ public class Translator {
                         parent.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
                         break;
                     }
+                    propertyManager.finishDeclaring();
                 default:
+                    propertyManager.finishDeclaring();
                     Wrapper wrapper = new Wrapper(qName, attrs);
                     processChild(wrapper, parent);
             }
@@ -146,9 +131,9 @@ public class Translator {
             if (!stack.isEmpty() && stack.get(stack.size() - 1).name.equals(qName)) {
                 Wrapper wrapper = stack.get(stack.size() - 1);
                 if (wrapper instanceof Macrodef) {
-                    macrodefs.append(wrapper.toString()).append("\n\n");
+                    macrodefs.append(wrapper.toString(propertyManager)).append("\n\n");
                 } else if (stack.size() == 1) {
-                    result.append(stack.get(0).toString());
+                    result.append(stack.get(0).toString(propertyManager));
                     result.append("\n");
                 }
                 stack.remove(stack.size() - 1);

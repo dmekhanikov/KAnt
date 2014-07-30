@@ -5,7 +5,7 @@ public class ConditionBranch extends Wrapper {
     }
 
     @Override
-    public String toString() {
-        return renderChildren();
+    public String toString(PropertyManager propertyManager) {
+        return renderChildren(propertyManager);
     }
 }

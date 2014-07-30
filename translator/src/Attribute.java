@@ -18,11 +18,11 @@ public class Attribute {
         return type;
     }
 
-    public String getDefaultValue() {
-        return defaultValue;
+    public String getDefaultValue(PropertyManager propertyManager) {
+        return StringProcessor.prepareValue(defaultValue, propertyManager);
     }
 
-    public String toString(boolean includeType) {
+    public String toString(boolean includeType, PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder(name);
         if (includeType && type != null) {
             result.append(": ").append(type);
@@ -32,7 +32,7 @@ public class Attribute {
             if (name.equals("refid") || name.endsWith("pathref")) {
                 result.append(StringProcessor.toCamelCase(defaultValue));
             } else {
-                result.append(defaultValue);
+                result.append(StringProcessor.prepareValue(defaultValue, propertyManager));
             }
         }
         return result.toString();
@@ -40,6 +40,6 @@ public class Attribute {
 
     @Override
     public String toString() {
-        return toString(false);
+        return toString(false, null);
     }
 }

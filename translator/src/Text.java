@@ -10,10 +10,10 @@ public class Text extends Wrapper {
     }
 
     @Override
-    public String toString() {
+    public String toString(PropertyManager propertyManager) {
         return indent + "text {\n" +
                 indent + TAB + "\"\"\"\n" +
-                StringProcessor.processProperties(StringProcessor.escapeTemplates(text)) + "\n" +
+                StringProcessor.processProperties(StringProcessor.escapeTemplates(text), propertyManager) + "\n" +
                 indent + TAB + "\"\"\"\n" +
                 indent + "}";
     }

@@ -23,7 +23,7 @@ public class Target extends Wrapper {
     }
 
     @Override
-    public String toString() {
+    public String toString(PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder();
         result.append(indent).append("val ").append(StringProcessor.toCamelCase(targetName));
         result.append(" = target(\"").append(targetName).append("\"");
@@ -35,7 +35,7 @@ public class Target extends Wrapper {
         result.append(")");
         if (!children.isEmpty()) {
             result.append(" {\n");
-            result.append(renderChildren());
+            result.append(renderChildren(propertyManager));
             result.append("\n").append(indent).append("}");
         } else {
             result.append(" {}");

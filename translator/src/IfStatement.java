@@ -53,22 +53,22 @@ public class IfStatement extends Wrapper {
     }
 
     @Override
-    public String toString() {
+    public String toString(PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder(indent);
         result.append("if (");
-        result.append(condition.toString());
+        result.append(condition.toString(propertyManager));
         result.append(") {\n");
         if (thenStatement != null) {
-            result.append(thenStatement.toString()).append("\n");
+            result.append(thenStatement.toString(propertyManager)).append("\n");
         }
         result.append(indent).append("}");
         for (IfStatement elseifStatement : elseifStatements) {
             result.append(" else ");
-            result.append(elseifStatement.toString().substring(elseifStatement.indent.length()));
+            result.append(elseifStatement.toString(propertyManager).substring(elseifStatement.indent.length()));
         }
         if (elseStatement != null) {
             result.append(" else {\n");
-            result.append(elseStatement.toString());
+            result.append(elseStatement.toString(propertyManager));
             result.append("\n").append(indent).append("}");
         }
         return result.toString();

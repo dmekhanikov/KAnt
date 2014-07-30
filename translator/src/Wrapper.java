@@ -44,7 +44,6 @@ public class Wrapper {
     public void addAttribute(String name, String defaultValue) {
         name = StringProcessor.toCamelCase(name);
         String type = StringProcessor.getType(defaultValue);
-        defaultValue = StringProcessor.prepareValue(defaultValue);
         addAttribute(new Attribute(name, type, defaultValue));
     }
 
@@ -67,24 +66,24 @@ public class Wrapper {
         this.parent = parent;
     }
 
-    protected String renderAttributes(boolean includeTypes) {
+    protected String renderAttributes(boolean includeTypes, PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder("(");
         for (int i = 0; i < attributes.size(); i++) {
             if (i > 0) {
                 result.append(", ");
             }
-            result.append(attributes.get(i).toString(includeTypes));
+            result.append(attributes.get(i).toString(includeTypes, propertyManager));
         }
         result.append(')');
         return result.toString();
     }
 
-    protected String renderChildren() {
+    protected String renderChildren(PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder();
         if (!children.isEmpty()) {
-            result.append(children.get(0).toString());
+            result.append(children.get(0).toString(propertyManager));
             for (Wrapper child : children.subList(1, children.size())) {
-                result.append("\n").append(child.toString());
+                result.append("\n").append(child.toString(propertyManager));
             }
         }
         return result.toString();
@@ -92,19 +91,23 @@ public class Wrapper {
 
     @Override
     public String toString() {
+        return toString(null);
+    }
+
+    public String toString(PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder(indent);
         if (id != null) {
             result.append("val ").append(StringProcessor.toCamelCase(id)).append(" = ");
         }
         result.append(StringProcessor.toCamelCase(name));
         if (!attributes.isEmpty()) {
-            result.append(renderAttributes(false));
+            result.append(renderAttributes(false, propertyManager));
         } else if (children.isEmpty()) {
             result.append("()");
         }
         if (!children.isEmpty()) {
             result.append(" {\n");
-            result.append(renderChildren());
+            result.append(renderChildren(propertyManager));
             result.append("\n").append(indent).append("}");
         }
         return result.toString();

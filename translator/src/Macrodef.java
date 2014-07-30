@@ -16,9 +16,9 @@ public class Macrodef extends Wrapper {
         macrodefName = StringProcessor.toCamelCase(macrodefName);
     }
 
-    public String toString() {
-        return indent + "fun DSLTaskContainer." + macrodefName + renderAttributes(true) + " {\n"
-                + renderChildren() + "\n"
+    public String toString(PropertyManager propertyManager) {
+        return indent + "fun DSLTaskContainer." + macrodefName + renderAttributes(true, propertyManager) + " {\n"
+                + renderChildren(propertyManager) + "\n"
                 + indent + "}";
     }
 }

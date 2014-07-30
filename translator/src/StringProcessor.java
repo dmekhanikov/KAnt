@@ -30,15 +30,19 @@ public class StringProcessor {
         }
     }
 
-    public static String processProperties(String value) {
+    public static String processProperties(String value, PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < value.length(); i++) {
             if (i + 1 < value.length() &&
                     (value.charAt(i) == '$' || value.charAt(i) == '@') &&
                     value.charAt(i + 1) == '{') {
+                boolean isAttribute = value.charAt(i) == '@';
                 StringBuilder propertyName = new StringBuilder();
                 for (i += 2; i < value.length() && value.charAt(i) != '}'; i++) {
                     propertyName.append(value.charAt(i));
+                }
+                if (propertyManager != null && !isAttribute) {
+                    propertyManager.readAccess(propertyName.toString());
                 }
                 String name = toCamelCase(propertyName.toString());
                 if (i + 1 < value.length() && Character.isJavaIdentifierPart(value.charAt(i + 1))) {
@@ -68,7 +72,7 @@ public class StringProcessor {
         return result.toString();
     }
 
-    public static String prepareValue(String value) {
+    public static String prepareValue(String value, PropertyManager propertyManager) {
         if (value == null) {
             return null;
         }
@@ -82,7 +86,7 @@ public class StringProcessor {
             default:
         }
         StringBuilder result = new StringBuilder("\"");
-        result.append(processProperties(escapeTemplates(value)));
+        result.append(processProperties(escapeTemplates(value), propertyManager));
         result.append("\"");
         for (int i = result.indexOf("\\"); i != -1; i = result.indexOf("\\", i)) {
             result.replace(i, i + 1, "\\\\");

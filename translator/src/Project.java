@@ -29,15 +29,15 @@ public class Project extends Wrapper {
     }
 
     @Override
-    public String toString() {
+    public String toString(PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder(indent);
         result.append("project(args) {\n");
         if (!children.isEmpty()) {
-            result.append(renderChildren()).append("\n");
+            result.append(renderChildren(propertyManager)).append("\n");
         }
         List<Target> sortedTargets = sortTargets();
         for (Target target : sortedTargets) {
-            result.append("\n").append(target.toString()).append("\n");
+            result.append("\n").append(target.toString(propertyManager)).append("\n");
             if (target.getTargetName().equals(defaultTarget)) {
                 result.append(indent).append(TAB).append("default = ");
                 result.append(StringProcessor.toCamelCase(defaultTarget)).append("\n");
