@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Ant2Kotlin.iml" filepath="$PROJECT_DIR$/Ant2Kotlin.iml" />
       <module fileurl="file://$PROJECT_DIR$/dsl/dsl.iml" filepath="$PROJECT_DIR$/dsl/dsl.iml" />
-      <module fileurl="file://$PROJECT_DIR$/translator/translator.iml" filepath="$PROJECT_DIR$/translator/translator.iml" />
     </modules>
   </component>
 </project>

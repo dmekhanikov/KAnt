@@ -1,3 +1,5 @@
+package ru.ifmo.rain.mekhanikov.ant2kotlin.translator;
+
 import org.xml.sax.SAXException;
 
 public class Condition extends Wrapper {

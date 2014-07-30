@@ -1,4 +1,4 @@
-package ru.ifmo.rain.mekhanikov.ant2kotlin
+package ru.ifmo.rain.mekhanikov.ant2kotlin.generator
 
 import java.util.TreeMap
 import java.util.regex.Pattern

@@ -1,5 +1,5 @@
-import ru.ifmo.rain.mekhanikov.ant2kotlin.DSLGenerator
-import ru.ifmo.rain.mekhanikov.ant2kotlin.DSL_ROOT
+import ru.ifmo.rain.mekhanikov.ant2kotlin.generator.DSLGenerator
+import ru.ifmo.rain.mekhanikov.ant2kotlin.generator.DSL_ROOT
 import ru.ifmo.rain.mekhanikov.*
 import java.lang.reflect.Method
 import java.io.File

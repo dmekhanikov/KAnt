@@ -1,3 +1,5 @@
+package ru.ifmo.rain.mekhanikov.ant2kotlin.translator;
+
 public class Text extends Wrapper {
     private String text;
 

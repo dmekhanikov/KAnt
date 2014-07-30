@@ -1,3 +1,4 @@
+package ru.ifmo.rain.mekhanikov.ant2kotlin.translator;
 
 public class Attribute {
     private String name;

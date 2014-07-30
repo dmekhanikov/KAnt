@@ -1,3 +1,5 @@
+package ru.ifmo.rain.mekhanikov.ant2kotlin.translator;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
