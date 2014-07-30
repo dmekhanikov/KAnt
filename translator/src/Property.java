@@ -29,7 +29,7 @@ public class Property extends Wrapper {
 
     @Override
     public String toString(PropertyManager propertyManager) {
-        if (propName != null && propVal != null && attributes.size() == 2) {
+        if (propName != null && propVal != null && attributes.size() <= 2) {
             return indent + StringProcessor.toCamelCase(propName) + " = " + StringProcessor.prepareValue(propVal, propertyManager);
         } else {
             return super.toString(propertyManager);

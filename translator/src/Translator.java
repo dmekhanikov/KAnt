@@ -73,7 +73,7 @@ public class Translator {
                 parent = stack.get(stack.size() - 1);
             }
             switch (qName) {
-                case "property":
+                case "property": {
                     Property property = new Property(attrs);
                     propertyManager.writeAccess(property);
                     String propName = attrs.getValue("name");
@@ -81,37 +81,51 @@ public class Translator {
                         processChild(property, parent);
                     }
                     break;
-                case "macrodef":
+                }
+                case "macrodef": {
                     Macrodef macrodef = new Macrodef(attrs);
                     stack.add(macrodef);
                     break;
-                case "if":
+                }
+                case "if": {
                     propertyManager.finishDeclaring();
                     IfStatement ifStatement = new IfStatement();
                     processChild(ifStatement, parent);
                     break;
-                case "sequential":
+                }
+                case "condition": {
+                    propertyManager.finishDeclaring();
+                    ConditionTask condition = new ConditionTask(attrs);
+                    processChild(condition, parent);
+                    break;
+                }
+                case "sequential": {
                     propertyManager.finishDeclaring();
                     break;
-                case "project":
+                }
+                case "project": {
                     Wrapper project = new Project(attrs);
                     processChild(project, parent);
                     break;
-                case "target":
+                }
+                case "target": {
                     propertyManager.finishDeclaring();
                     Target target = new Target(attrs);
                     processChild(target, parent);
                     break;
-                case "attribute":
+                }
+                case "attribute": {
                     if (parent != null && parent instanceof Macrodef) {
                         parent.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
                         break;
                     }
                     propertyManager.finishDeclaring();
-                default:
+                }
+                default: {
                     propertyManager.finishDeclaring();
                     Wrapper wrapper = new Wrapper(qName, attrs);
                     processChild(wrapper, parent);
+                }
             }
         }
 
