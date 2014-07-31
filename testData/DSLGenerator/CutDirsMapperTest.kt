@@ -1,9 +1,9 @@
 package testData.DSLGenerator.cutdirsmapper
 
-import ru.ifmo.rain.mekhanikov.antdsl.*
-import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.copy
-import ru.ifmo.rain.mekhanikov.antdsl.types.fileset
-import ru.ifmo.rain.mekhanikov.antdsl.types.mappers.cutdirsmapper
+import jetbrains.kant.dsl.*
+import jetbrains.kant.dsl.taskdefs.copy
+import jetbrains.kant.dsl.types.fileset
+import jetbrains.kant.dsl.types.mappers.cutdirsmapper
 
 val srcDir by StringProperty()
 val destDir by StringProperty()

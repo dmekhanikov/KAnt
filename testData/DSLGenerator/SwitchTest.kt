@@ -1,8 +1,8 @@
 package testData.DSLGenerator.switch
 
-import ru.ifmo.rain.mekhanikov.antdsl.*
-import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.*
-import ru.ifmo.rain.mekhanikov.antdsl.other.net.sf.antcontrib.logic.*
+import jetbrains.kant.dsl.*
+import jetbrains.kant.dsl.taskdefs.*
+import jetbrains.kant.dsl.other.net.sf.antcontrib.logic.*
 
 val destFile by StringProperty()
 val antContribJarFile by StringProperty()

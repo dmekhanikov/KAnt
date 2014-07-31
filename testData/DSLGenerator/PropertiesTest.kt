@@ -1,7 +1,7 @@
 package testData.DSLGenerator.properties
 
-import ru.ifmo.rain.mekhanikov.antdsl.*
-import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.*
+import jetbrains.kant.dsl.*
+import jetbrains.kant.dsl.taskdefs.*
 
 val systemPropertiesOutFile by StringProperty()
 val userPropertiesOutFile by StringProperty()

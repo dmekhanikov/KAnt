@@ -1,8 +1,8 @@
 package testData.DSLGenerator.dependencies
 
-import ru.ifmo.rain.mekhanikov.antdsl.*
-import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.copy
-import ru.ifmo.rain.mekhanikov.antdsl.types.fileset
+import jetbrains.kant.dsl.*
+import jetbrains.kant.dsl.taskdefs.copy
+import jetbrains.kant.dsl.types.fileset
 
 val src1Dir by StringProperty()
 val src2Dir by StringProperty()

@@ -1,7 +1,7 @@
 package testData.DSLGenerator.mkdir
 
-import ru.ifmo.rain.mekhanikov.antdsl.*
-import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.*
+import jetbrains.kant.dsl.*
+import jetbrains.kant.dsl.taskdefs.*
 
 val dir by StringProperty()
 

@@ -1,8 +1,8 @@
 package testData.DSLGenerator.conditions
 
-import ru.ifmo.rain.mekhanikov.antdsl.*
-import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.*
-import ru.ifmo.rain.mekhanikov.antdsl.taskdefs.condition.*
+import jetbrains.kant.dsl.*
+import jetbrains.kant.dsl.taskdefs.*
+import jetbrains.kant.dsl.taskdefs.condition.*
 
 val booleanProperty by BooleanProperty()
 val string by StringProperty()
