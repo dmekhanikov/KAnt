@@ -9,7 +9,7 @@ import java.io.File.pathSeparator
 
 var dslGeneratorTestInitComplete = false
 
-class DSLGeneratorTest : test.Ant2KotlinTestCase() {
+class DSLGeneratorTest : Ant2KotlinTestCase() {
     val ANT_LAUNCHER_JAR_FILE = "lib/ant-launcher-1.9.4.jar"
     val ANT_CONTRIB_JAR_FILE = "lib/ant-contrib-1.0b3.jar"
     val DSL_GENERATOR_OUT_ROOT = TEST_OUT_ROOT + "DSLGenrator/"

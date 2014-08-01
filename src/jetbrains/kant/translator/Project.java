@@ -53,7 +53,7 @@ public class Project extends Wrapper {
         visited.add(current.getTargetName());
         String[] depends = current.getDepends();
         if (depends != null) {
-            for (String dependName : current.getDepends()) {
+            for (String dependName : depends) {
                 if (!visited.contains(dependName)) {
                     Target depend = targets.get(dependName);
                     dfs(depend, visited, result);

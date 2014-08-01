@@ -13,6 +13,9 @@ public class Target extends Wrapper {
         String dependsString = attributes.getValue("depends");
         if (dependsString != null) {
             depends = dependsString.split(",");
+            for (int i = 0; i < depends.length; i++) {
+                depends[i] = depends[i].trim();
+            }
         }
     }
 
