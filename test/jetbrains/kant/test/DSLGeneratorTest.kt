@@ -24,10 +24,9 @@ class DSLGeneratorTest : Ant2KotlinTestCase() {
     {
         if (!dslGeneratorTestInitComplete) {
             File(DSL_GENERATED_ROOT).cleanDirectory()
-            DSLGenerator(DSL_ROOT, array(ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE), array(), true).generate()
+            DSLGenerator(DSL_ROOT, array(ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE), array(), true, true).generate()
             File(DSL_GENERATOR_OUT_ROOT).cleanDirectory()
-            compileKotlinCode(DSL_ROOT + pathSeparator + DSL_GENERATOR_TEST_DATA,
-                    "$ANT_JAR_FILE${pathSeparator}$KOTLIN_RUNTIME_JAR_FILE",
+            compileKotlinCode(DSL_ROOT + pathSeparator + DSL_GENERATOR_TEST_DATA, ANT_JAR_FILE,
                     DSL_GENERATOR_OUT_ROOT)
             dslGeneratorTestInitComplete = true
         }

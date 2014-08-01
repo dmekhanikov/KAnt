@@ -84,7 +84,7 @@ public fun File.deleteRecursively() {
 
 public fun compileKotlinCode(src: String, classpath: String, output: String) {
     val compiler = K2JVMCompiler()
-    compiler.exec(System.out, "-src", src, "-classpath", classpath, "-output", output)
+    compiler.exec(System.out, "-src", src, "-classpath", classpath + File.pathSeparator + KOTLIN_RUNTIME_JAR_FILE, "-output", output)
 }
 
 public fun explodeTypeName(name: String): List<String> {

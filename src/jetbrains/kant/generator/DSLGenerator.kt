@@ -28,6 +28,12 @@ class GeneratorRunner {
     [Option(name = "--seek", usage = "seek alias files")]
     private val seek = false
 
+    [Option(name = "--defaultAliases", usage = "generate functions with names similar to class names")]
+    private val defAl = false
+
+    [Option(name = "--compile", usage = "compile the library after generation")]
+    private val compile = false
+
     [Argument]
     private val aliasFiles: Array<String> = array()
 
@@ -38,14 +44,20 @@ class GeneratorRunner {
             parser.parseArgument(args.toArrayList());
         } catch(e: CmdLineException) {
             System.err.println(e.getMessage());
-            System.err.println("java Ant2KotlinPackage [options...] arguments...");
+            System.err.println("java GeneratorPackage [options...] arguments...");
             parser.printUsage(System.err);
             System.err.println();
             return;
         }
+        val srcRoot = outDir.toString() + "/src/"
+        val outRoot = outDir.toString() + "/out/"
+        val binRoot = outRoot + "bin/"
+        copyBaseFiles(File(srcRoot))
         val classpathArray = classpath.split(pathSeparator)
-        copyBaseFiles(outDir!!)
-        DSLGenerator(outDir.toString(), classpathArray, aliasFiles, seek).generate()
+        DSLGenerator(srcRoot, classpathArray, aliasFiles, seek, defAl).generate()
+        if (compile) {
+            compileKotlinCode(srcRoot, classpath, binRoot)
+        }
     }
 }
 
@@ -59,9 +71,10 @@ private fun copyBaseFiles(dest: File) {
     }
 }
 
-class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles: Array<String>, val seekForAliasFiles: Boolean = false) {
+class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles: Array<String>,
+                   val seekForAliasFiles: Boolean = false, val defAl: Boolean = false) {
     private val resolved = HashMap<String, Target>()
-    private val constructors = HashMap<String, HashSet<String>>()
+    private val constructors = HashMap<String, HashSet<String>>()  // class name -> constructor functions
     private val containerGenerator = ContainerGenerator()
     private var classLoader: ClassLoader = createClassLoader(classpath)
     private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
@@ -73,27 +86,37 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
 
     private val PRIMITIVE_TYPES = array("Boolean", "Char", "Byte", "Short", "Int", "Float", "Long", "Double").toSet()
 
+    private fun createAntClass(className: String): AntClass? {
+        try {
+            return AntClass(classLoader, className)
+        } catch (e: ClassNotFoundException) {
+            return null
+        } catch(e: NoClassDefFoundError) {
+            return null
+        } catch(e: IllegalAccessError) {
+            return null
+        }
+    }
+
+    private fun addTarget(antClass: AntClass) {
+        val className = antClass.className
+        val target = Target(className)
+        target.antClass = antClass
+        resolved[className] = target
+        val resultClassName = resultClassName(className)
+        val pkg = resultClassName.substring(0, resultClassName.lastIndexOf("."))
+        target.kotlinSrcFile = antClass.toKotlin(pkg)
+        containerGenerator.resolveContainers(antClass.implementedInterfaces)
+        containerGenerator.resolveContainers(antClass.nestedTypes)
+    }
+
     public fun resolveClass(className: String) {
         val names = explodeTypeName(className)
         for (name in names) {
             if (!resolved.containsKey(name)) {
-                val antClass: AntClass?
-                try {
-                    antClass = AntClass(classLoader, className)
-                } catch (e: ClassNotFoundException) {
-                    antClass = null
-                }  catch(e: NoClassDefFoundError) {
-                    antClass = null
-                }
+                val antClass = createAntClass(className)
                 if (antClass != null) {
-                    val target = Target(className)
-                    target.antClass = antClass
-                    resolved[className] = target
-                    val resultClassName = resultClassName(className)
-                    val pkg = resultClassName.substring(0, resultClassName.lastIndexOf("."))
-                    target.kotlinSrcFile = antClass.toKotlin(pkg)
-                    containerGenerator.resolveContainers(antClass.implementedInterfaces)
-                    containerGenerator.resolveContainers(antClass.nestedTypes)
+                    addTarget(antClass)
                 }
             }
         }
@@ -104,12 +127,11 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         File(generatedRoot).mkdirs()
         if (seekForAliasFiles) {
             for (jar in classpath) {
-                if (!jar.endsWith(".jar")) {
-                    continue
+                if (jar.endsWith(".jar")) {
+                    val jis = JarInputStream(FileInputStream(jar))
+                    aliasFiles.addAll(jis.getAliasFiles())
+                    jis.close()
                 }
-                val jis = JarInputStream(FileInputStream(jar))
-                aliasFiles.addAll(jis.getAliasFiles())
-                jis.close()
             }
         }
         val aliases = ArrayList<Alias>()
@@ -127,6 +149,21 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                 aliases.addAll(AliasParser(stream!!).parseProperties())
             } else if (aliasFileName.toLowerCase().endsWith(".xml")) {
                 aliases.addAll(AliasParser(stream!!).parseXML())
+            }
+        }
+        if (defAl) {
+            for (jar in classpath) {
+                if (jar.endsWith(".jar")) {
+                    val jis = JarInputStream(FileInputStream(jar))
+                    val antTasks = jis.getAntTasks()
+                    for (antTask in antTasks) {
+                        addTarget(antTask)
+                        val className = antTask.className
+                        val taskName = defaultConstructorName(className)
+                        resolved[antTask.className]?.generateConstructors(taskName, true)
+                    }
+                    jis.close()
+                }
             }
         }
         for (alias in aliases) {
@@ -171,6 +208,23 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             val entryName = jarEntry!!.getName()
             if (entryName.toLowerCase().endsWith(".properties") || entryName.toLowerCase().endsWith(".xml")) {
                 result.add(entryName)
+            }
+            jarEntry = getNextJarEntry()
+        }
+        return result
+    }
+
+    private fun JarInputStream.getAntTasks(): List<AntClass> {
+        val result = ArrayList<AntClass>()
+        var jarEntry = getNextJarEntry()
+        while (jarEntry != null) {
+            val entryName = jarEntry!!.getName()
+            if (entryName.endsWith(".class") && !entryName.contains("$")) {
+                val className = entryName.substring(0, entryName.lastIndexOf('.')).replace('/', '.')
+                val antClass = createAntClass(className)
+                if (antClass != null && (antClass.isTask || antClass.isCondition || antClass.hasRefId)) {
+                    result.add(antClass)
+                }
             }
             jarEntry = getNextJarEntry()
         }
@@ -344,6 +398,11 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         return functions != null && functions.contains(function)
     }
 
+    private fun defaultConstructorName(className: String): String {
+        val shortName = cutShortName(className)
+        return Character.toLowerCase(shortName.charAt(0)) + shortName.substring(1)
+    }
+
     private fun addConstructor(parent: String, function: String) {
         var functions = constructors[parent]
         if (functions == null) {
@@ -393,7 +452,7 @@ class ContainerGenerator {
 
     public fun containerName(name: String): String {
         val shortName = name.substring(name.lastIndexOf('.') + 1).replace("$", "")
-        return "$DSL_PACKAGE.containers.DSL" + shortName + "Container"
+        return "$DSL_PACKAGE.containers._DSL" + shortName + "Container"
     }
 
     public fun typeNeedsContainer(name: String): Boolean {
