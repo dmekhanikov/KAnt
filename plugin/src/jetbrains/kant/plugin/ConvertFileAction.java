@@ -2,21 +2,20 @@ package jetbrains.kant.plugin;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import jetbrains.kant.translator.Translator;
-
 import java.io.File;
 
 public class ConvertFileAction extends AnAction {
 
-    private PsiElement getPsiElement(AnActionEvent event) {
+    private PsiFile getPsiFile(AnActionEvent event) {
         return CommonDataKeys.PSI_FILE.getData(event.getDataContext());
     }
 
     @Override
     public void actionPerformed(AnActionEvent event) {
-        String path = getPsiElement(event).getContainingFile().getVirtualFile().getPath();
+        String path = getPsiFile(event).getVirtualFile().getPath();
         File srcFile = new File(path);
         String srcFileName = srcFile.getName();
         String parentPath = srcFile.getParent();
@@ -31,7 +30,7 @@ public class ConvertFileAction extends AnAction {
     public void update(AnActionEvent event) {
         super.update(event);
         Presentation presentation = event.getPresentation();
-        PsiElement psiElement = getPsiElement(event);
-        presentation.setVisible(psiElement instanceof XmlFile);
+        PsiFile psiFile = getPsiFile(event);
+        presentation.setVisible(psiFile instanceof XmlFile);
     }
 }
