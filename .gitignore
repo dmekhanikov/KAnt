@@ -1,4 +1,5 @@
 .idea/workspace.xml
 lib
 out
+plugin/lib
 dsl/src/jetbrains/kant/dsl/generated

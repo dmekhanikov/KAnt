@@ -1,0 +1,39 @@
+<idea-plugin version="2">
+  <id>jetbrains.kant</id>
+  <name>KAnt</name>
+  <version>1.0</version>
+  <vendor email="Denis.Mekhanikov@jetbrains.com" url="http://www.jetbrains.com">JetBrains</vendor>
+
+  <description><![CDATA[
+      Plugin intended to help you convert your Ant scripts to KAnt.
+    ]]></description>
+
+  <change-notes>
+      Initial release of the plugin
+  </change-notes>
+
+  <idea-version since-build="131"/>
+
+  <depends>com.intellij.modules.lang</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+  </extensions>
+
+  <application-components>
+  </application-components>
+
+  <project-components>
+  </project-components>
+
+  <actions>
+      <action class="jetbrains.kant.plugin.ConvertFileAction" id="jetbrains.kant.ConvertFile"
+              text="Convert to KAnt" description="Convert this XML file to KAnt">
+          <add-to-group group-id="ToolsMenu" />
+          <add-to-group group-id="EditorPopupMenu"/>
+          <add-to-group group-id="ProjectViewPopupMenu"/>
+          <add-to-group group-id="EditorTabPopupMenu"/>
+          <add-to-group group-id="ConsoleEditorPopupMenu"/>
+      </action>
+  </actions>
+
+</idea-plugin>
