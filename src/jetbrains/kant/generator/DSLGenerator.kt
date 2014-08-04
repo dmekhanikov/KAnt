@@ -241,8 +241,6 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                         "$DSL_PACKAGE.DSLReference<${resultClassName(parentName)}>"
                     } else if (attr.name.endsWith("pathref")) {
                         "$DSL_PACKAGE.DSLReference<$DSL_PACKAGE.types.DSLPath>"
-                    } else if (attr.name == "loaderref") {
-                        "$DSL_PACKAGE.DSLLoaderRef"
                     } else {
                         "java.lang.String"
                     }

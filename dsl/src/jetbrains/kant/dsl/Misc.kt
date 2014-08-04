@@ -12,8 +12,6 @@ class DSLReference<T : DSLTask>(public val value: T) {
     }
 }
 
-class DSLLoaderRef(val value : String)
-
 trait DSLTextContainer: DSLTask
 
 public fun DSLTextContainer.text(init: DSLTextContainer.() -> String) {

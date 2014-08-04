@@ -1,12 +1,12 @@
 package jetbrains.kant.generator
 
-import java.util.TreeMap
+import java.util.HashMap
 import java.util.regex.Pattern
 import java.util.ArrayList
 import jetbrains.kant.explodeTypeName
 
 class ImportManager(val pkg: String?) {
-    public val imports: TreeMap<String, String> = TreeMap() // short name -> full name
+    public val imports: HashMap<String, String> = HashMap() // short name -> full name
 
     private fun cutName(name: String): String? {
         val pos = name.lastIndexOf('.')
