@@ -13,6 +13,7 @@ import java.util.ArrayList
 public val DSL_ROOT: String = "dsl/src/"
 val DSL_PACKAGE = "jetbrains.kant.dsl"
 val BASE_DSL_FILE_NAMES = array("Base.kt", "LazyTask.kt", "Misc.kt", "Properties.kt")
+public val STRUCTURE_FILE_NAME: String = "structure.ser"
 
 fun main(args: Array<String>) {
     GeneratorRunner().doMain(args)
@@ -34,6 +35,9 @@ class GeneratorRunner {
     [Option(name = "--compile", usage = "compile the library after generation")]
     private val compile = false
 
+    [Option(name = "--jar", usage = "create jar file containing all class files of the generated library and some information about its structure")]
+    private val createJar = false
+
     [Argument]
     private val aliasFiles: Array<String> = array()
 
@@ -52,11 +56,23 @@ class GeneratorRunner {
         val srcRoot = outDir.toString() + "/src/"
         val outRoot = outDir.toString() + "/out/"
         val binRoot = outRoot + "bin/"
+        val distRoot = outRoot + "dist/"
         copyBaseFiles(File(srcRoot))
         val classpathArray = classpath.split(pathSeparator)
-        DSLGenerator(srcRoot, classpathArray, aliasFiles, seek, defAl).generate()
-        if (compile) {
+        val generator = DSLGenerator(srcRoot, classpathArray, aliasFiles, seek, defAl)
+        generator.generate()
+        if (compile || createJar) {
             compileKotlinCode(srcRoot, classpath, binRoot)
+            val outFile = File(binRoot + STRUCTURE_FILE_NAME)
+            val fileOut = FileOutputStream(outFile);
+            val objectOutputStream = ObjectOutputStream(fileOut);
+            objectOutputStream.writeObject(generator.structure);
+            objectOutputStream.close();
+            fileOut.close();
+        }
+        if (createJar) {
+            val jarFile = distRoot + "kant.jar"
+            createJar(jarFile, binRoot)
         }
     }
 }
@@ -83,7 +99,7 @@ val DSL_CONDITION = "$DSL_PACKAGE.DSLCondition"
 class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles: Array<String>,
                    val seekForAliasFiles: Boolean = false, val defAl: Boolean = false) {
     private val resolved = HashMap<String, Target>()
-    private val structure = HashMap<String, DSLClass>()
+    public val structure: HashMap<String, DSLClass> = HashMap()
     private val containerGenerator = ContainerGenerator()
     private var classLoader: ClassLoader = createClassLoader(classpath)
     private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
@@ -92,7 +108,6 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         structure.put(DSL_TASK_CONTAINER, DSLClass(DSL_TASK_CONTAINER, ArrayList<String>()))
         structure.put(DSL_PROJECT, DSLClass(DSL_PROJECT, array(DSL_TASK_CONTAINER).toList()))
     }
-
 
     private var aliasReader: BufferedReader? = null
 
@@ -485,7 +500,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
     }
 }
 
-class DSLClass(val name: String, val traits: List<String>) {
+class DSLClass(val name: String, val traits: List<String>): Serializable {
     val functions = HashMap<String, List<Attribute>>()
 
     fun addFunction(name: String, attributes: List<Attribute>) {

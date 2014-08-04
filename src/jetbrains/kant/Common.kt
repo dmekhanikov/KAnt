@@ -1,14 +1,14 @@
 package jetbrains.kant
 
-import java.io.File
 import java.util.ArrayList
+import java.util.HashSet
 import java.net.URL
 import java.net.URLClassLoader
 import org.jetbrains.jet.cli.jvm.K2JVMCompiler
 import java.util.regex.Pattern
-import java.io.FileOutputStream
 import java.util.jar.JarOutputStream
-import java.util.HashSet
+import java.util.jar.*
+import java.io.*
 
 public val KOTLIN_RUNTIME_JAR_FILE: String = "lib/kotlin-runtime.jar"
 public val ANT_JAR_FILE: String = "lib/ant-1.9.4.jar"
@@ -85,6 +85,46 @@ public fun File.deleteRecursively() {
 public fun compileKotlinCode(src: String, classpath: String, output: String) {
     val compiler = K2JVMCompiler()
     compiler.exec(System.out, "-src", src, "-classpath", classpath + File.pathSeparator + KOTLIN_RUNTIME_JAR_FILE, "-output", output)
+}
+
+public fun copy(inputStream: InputStream, outputStream: OutputStream) {
+    val BUFFER_SIZE = 1024
+    val buffer = ByteArray(BUFFER_SIZE)
+    val bufferedInputStream = BufferedInputStream(inputStream)
+    var len: Int
+    while (true) {
+        len = bufferedInputStream.read(buffer)
+        if (len == -1) {
+            break
+        }
+        outputStream.write(buffer)
+    }
+    bufferedInputStream.close()
+}
+
+private fun copyFilesRecursively(dir: File, jarOutputStream: JarOutputStream, prefLen: Int) {
+    for (file in dir.listFiles()!!) {
+        if (file.isDirectory()) {
+            copyFilesRecursively(file, jarOutputStream, prefLen)
+        } else {
+            val fileName = file.getCanonicalPath().substring(prefLen)
+            val jarEntry = JarEntry(fileName)
+            jarOutputStream.putNextEntry(jarEntry)
+            val fileInputStream = FileInputStream(file)
+            copy(fileInputStream, jarOutputStream)
+            jarOutputStream.closeEntry()
+        }
+    }
+}
+
+public fun createJar(jarFile: String, srcDir: String) {
+    val manifest = Manifest()
+    manifest.getMainAttributes()!!.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+    File(jarFile).getParentFile()!!.mkdirs()
+    val jarOutputStream = JarOutputStream(FileOutputStream(jarFile), manifest)
+    val srcDirFile = File(srcDir).getCanonicalFile()
+    copyFilesRecursively(srcDirFile, jarOutputStream, srcDirFile.getAbsolutePath().length)
+    jarOutputStream.close()
 }
 
 public fun explodeTypeName(name: String): List<String> {

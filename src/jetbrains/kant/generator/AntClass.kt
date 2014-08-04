@@ -5,6 +5,7 @@ import java.util.HashMap
 import java.util.HashSet
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.io.Serializable
 
 val ANT_CLASS_PREFIX = "org.apache.tools.ant."
 
@@ -210,7 +211,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
     }
 }
 
-class Attribute(name: String, typeName: String) {
+class Attribute(name: String, typeName: String): Serializable {
     public val name: String = name
     public val typeName: String = typeName
 }
