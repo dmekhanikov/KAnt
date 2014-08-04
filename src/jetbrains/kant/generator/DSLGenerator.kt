@@ -71,16 +71,28 @@ private fun copyBaseFiles(dest: File) {
     }
 }
 
+val DSL_TASK_CONTAINER = "$DSL_PACKAGE.DSLTaskContainer"
+val DSL_TASK_CONTAINER_TASK = "$DSL_PACKAGE.DSLTaskContainerTask"
+val DSL_PROJECT = "$DSL_PACKAGE.DSLProject"
+val DSL_TASK = "$DSL_PACKAGE.DSLTask"
+val DSL_REFERENCE = "$DSL_PACKAGE.DSLReference"
+val DSL_PATH = "$DSL_PACKAGE.types.DSLPath"
+val DSL_TEXT_CONTAINER = "$DSL_PACKAGE.DSLTextContainer"
+val DSL_CONDITION = "$DSL_PACKAGE.DSLCondition"
+
 class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles: Array<String>,
                    val seekForAliasFiles: Boolean = false, val defAl: Boolean = false) {
     private val resolved = HashMap<String, Target>()
-    private val constructors = HashMap<String, HashSet<String>>()  // class name -> constructor functions
+    private val structure = HashMap<String, DSLClass>()
     private val containerGenerator = ContainerGenerator()
     private var classLoader: ClassLoader = createClassLoader(classpath)
     private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
     private val aliasFiles = ArrayList<String>(); {
         this.aliasFiles.addAll(aliasFiles)
+        structure.put(DSL_TASK_CONTAINER, DSLClass(DSL_TASK_CONTAINER, ArrayList<String>()))
+        structure.put(DSL_PROJECT, DSLClass(DSL_PROJECT, array(DSL_TASK_CONTAINER).toList()))
     }
+
 
     private var aliasReader: BufferedReader? = null
 
@@ -103,6 +115,9 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         val target = Target(className)
         target.antClass = antClass
         resolved[className] = target
+        val dslClassName = resultClassName(antClass.className)
+        structure.put(dslClassName,
+                DSLClass(dslClassName, antClass.nestedTypes.map { containerGenerator.containerName(it) }))
         val resultClassName = resultClassName(className)
         val pkg = resultClassName.substring(0, resultClassName.lastIndexOf("."))
         target.kotlinSrcFile = antClass.toKotlin(pkg)
@@ -238,9 +253,9 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                     attr.typeName
                 } else if (attr.typeName == ANT_CLASS_PREFIX + "types.Reference") {
                     if (attr.name == "refid") {
-                        "$DSL_PACKAGE.DSLReference<${resultClassName(parentName)}>"
+                        "$DSL_REFERENCE<${resultClassName(parentName)}>"
                     } else if (attr.name.endsWith("pathref")) {
-                        "$DSL_PACKAGE.DSLReference<$DSL_PACKAGE.types.DSLPath>"
+                        "$DSL_REFERENCE<$DSL_PATH>"
                     } else {
                         "java.lang.String"
                     }
@@ -252,15 +267,16 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
 
     private fun AntClass.toKotlin(pkg: String?): KotlinSourceFile {
         val res = KotlinSourceFile(pkg)
-        val dslTypeName = "DSL" + cutShortName(className)
+        val dslTypeName = "$pkg.DSL" + cutShortName(className)
+        val dslTypeNameShorten = res.importManager.shorten(dslTypeName)
         val projectShorten = res.importManager.shorten(ANT_CLASS_PREFIX + "Project")
         val targetShorten = res.importManager.shorten(ANT_CLASS_PREFIX + "Target")
         val rcShorten = res.importManager.shorten(ANT_CLASS_PREFIX + "RuntimeConfigurable")
-        val dslTaskShorten = res.importManager.shorten("$DSL_PACKAGE.DSLTask")
-        val dslTextContainerShorten = res.importManager.shorten("$DSL_PACKAGE.DSLTextContainer")
-        val dslTaskContainerTaskShorten = res.importManager.shorten("$DSL_PACKAGE.DSLTaskContainerTask")
-        val dslConditionShorten = res.importManager.shorten("$DSL_PACKAGE.DSLCondition")
-        res.append("public class $dslTypeName(projectAO: $projectShorten, targetAO: $targetShorten, parentWrapperAO: $rcShorten?, elementTag: String, nearestExecutable: $dslTaskShorten?)")
+        val dslTaskShorten = res.importManager.shorten(DSL_TASK)
+        val dslTextContainerShorten = res.importManager.shorten(DSL_TEXT_CONTAINER)
+        val dslTaskContainerTaskShorten = res.importManager.shorten(DSL_TASK_CONTAINER_TASK)
+        val dslConditionShorten = res.importManager.shorten(DSL_CONDITION)
+        res.append("public class $dslTypeNameShorten(projectAO: $projectShorten, targetAO: $targetShorten, parentWrapperAO: $rcShorten?, elementTag: String, nearestExecutable: $dslTaskShorten?)")
         res.append(": ${if (isTaskContainer) {dslTaskContainerTaskShorten} else {dslTaskShorten}}(projectAO, targetAO, parentWrapperAO, elementTag, nearestExecutable)")
         if (isTextContainer) {
             res.append(",\n        $dslTextContainerShorten")
@@ -290,7 +306,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         if (isCondition) {
             return "Boolean"
         } else if (hasRefId) {
-            return "$DSL_PACKAGE.DSLReference<$typeName>"
+            return "$DSL_REFERENCE<$typeName>"
         } else {
             return null
         }
@@ -305,7 +321,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         val elementClass = resolved[explodeTypeName(element.typeName)[0]]!!.antClass!!
         elementClass.renderConstructor(out, parentName, element.name, true)
         elementClass.renderConstructor(out, parentName, element.name, false)
-        addConstructor(parentName, element.name)
+        addConstructor(parentName, element.name, this)
     }
 
     private fun AntClass.renderConstructorParameters(out: KotlinSourceFile) {
@@ -324,8 +340,8 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
     private fun AntClass.renderConstructor(out: KotlinSourceFile,
                                            parentName: String, tag: String, withInit: Boolean) {
         val dslTypeName = out.importManager.shorten(resultClassName(className))
-        val dslTaskContainerShorten = out.importManager.shorten("$DSL_PACKAGE.DSLTaskContainer")
-        val dslReferenceShorten = out.importManager.shorten("$DSL_PACKAGE.DSLReference")
+        val dslTaskContainerShorten = out.importManager.shorten(DSL_TASK_CONTAINER)
+        val dslReferenceShorten = out.importManager.shorten(DSL_REFERENCE)
         val initReceiverTypeName = if (isTaskContainer) {
             dslTaskContainerShorten
         } else {
@@ -347,7 +363,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         }
         out.append(" {\n")
         if (withInit) {
-            val mustBeExecuted = (parentName == "$DSL_PACKAGE.DSLTaskContainer" || parentName == "$DSL_PACKAGE.DSLProject")
+            val mustBeExecuted = (parentName == DSL_TASK_CONTAINER || parentName == DSL_PROJECT)
             out.append("    val dslObject = $dslTypeName(this.projectAO, this.targetAO, ${if (mustBeExecuted) {"null"} else {"this.wrapperAO"}}, \"$tag\", ")
             out.append(if (mustBeExecuted) {"null"} else {"this"})
             out.append(")\n")
@@ -392,8 +408,8 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
     }
 
     private fun constructorIsGenerated(parent: String, function: String): Boolean {
-        val functions = constructors[parent]
-        return functions != null && functions.contains(function)
+        val dslClass = structure[parent]!!
+        return dslClass.containsFunction(function)
     }
 
     private fun defaultConstructorName(className: String): String {
@@ -401,13 +417,9 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         return Character.toLowerCase(shortName.charAt(0)) + shortName.substring(1)
     }
 
-    private fun addConstructor(parent: String, function: String) {
-        var functions = constructors[parent]
-        if (functions == null) {
-            functions = HashSet()
-            constructors.put(parent, functions!!)
-        }
-        functions!!.add(function)
+    private fun addConstructor(parent: String, function: String, antClass: AntClass) {
+        val dslClass = structure[parent]!!
+        dslClass.addFunction(function, antClass.attributes.map { dslAttribute(it, antClass.className) })
     }
 
     private inner class Target(val className: String) {
@@ -419,9 +431,9 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             val invKotlinSrcFile = kotlinSrcFile!!
             if (topLevel) {
                 if (invAntClass.isTask || invAntClass.isCondition) {
-                    invAntClass.renderNestedElement(invKotlinSrcFile, "$DSL_PACKAGE.DSLTaskContainer", Attribute(tag, className))
+                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_TASK_CONTAINER, Attribute(tag, className))
                 } else if (invAntClass.hasRefId) {
-                    invAntClass.renderNestedElement(invKotlinSrcFile, "$DSL_PACKAGE.DSLProject", Attribute(tag, className))
+                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_PROJECT, Attribute(tag, className))
                 }
             }
             for (interface in invAntClass.implementedInterfaces) {
@@ -436,37 +448,51 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             kotlinSrcFile!!.dump(resultFile(className))
         }
     }
+
+    private inner class ContainerGenerator {
+        private val kotlinSrcFile = KotlinSourceFile("$DSL_PACKAGE.containers")
+        private val resolved = HashSet<String>()
+
+        public fun resolveContainers(names: List<String>) {
+            for (name in names) {
+                resolveContainer(name)
+            }
+        }
+
+        public fun containerName(name: String): String {
+            val shortName = name.substring(name.lastIndexOf('.') + 1).replace("$", "")
+            return "$DSL_PACKAGE.containers._DSL" + shortName + "Container"
+        }
+
+        public fun typeNeedsContainer(name: String): Boolean {
+            return !name.startsWith("java.")
+        }
+
+        public fun resolveContainer(name: String) {
+            if (!resolved.contains(name) && typeNeedsContainer(name)) {
+                val containerName = containerName(name)
+                val containerNameShorten = kotlinSrcFile.importManager.shorten(containerName)
+                val dslTaskShorten =  kotlinSrcFile.importManager.shorten(DSL_TASK)
+                kotlinSrcFile.append("\ntrait $containerNameShorten : $dslTaskShorten\n")
+                resolved.add(name)
+                structure.put(containerName, DSLClass(containerName, ArrayList<String>()))
+            }
+        }
+
+        public fun dump(file: File) {
+            kotlinSrcFile.dump(file)
+        }
+    }
 }
 
-class ContainerGenerator {
-    private val kotlinSrcFile = KotlinSourceFile("$DSL_PACKAGE.containers")
-    private val resolved = HashSet<String>()
+class DSLClass(val name: String, val traits: List<String>) {
+    val functions = HashMap<String, List<Attribute>>()
 
-    public fun resolveContainers(names: List<String>) {
-        for (name in names) {
-            resolveContainer(name)
-        }
+    fun addFunction(name: String, attributes: List<Attribute>) {
+        functions.put(name, attributes)
     }
 
-    public fun containerName(name: String): String {
-        val shortName = name.substring(name.lastIndexOf('.') + 1).replace("$", "")
-        return "$DSL_PACKAGE.containers._DSL" + shortName + "Container"
-    }
-
-    public fun typeNeedsContainer(name: String): Boolean {
-        return !name.startsWith("java.")
-    }
-
-    public fun resolveContainer(name: String) {
-        if (!resolved.contains(name) && typeNeedsContainer(name)) {
-            val containerName = kotlinSrcFile.importManager.shorten(containerName(name))
-            val dslTaskShorten =  kotlinSrcFile.importManager.shorten("$DSL_PACKAGE.DSLTask")
-            kotlinSrcFile.append("\ntrait $containerName : $dslTaskShorten\n")
-            resolved.add(name)
-        }
-    }
-
-    public fun dump(file: File) {
-        kotlinSrcFile.dump(file)
+    fun containsFunction(name: String): Boolean {
+        return functions.containsKey(name)
     }
 }
