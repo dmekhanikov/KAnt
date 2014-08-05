@@ -1,26 +1,49 @@
 package jetbrains.kant.translator;
 
-import org.xml.sax.helpers.DefaultHandler;
+import jetbrains.kant.generator.DSLClass;
+import static jetbrains.kant.generator.GeneratorPackage.getSTRUCTURE_FILE_NAME;
+import static jetbrains.kant.KantPackage.createClassLoader;
+import org.kohsuke.args4j.*;
+import java.io.*;
+import java.util.*;
 import org.xml.sax.*;
-
+import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.*;
-import java.util.*;
 
 public class Translator {
     public static final String TAB = "    ";
     private StringBuilder result;
+    private HashMap<String, DSLClass> structure = new HashMap<>();
+
+    @Option(name = "-cp", usage = "classpath with DSL library")
+    private String classpath = "";
+
+    @Argument(index = 0)
+    private File inputFile;
+
+    @Argument(index = 1)
+    private File outputFile;
 
     public static void main(String ... args) {
-        if (args.length != 2) {
-            System.out.println("Usage:\n\tjava Translator <input file> <output file>");
-            System.exit(1);
+        Translator translator = new Translator();
+        CmdLineParser parser = new CmdLineParser(translator);
+        try {
+            parser.parseArgument(args);
+            if (translator.outputFile == null) {
+                throw new CmdLineException("Too few arguments");
+            }
+        } catch(CmdLineException e) {
+            System.err.println(e.getMessage());
+            System.err.println("java Translator [options...] <input file> <output file>");
+            parser.printUsage(System.err);
+            System.err.println();
+            return;
         }
-        try (Writer writer = new FileWriter(new File(args[1]))) {
-            InputStream inputStream = new FileInputStream(new File(args[0]));
-            Translator translator = new Translator();
+        translator.readStructure();
+        try (Writer writer = new FileWriter(translator.outputFile)) {
+            InputStream inputStream = new FileInputStream(translator.inputFile);
             translator.translate(inputStream, writer);
         } catch (IOException e) {
             e.printStackTrace();
@@ -36,6 +59,24 @@ public class Translator {
             writer.write(result.toString());
         } catch (SAXException | ParserConfigurationException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void readStructure() {
+        String[] classpathArray = classpath.split(File.pathSeparator);
+        for (String jar : classpathArray) {
+            ClassLoader classLoader = createClassLoader(new String[]{jar});
+            InputStream inputStream = classLoader.getResourceAsStream(getSTRUCTURE_FILE_NAME());
+            if (inputStream != null) {
+                try (ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
+                    HashMap<String, DSLClass> readStructure = (HashMap<String, DSLClass>) objectInputStream.readObject();
+                    for (String key : readStructure.keySet()) {
+                        structure.put(key, readStructure.get(key));
+                    }
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
