@@ -436,7 +436,9 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
 
     private fun addConstructor(parent: String, function: String, antClass: AntClass) {
         val dslClass = structure[parent]!!
-        dslClass.addFunction(function, antClass.attributes.map { dslAttribute(it, antClass.className) })
+        dslClass.addFunction(function,
+                antClass.attributes.map { dslAttribute(it, antClass.className) },
+                resultClassName(antClass.className))
     }
 
     private inner class Target(val className: String) {
@@ -503,13 +505,15 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
 }
 
 class DSLClass(val name: String, val traits: List<String>): Serializable {
-    val functions = HashMap<String, List<Attribute>>()
+    val functions = HashMap<String, DSLFunction>()
 
-    fun addFunction(name: String, attributes: List<Attribute>) {
-        functions.put(name, attributes)
+    fun addFunction(name: String, attributes: List<Attribute>, receiver: String) {
+        functions.put(name.toLowerCase(), DSLFunction(name, attributes, receiver))
     }
 
     fun containsFunction(name: String): Boolean {
-        return functions.containsKey(name)
+        return functions.containsKey(name.toLowerCase())
     }
 }
+
+class DSLFunction(val name: String, val attributes: List<Attribute>, val initReceiver: String): Serializable
