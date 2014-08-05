@@ -1,19 +1,19 @@
 package jetbrains.kant.generator
 
 import jetbrains.kant.*
-import java.util.HashMap
-import java.util.HashSet
-import java.util.regex.Pattern
-import java.util.jar.JarInputStream
 import java.io.*
 import java.io.File.pathSeparator
 import org.kohsuke.args4j.*
+import java.util.HashMap
+import java.util.HashSet
 import java.util.ArrayList
+import java.util.regex.Pattern
+import java.util.jar.JarInputStream
 
 public val DSL_ROOT: String = "dsl/src/"
 val DSL_PACKAGE = "jetbrains.kant.dsl"
 val BASE_DSL_FILE_NAMES = array("Base.kt", "LazyTask.kt", "Misc.kt", "Properties.kt")
-public val STRUCTURE_FILE_NAME: String = "structure.ser"
+public val STRUCTURE_FILE_NAME: String = "resources/structure.ser"
 
 fun main(args: Array<String>) {
     GeneratorRunner().doMain(args)
@@ -42,16 +42,15 @@ class GeneratorRunner {
     private val aliasFiles: Array<String> = array()
 
     fun doMain(args: Array<String>) {
-        val parser = CmdLineParser(this);
-        parser.setUsageWidth(80);
+        val parser = CmdLineParser(this)
         try {
-            parser.parseArgument(args.toArrayList());
+            parser.parseArgument(args.toArrayList())
         } catch(e: CmdLineException) {
-            System.err.println(e.getMessage());
-            System.err.println("java GeneratorPackage [options...] arguments...");
-            parser.printUsage(System.err);
-            System.err.println();
-            return;
+            System.err.println(e.getMessage())
+            System.err.println("java GeneratorPackage [options...] arguments...")
+            parser.printUsage(System.err)
+            System.err.println()
+            return
         }
         val srcRoot = outDir.toString() + "/src/"
         val outRoot = outDir.toString() + "/out/"
@@ -64,11 +63,12 @@ class GeneratorRunner {
         if (compile || createJar) {
             compileKotlinCode(srcRoot, classpath, binRoot)
             val outFile = File(binRoot + STRUCTURE_FILE_NAME)
-            val fileOut = FileOutputStream(outFile);
-            val objectOutputStream = ObjectOutputStream(fileOut);
-            objectOutputStream.writeObject(generator.structure);
-            objectOutputStream.close();
-            fileOut.close();
+            outFile.getParentFile()!!.mkdirs()
+            val fileOut = FileOutputStream(outFile)
+            val objectOutputStream = ObjectOutputStream(fileOut)
+            objectOutputStream.writeObject(generator.structure)
+            objectOutputStream.close()
+            fileOut.close()
         }
         if (createJar) {
             val jarFile = distRoot + "kant.jar"
@@ -90,6 +90,7 @@ private fun copyBaseFiles(dest: File) {
 val DSL_TASK_CONTAINER = "$DSL_PACKAGE.DSLTaskContainer"
 val DSL_TASK_CONTAINER_TASK = "$DSL_PACKAGE.DSLTaskContainerTask"
 val DSL_PROJECT = "$DSL_PACKAGE.DSLProject"
+val DSL_TARGET = "$DSL_PACKAGE.DSLTarget"
 val DSL_TASK = "$DSL_PACKAGE.DSLTask"
 val DSL_REFERENCE = "$DSL_PACKAGE.DSLReference"
 val DSL_PATH = "$DSL_PACKAGE.types.DSLPath"
@@ -107,6 +108,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         this.aliasFiles.addAll(aliasFiles)
         structure.put(DSL_TASK_CONTAINER, DSLClass(DSL_TASK_CONTAINER, ArrayList<String>()))
         structure.put(DSL_PROJECT, DSLClass(DSL_PROJECT, array(DSL_TASK_CONTAINER).toList()))
+        structure.put(DSL_TARGET, DSLClass(DSL_TARGET, array(DSL_TASK_CONTAINER).toList()))
     }
 
     private var aliasReader: BufferedReader? = null

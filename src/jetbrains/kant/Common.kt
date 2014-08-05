@@ -107,8 +107,9 @@ private fun copyFilesRecursively(dir: File, jarOutputStream: JarOutputStream, pr
         if (file.isDirectory()) {
             copyFilesRecursively(file, jarOutputStream, prefLen)
         } else {
-            val fileName = file.getCanonicalPath().substring(prefLen)
+            val fileName = file.getCanonicalPath().substring(prefLen).replace('\\', '/')
             val jarEntry = JarEntry(fileName)
+            jarEntry.setTime(file.lastModified())
             jarOutputStream.putNextEntry(jarEntry)
             val fileInputStream = FileInputStream(file)
             copy(fileInputStream, jarOutputStream)
@@ -123,7 +124,9 @@ public fun createJar(jarFile: String, srcDir: String) {
     File(jarFile).getParentFile()!!.mkdirs()
     val jarOutputStream = JarOutputStream(FileOutputStream(jarFile), manifest)
     val srcDirFile = File(srcDir).getCanonicalFile()
-    copyFilesRecursively(srcDirFile, jarOutputStream, srcDirFile.getAbsolutePath().length)
+    val srcDirCanonical = srcDirFile.getCanonicalPath()
+    val prefLen = srcDirCanonical.length + if (srcDirCanonical.endsWith('/')) { 0 } else { 1 }
+    copyFilesRecursively(srcDirFile, jarOutputStream, prefLen)
     jarOutputStream.close()
 }
 
