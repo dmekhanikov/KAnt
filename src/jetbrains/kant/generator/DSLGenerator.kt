@@ -11,7 +11,7 @@ import java.util.regex.Pattern
 import java.util.jar.JarInputStream
 
 public val DSL_ROOT: String = "dsl/src/"
-val DSL_PACKAGE = "jetbrains.kant.dsl"
+public val DSL_PACKAGE: String = "jetbrains.kant.dsl"
 val BASE_DSL_FILE_NAMES = array("Base.kt", "LazyTask.kt", "Misc.kt", "Properties.kt")
 public val STRUCTURE_FILE_NAME: String = "resources/structure.ser"
 
@@ -87,15 +87,19 @@ private fun copyBaseFiles(dest: File) {
     }
 }
 
-val DSL_TASK_CONTAINER = "$DSL_PACKAGE.DSLTaskContainer"
-val DSL_TASK_CONTAINER_TASK = "$DSL_PACKAGE.DSLTaskContainerTask"
-val DSL_PROJECT = "$DSL_PACKAGE.DSLProject"
-val DSL_TARGET = "$DSL_PACKAGE.DSLTarget"
-val DSL_TASK = "$DSL_PACKAGE.DSLTask"
-val DSL_REFERENCE = "$DSL_PACKAGE.DSLReference"
-val DSL_PATH = "$DSL_PACKAGE.types.DSLPath"
-val DSL_TEXT_CONTAINER = "$DSL_PACKAGE.DSLTextContainer"
-val DSL_CONDITION = "$DSL_PACKAGE.DSLCondition"
+public val DSL_TASK_CONTAINER: String = "$DSL_PACKAGE.DSLTaskContainer"
+public val DSL_TASK_CONTAINER_TASK: String = "$DSL_PACKAGE.DSLTaskContainerTask"
+public val DSL_PROJECT: String = "$DSL_PACKAGE.DSLProject"
+public val DSL_TARGET: String = "$DSL_PACKAGE.DSLTarget"
+public val DSL_TASK: String = "$DSL_PACKAGE.DSLTask"
+public val DSL_PROPERTY: String = "$DSL_PACKAGE.taskdefs.DSLProperty"
+public val DSL_REFERENCE: String = "$DSL_PACKAGE.DSLReference"
+public val DSL_PATH: String = "$DSL_PACKAGE.types.DSLPath"
+public val DSL_TEXT_CONTAINER: String = "$DSL_PACKAGE.DSLTextContainer"
+public val DSL_CONDITION: String = "$DSL_PACKAGE.DSLCondition"
+public val DSL_CONDITION_TASK: String = "$DSL_PACKAGE.taskdefs.DSLCondition"
+public val DSL_IF_STATEMENT: String = "$DSL_PACKAGE.other.net.sf.antcontrib.logic.DSLIfTask"
+public val DSL_MACRODEF: String = "$DSL_PACKAGE.taskdefs.DSLMacroDef"
 
 class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles: Array<String>,
                    val seekForAliasFiles: Boolean = false, val defAl: Boolean = false) {
@@ -183,23 +187,28 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                 aliases.addAll(AliasParser(stream!!).parseXML())
             }
         }
+        for (alias in aliases) {
+            resolveAlias(alias)
+        }
         if (defAl) {
             for (jar in classpath) {
                 if (jar.endsWith(".jar")) {
                     val jis = JarInputStream(FileInputStream(jar))
                     val antTasks = jis.getAntTasks()
                     for (antTask in antTasks) {
-                        addTarget(antTask)
                         val className = antTask.className
                         val taskName = defaultConstructorName(className)
-                        resolved[antTask.className]?.generateConstructors(taskName, true)
+                        val dslClassName = resultClassName(className)
+                        if (!resolved.contains(className)) {
+                            addTarget(antTask)
+                        }
+                        if (!constructorIsGenerated(dslClassName, taskName)) {
+                            resolved[antTask.className]?.generateConstructors(taskName, true)
+                        }
                     }
                     jis.close()
                 }
             }
-        }
-        for (alias in aliases) {
-            resolveAlias(alias)
         }
         for (target in resolved.values()) {
             target.dumpFile()
@@ -505,7 +514,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
 }
 
 class DSLClass(val name: String, val traits: List<String>): Serializable {
-    val functions = HashMap<String, DSLFunction>()
+    private val functions = HashMap<String, DSLFunction>()
 
     fun addFunction(name: String, attributes: List<Attribute>, receiver: String) {
         functions.put(name.toLowerCase(), DSLFunction(name, attributes, receiver))
@@ -513,6 +522,10 @@ class DSLClass(val name: String, val traits: List<String>): Serializable {
 
     fun containsFunction(name: String): Boolean {
         return functions.containsKey(name.toLowerCase())
+    }
+
+    fun getFunction(name: String): DSLFunction? {
+        return functions[name.toLowerCase()]
     }
 }
 
