@@ -2,6 +2,7 @@ package jetbrains.kant.generator
 
 import java.io.File
 import java.io.FileWriter
+import jetbrains.kant.ImportManager
 
 class KotlinSourceFile(public val pkg: String?) {
     public val importManager: ImportManager = ImportManager(pkg)
@@ -17,7 +18,7 @@ class KotlinSourceFile(public val pkg: String?) {
         if (pkg != null) {
             result.append("package " + pkg + "\n\n")
         }
-        if (!importManager.imports.empty) {
+        if (!importManager.empty()) {
             result.append(importManager.toString()).append("\n")
         }
         result.append(body.toString())
