@@ -9,6 +9,7 @@ import java.util.HashSet
 import java.util.ArrayList
 import java.util.regex.Pattern
 import java.util.jar.JarInputStream
+import org.jetbrains.jet.utils.valuesToMap
 
 public val DSL_ROOT: String = "dsl/src/"
 public val DSL_PACKAGE: String = "jetbrains.kant.dsl"
@@ -280,13 +281,13 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                 } else if (attr.typeName == ANT_CLASS_PREFIX + "types.Reference") {
                     if (attr.name == "refid") {
                         "$DSL_REFERENCE<${resultClassName(parentName)}>"
-                    } else if (attr.name.endsWith("pathref")) {
+                    } else if (attr.name.toLowerCase().endsWith("pathref")) {
                         "$DSL_REFERENCE<$DSL_PATH>"
                     } else {
-                        "java.lang.String"
+                        "String"
                     }
                 } else {
-                    "java.lang.String"
+                    "String"
                 }
         return Attribute(name, typeName)
     }
@@ -347,7 +348,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         val elementClass = resolved[explodeTypeName(element.typeName)[0]]!!.antClass!!
         elementClass.renderConstructor(out, parentName, element.name, true)
         elementClass.renderConstructor(out, parentName, element.name, false)
-        addConstructor(parentName, element.name, this)
+        addConstructor(parentName, element.name, elementClass)
     }
 
     private fun AntClass.renderConstructorParameters(out: KotlinSourceFile) {
@@ -374,7 +375,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             dslTypeName
         }
         out.append("\n")
-        out.append("public fun ${out.importManager.shorten(parentName)}.${escapeKeywords(tag)}(\n")
+        out.append("public fun ${out.importManager.shorten(parentName)}.${escapeKeywords(toCamelCase(tag))}(\n")
         renderConstructorParameters(out)
         if (withInit) {
             if (!attributes.empty) {
@@ -420,7 +421,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                 }).append("\n")
             }
         } else {
-            out.append("    return ${escapeKeywords(tag)}(\n")
+            out.append("    return ${toCamelCase(tag)}(\n")
             for (attr in attributes) {
                 out.append("        ${escapeKeywords(attr.name)},\n")
             }
@@ -458,10 +459,8 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             val invAntClass = antClass!!
             val invKotlinSrcFile = kotlinSrcFile!!
             if (topLevel) {
-                if (invAntClass.isTask || invAntClass.isCondition) {
+                if (invAntClass.isTask || invAntClass.isCondition || invAntClass.hasRefId) {
                     invAntClass.renderNestedElement(invKotlinSrcFile, DSL_TASK_CONTAINER, Attribute(tag, className))
-                } else if (invAntClass.hasRefId) {
-                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_PROJECT, Attribute(tag, className))
                 }
             }
             for (interface in invAntClass.implementedInterfaces) {
@@ -517,7 +516,7 @@ class DSLClass(val name: String, val traits: List<String>): Serializable {
     private val functions = HashMap<String, DSLFunction>()
 
     fun addFunction(name: String, attributes: List<Attribute>, receiver: String) {
-        functions.put(name.toLowerCase(), DSLFunction(name, attributes, receiver))
+        functions.put(name.toLowerCase(), DSLFunction(toCamelCase(name), attributes.valuesToMap {it.name.toLowerCase()}, receiver))
     }
 
     fun containsFunction(name: String): Boolean {
@@ -529,4 +528,16 @@ class DSLClass(val name: String, val traits: List<String>): Serializable {
     }
 }
 
-class DSLFunction(val name: String, val attributes: List<Attribute>, val initReceiver: String): Serializable
+class DSLFunction(val name: String, val attributes: Map<String, Attribute>, val initReceiver: String): Serializable {
+    public fun getAttribute(attributeName: String): Attribute? {
+        return attributes[attributeName.toLowerCase()]
+    }
+
+    public fun getAttributeName(attributeName: String): String? {
+        return getAttribute(attributeName)?.name;
+    }
+
+    public fun getAttributeType(attributeName: String): String? {
+        return getAttribute(attributeName)?.typeName
+    }
+}

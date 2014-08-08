@@ -1,8 +1,9 @@
 package jetbrains.kant.translator;
 
 import jetbrains.kant.generator.DSLClass;
-import static jetbrains.kant.generator.GeneratorPackage.getSTRUCTURE_FILE_NAME;
+import static jetbrains.kant.generator.GeneratorPackage.*;
 import static jetbrains.kant.KantPackage.createClassLoader;
+import jetbrains.kant.generator.DSLFunction;
 import org.kohsuke.args4j.*;
 import java.io.*;
 import java.util.*;
@@ -95,9 +96,34 @@ public class Translator {
         }
 
         @Override
-        public void endDocument () throws SAXException {
+        public void endDocument() throws SAXException {
             result.append("}\n");
             result.insert(0, "import jetbrains.kant.dsl.*\n\n" + propertyManager + "\n" + macrodefs);
+        }
+
+        private DSLFunction findConstructor(String parentClassName, String name) {
+            DSLClass parentDSLClass = structure.get(parentClassName);
+            if (parentDSLClass != null) {
+                DSLFunction constructor = parentDSLClass.getFunction(name);
+                if (constructor != null) {
+                    return constructor;
+                } else {
+                    for (String trait : parentDSLClass.getTraits()) {
+                        constructor = findConstructor(trait, name);
+                        if (constructor != null) {
+                            return constructor;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        private DSLFunction findConstructor(Wrapper parent, String name) {
+            if (parent == null) {
+                return null;
+            }
+            return findConstructor(parent.getDSLClassName(), name);
         }
 
         private void processChild(Wrapper child, Wrapper parent) throws SAXException {
@@ -109,6 +135,10 @@ public class Translator {
             stack.add(child);
         }
 
+        private void pushDummy(String name) {
+            stack.add(new Wrapper(name, null, null));
+        }
+
         @Override
         public void startElement(String namespaceURI, String localName, String qName, Attributes attrs) throws SAXException {
             Wrapper parent = null;
@@ -116,18 +146,26 @@ public class Translator {
                 parent = stack.get(stack.size() - 1);
             }
             switch (qName) {
+                case "project": {
+                    Wrapper project = new Project(attrs);
+                    processChild(project, parent);
+                    break;
+                }
+                case "target": {
+                    propertyManager.finishDeclaring();
+                    Target target = new Target(attrs);
+                    processChild(target, parent);
+                    break;
+                }
                 case "property": {
-                    Property property = new Property(attrs);
+                    Property property = new Property(attrs, findConstructor(parent, qName));
                     propertyManager.writeAccess(property);
                     String propName = attrs.getValue("name");
                     if (propName == null || !propertyManager.isDeclaring()) {
                         processChild(property, parent);
+                    } else {
+                        pushDummy(qName);
                     }
-                    break;
-                }
-                case "macrodef": {
-                    Macrodef macrodef = new Macrodef(attrs);
-                    stack.add(macrodef);
                     break;
                 }
                 case "if": {
@@ -144,29 +182,29 @@ public class Translator {
                 }
                 case "sequential": {
                     propertyManager.finishDeclaring();
+                    Sequential sequential = new Sequential();
+                    processChild(sequential, parent);
                     break;
                 }
-                case "project": {
-                    Wrapper project = new Project(attrs);
-                    processChild(project, parent);
-                    break;
-                }
-                case "target": {
-                    propertyManager.finishDeclaring();
-                    Target target = new Target(attrs);
-                    processChild(target, parent);
+                case "macrodef": {
+                    Macrodef macrodef = new Macrodef(attrs);
+                    stack.add(macrodef);
                     break;
                 }
                 case "attribute": {
                     if (parent != null && parent instanceof Macrodef) {
                         parent.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
+                        pushDummy(qName);
                         break;
                     }
-                    propertyManager.finishDeclaring();
                 }
                 default: {
                     propertyManager.finishDeclaring();
-                    Wrapper wrapper = new Wrapper(qName, attrs);
+                    DSLFunction constructor = findConstructor(parent, qName);
+                    if (constructor != null) {
+                        qName = constructor.getName();
+                    }
+                    Wrapper wrapper = new Wrapper(qName, attrs, constructor);
                     processChild(wrapper, parent);
                 }
             }
@@ -185,16 +223,14 @@ public class Translator {
 
         @Override
         public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
-            if (!stack.isEmpty() && stack.get(stack.size() - 1).name.equals(qName)) {
-                Wrapper wrapper = stack.get(stack.size() - 1);
-                if (wrapper instanceof Macrodef) {
-                    macrodefs.append(wrapper.toString(propertyManager)).append("\n\n");
-                } else if (stack.size() == 1) {
-                    result.append(stack.get(0).toString(propertyManager));
-                    result.append("\n");
-                }
-                stack.remove(stack.size() - 1);
+            Wrapper wrapper = stack.get(stack.size() - 1);
+            if (wrapper instanceof Macrodef) {
+                macrodefs.append(wrapper.toString(propertyManager)).append("\n\n");
+            } else if (stack.size() == 1) {
+                result.append(stack.get(0).toString(propertyManager));
+                result.append("\n");
             }
+            stack.remove(stack.size() - 1);
         }
     }
 }

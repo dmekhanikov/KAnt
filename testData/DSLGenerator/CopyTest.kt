@@ -12,7 +12,7 @@ fun main(args: Array<String>) {
         val filesToCopy = fileset(dir = srcDir)
 
         default = target("Copy test") {
-            retry(retrycount = 3) {
+            retry(retryCount = 3) {
                 copy(todir = destDir) {
                     fileset(refid = filesToCopy)
                 }

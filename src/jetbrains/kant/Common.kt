@@ -51,6 +51,23 @@ public fun escapeKeywords(string: String): String {
     }
 }
 
+public fun toCamelCase(name: String): String {
+    val stringBuilder = StringBuilder(name)
+    val separators = ".-_"
+    for (c in separators) {
+        val separator = c.toString()
+        var j = stringBuilder.indexOf(separator)
+        while (j != -1) {
+            stringBuilder.deleteCharAt(j)
+            if (stringBuilder.length() > j) {
+                stringBuilder.setCharAt(j, Character.toUpperCase(stringBuilder.charAt(j)))
+            }
+            j = stringBuilder.indexOf(separator, j)
+        }
+    }
+    return escapeKeywords(stringBuilder.toString())
+}
+
 public fun createClassLoader(jars: Array<String>): ClassLoader {
     val path = ArrayList<URL>()
     for (jar in jars) {

@@ -9,10 +9,10 @@ fun main(args: Array<String>) {
     project(args) {
         echo(message = "cat", file = file)
         replace(file = file) {
-            replacetoken {
+            replaceToken {
                 text { "cat" }
             }
-            replacevalue {
+            replaceValue {
                 text { "wombat" }
             }
         }

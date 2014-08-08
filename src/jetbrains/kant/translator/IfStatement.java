@@ -1,18 +1,17 @@
 package jetbrains.kant.translator;
 
 import org.xml.sax.SAXException;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class IfStatement extends Wrapper {
     private Condition condition;
-    private ConditionBranch thenStatement;
-    private ConditionBranch elseStatement;
+    private Sequential thenStatement;
+    private Sequential elseStatement;
     private List<IfStatement> elseifStatements = new ArrayList<>();
 
     public IfStatement() {
-        super("if", null);
+        super("if", null, null);
     }
 
     public IfStatement(Wrapper wrapper) {
@@ -22,13 +21,13 @@ public class IfStatement extends Wrapper {
     @Override
     public Wrapper addChild(Wrapper child) throws SAXException{
         child.setParent(this);
+        child.setIndent(indent + TAB);
         switch (child.name) {
             case "then":
                 if (thenStatement != null) {
                     throw new SAXException("\"if\" cannot contain more than one \"then\" statements");
                 }
-                child.setIndent(indent);
-                thenStatement = new ConditionBranch(child);
+                thenStatement = new Sequential(child);
                 return thenStatement;
             case "else":
                 if (parent != null && parent instanceof IfStatement && parent.name.equals("elseif")) {
@@ -37,11 +36,9 @@ public class IfStatement extends Wrapper {
                 if (elseStatement != null) {
                     throw new SAXException("\"if\" cannot contain more than one \"else\" statements");
                 }
-                child.setIndent(indent);
-                elseStatement = new ConditionBranch(child);
+                elseStatement = new Sequential(child);
                 return elseStatement;
             case "elseif":
-                child.setIndent(indent);
                 IfStatement elseifStatement = new IfStatement(child);
                 elseifStatements.add(elseifStatement);
                 return elseifStatement;
@@ -49,8 +46,18 @@ public class IfStatement extends Wrapper {
                 if (condition != null) {
                     throw new SAXException("\"if\" doesn't support more than one condition");
                 }
+                child.setIndent("");
                 condition = new Condition(child);
                 return condition;
+        }
+    }
+
+    @Override
+    public String getDSLClassName() {
+        if (parent != null) {
+            return parent.getDSLClassName();
+        } else {
+            return super.getDSLClassName();
         }
     }
 

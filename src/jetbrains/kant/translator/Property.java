@@ -1,24 +1,44 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.generator.DSLFunction;
+import static jetbrains.kant.KantPackage.toCamelCase;
 import org.xml.sax.Attributes;
 
 public class Property extends Wrapper {
     private String propName;
     private String propVal;
+    private String propType;
     boolean includeDefVal = false;
-
     private boolean isMutable;
 
-    public Property(Attributes attributes) {
-        super("property", attributes);
+    public Property(Attributes attributes, DSLFunction constructor) {
+        super("property", attributes, constructor);
         propName = attributes.getValue("name");
         propVal = attributes.getValue("value");
+        setPropType();
     }
 
-    public Property(String propName, String propVal) {
-        super("property", null);
+    public Property(String propName, String propVal, DSLFunction constructor) {
+        super("property", null, constructor);
         this.propName = propName;
         this.propVal = propVal;
+        setPropType();
+    }
+
+    public String getName() {
+        return propName;
+    }
+
+    private void setPropType() {
+        if (propVal != null) {
+            propType = StringProcessor.getType(propVal);
+        } else {
+            propType = "String";
+        }
+    }
+
+    public String getPropType() {
+        return propType;
     }
 
     public void setIncludeDefVal(boolean includeDefVal) {
@@ -32,14 +52,10 @@ public class Property extends Wrapper {
     @Override
     public String toString(PropertyManager propertyManager) {
         if (propName != null && propVal != null && attributes.size() <= 2) {
-            return indent + StringProcessor.toCamelCase(propName) + " = " + StringProcessor.prepareValue(propVal, propertyManager);
+            return indent + toCamelCase(propName) + " = " + StringProcessor.prepareValue(propVal, propertyManager, propType);
         } else {
             return super.toString(propertyManager);
         }
-    }
-
-    public String getName() {
-        return propName;
     }
 
     public String getDeclaration(PropertyManager propertyManager) {
@@ -49,13 +65,7 @@ public class Property extends Wrapper {
         } else {
             result.append("val");
         }
-        String ccName = StringProcessor.toCamelCase(propName);
-        String propType;
-        if (propVal != null) {
-            propType = StringProcessor.getType(propVal);
-        } else {
-            propType = "String";
-        }
+        String ccName = toCamelCase(propName);
         result.append(" ").append(ccName).append(" by ").append(propType).append("Property");
         if (!propName.equals(ccName)) {
             result.append("(\"").append(propName).append("\")");
@@ -63,7 +73,7 @@ public class Property extends Wrapper {
             result.append("()");
         }
         if (includeDefVal && propVal != null) {
-            result.append(" { ").append(StringProcessor.prepareValue(propVal, propertyManager)).append(" }");
+            result.append(" { ").append(StringProcessor.prepareValue(propVal, propertyManager, propType)).append(" }");
         }
         return result.toString();
     }

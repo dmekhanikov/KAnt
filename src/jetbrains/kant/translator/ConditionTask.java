@@ -10,7 +10,7 @@ public class ConditionTask extends Wrapper{
     private Condition condition;
 
     public ConditionTask(Attributes attributes) {
-        super("condition", attributes);
+        super("condition", attributes, null);
         propName = attributes.getValue("property");
         value = attributes.getValue("value");
         if (value == null) {
@@ -34,14 +34,14 @@ public class ConditionTask extends Wrapper{
         ifStatement.setIndent(indent);
         try {
             ifStatement.addChild(condition);
-            ConditionBranch thenBranch = new ConditionBranch(new Wrapper("then", null));
+            Sequential thenBranch = new Sequential("then");
             ifStatement.addChild(thenBranch);
-            Property thenProperty = new Property(propName, value);
+            Property thenProperty = new Property(propName, value, null);
             thenBranch.addChild(thenProperty);
             propertyManager.writeAccess(thenProperty);
             if (elseValue != null) {
-                ConditionBranch elseBranch = new ConditionBranch(new Wrapper("else", null));
-                Property elseProperty = new Property(propName, elseValue);
+                Sequential elseBranch = new Sequential("else");
+                Property elseProperty = new Property(propName, elseValue, null);
                 ifStatement.addChild(elseBranch);
                 elseBranch.addChild(elseProperty);
                 propertyManager.writeAccess(elseProperty);

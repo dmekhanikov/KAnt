@@ -1,8 +1,8 @@
 package jetbrains.kant.translator;
 
+import static jetbrains.kant.KantPackage.toCamelCase;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,7 +13,7 @@ public class Project extends Wrapper {
     private String defaultTarget;
 
     public Project(Attributes attributes) {
-        super("project", null);
+        super("project", null, null);
         defaultTarget = attributes.getValue("default");
     }
 
@@ -42,7 +42,7 @@ public class Project extends Wrapper {
             result.append("\n").append(target.toString(propertyManager)).append("\n");
             if (target.getTargetName().equals(defaultTarget)) {
                 result.append(indent).append(TAB).append("default = ");
-                result.append(StringProcessor.toCamelCase(defaultTarget)).append("\n");
+                result.append(toCamelCase(defaultTarget)).append("\n");
             }
         }
         result.append(indent).append("}");

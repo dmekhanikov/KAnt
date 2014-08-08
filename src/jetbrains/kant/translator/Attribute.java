@@ -1,6 +1,7 @@
 package jetbrains.kant.translator;
 
 import static jetbrains.kant.KantPackage.escapeKeywords;
+import static jetbrains.kant.KantPackage.toCamelCase;
 
 public class Attribute {
     private String name;
@@ -22,21 +23,17 @@ public class Attribute {
     }
 
     public String getDefaultValue(PropertyManager propertyManager) {
-        return StringProcessor.prepareValue(defaultValue, propertyManager);
+        return StringProcessor.prepareValue(defaultValue, propertyManager, type);
     }
 
     public String toString(boolean includeType, PropertyManager propertyManager) {
-        StringBuilder result = new StringBuilder(name);
+        StringBuilder result = new StringBuilder(toCamelCase(name));
         if (includeType && type != null) {
             result.append(": ").append(type);
         }
         if (defaultValue != null) {
             result.append(" = ");
-            if (name.equals("refid") || name.endsWith("pathref")) {
-                result.append(StringProcessor.toCamelCase(defaultValue));
-            } else {
-                result.append(StringProcessor.prepareValue(defaultValue, propertyManager));
-            }
+            result.append(getDefaultValue(propertyManager));
         }
         return result.toString();
     }

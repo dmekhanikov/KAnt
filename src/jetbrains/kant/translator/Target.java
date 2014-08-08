@@ -1,5 +1,6 @@
 package jetbrains.kant.translator;
 
+import static jetbrains.kant.KantPackage.toCamelCase;
 import org.xml.sax.Attributes;
 
 public class Target extends Wrapper {
@@ -8,7 +9,7 @@ public class Target extends Wrapper {
     private String[] depends;
 
     public Target(Attributes attributes) {
-        super("target", null);
+        super("target", null, null);
         targetName = attributes.getValue("name");
         String dependsString = attributes.getValue("depends");
         if (dependsString != null) {
@@ -30,11 +31,11 @@ public class Target extends Wrapper {
     @Override
     public String toString(PropertyManager propertyManager) {
         StringBuilder result = new StringBuilder();
-        result.append(indent).append("val ").append(StringProcessor.toCamelCase(targetName));
+        result.append(indent).append("val ").append(toCamelCase(targetName));
         result.append(" = target(\"").append(targetName).append("\"");
         if (depends != null) {
             for (String depend : depends) {
-                result.append(", ").append(StringProcessor.toCamelCase(depend));
+                result.append(", ").append(toCamelCase(depend));
             }
         }
         result.append(")");

@@ -207,7 +207,10 @@ class AntClass(classLoader: ClassLoader, className: String) {
     }
 
     private fun cutElementName(methodName: String, prefLen: Int): String {
-        return methodName.substring(prefLen).toLowerCase()
+        if (methodName.length() <= prefLen) {
+            return ""
+        }
+        return Character.toLowerCase(methodName[prefLen]) + methodName.substring(prefLen + 1)
     }
 }
 

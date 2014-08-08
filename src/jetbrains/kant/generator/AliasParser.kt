@@ -30,7 +30,7 @@ class AliasParser(val inputStream: InputStream) {
     }
 
     private fun parseAlias(line: String): Alias? {
-        val pattern = Pattern.compile("^(\\w*)\\s*=\\s*([\\w.]*)$")
+        val pattern = Pattern.compile("^([\\w.-]*)\\s*=\\s*([\\w.]*)$")
         val matcher = pattern.matcher(line)
         if (matcher.matches()) {
             val tag = matcher.group(1)!!

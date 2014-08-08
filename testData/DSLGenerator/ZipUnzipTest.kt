@@ -11,7 +11,7 @@ fun main(args: Array<String>) {
     project(args) {
         default = target("Zip and unzip") {
             zip (basedir = sourceDir) {
-                destfile = zipFile
+                destFile = zipFile
             }
             unzip {
                 src = zipFile

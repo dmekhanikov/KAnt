@@ -3,28 +3,10 @@ package jetbrains.kant.translator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static jetbrains.kant.KantPackage.escapeKeywords;
+import static jetbrains.kant.KantPackage.toCamelCase;
+import static jetbrains.kant.generator.GeneratorPackage.*;
 
 public class StringProcessor {
-    public static String toCamelCase(String name) {
-        StringBuilder stringBuilder = new StringBuilder(name.toLowerCase());
-        String separators = ".-_";
-        for (int i = 0; i < separators.length(); i++) {
-            String separator = String.valueOf(separators.charAt(i));
-            for (int j = stringBuilder.indexOf(separator); j != -1; j = stringBuilder.indexOf(separator, j)) {
-                stringBuilder.deleteCharAt(j);
-                if (stringBuilder.length() > j) {
-                    stringBuilder.setCharAt(j, Character.toUpperCase(stringBuilder.charAt(j)));
-                }
-            }
-        }
-        if (stringBuilder.charAt(0) == '\"' && stringBuilder.charAt(stringBuilder.length() - 1) == '\"') {
-            stringBuilder.deleteCharAt(0);
-            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-        }
-        return escapeKeywords(stringBuilder.toString());
-    }
-
     public static String getType(String value) {
         if (value != null && (value.equals("true") || value.equals("false")
                 || value.equals("yes") || value.equals("no"))) {
@@ -95,30 +77,65 @@ public class StringProcessor {
         return result.toString();
     }
 
-    public static String prepareValue(String value, PropertyManager propertyManager) {
+    public static String prepareValue(String value, PropertyManager propertyManager, String type) {
         if (value == null) {
             return null;
         }
-        switch (value) {
-            case "true":
-            case "yes":
-                return "true";
-            case "false":
-            case "no":
-                return "false";
-            default:
+        if (type.startsWith(getDSL_REFERENCE())) {
+            return toCamelCase(value);
         }
+        try {
+            switch (type) {
+                case "Boolean":
+                    if (value.equals("true") || value.equals("yes")) {
+                        return "true";
+                    } else if (value.equals("false") || value.equals("no")) {
+                        return "false";
+                    }
+                    break;
+                case "Char":
+                    if (value.length() == 1) {
+                        return "'" + value + "'";
+                    }
+                    break;
+                case "Byte":
+                    return String.valueOf(Byte.parseByte(value));
+                case "Short":
+                    return String.valueOf(Short.parseShort(value));
+                case "Int":
+                    return String.valueOf(Integer.parseInt(value));
+                case "Float":
+                    return String.valueOf(Float.parseFloat(value));
+                case "Long":
+                    return String.valueOf(Long.parseLong(value));
+                case "Double":
+                    return String.valueOf(Double.parseDouble(value));
+            }
+        } catch (NumberFormatException ignore) {}
+        String pattern = "[$@]\\{([^\\{]+)\\}"; //wrong
+        Matcher matcher = Pattern.compile(pattern).matcher(value);
+        if (matcher.matches()) {
+            String propName = matcher.group(1);
+            String propCCName = processProperties(value, propertyManager).substring(1);
+            String propType = propertyManager.getPropType(propName);
+            if (type.equals(propType)) {
+                return propCCName;
+            } else if (type.equals("Char") && propType.equals("String")) {
+                return propCCName + "[0]";
+            } else if (type.equals("String")) {
+                return propCCName + ".toString()";
+            } else {
+                return propCCName + ".to" + type + "()";
+            }
+        }
+
+
         StringBuilder result = new StringBuilder("\"");
         result.append(processProperties(escapeTemplates(value), propertyManager));
         result.append("\"");
         for (int i = result.indexOf("\\"); i != -1; i = result.indexOf("\\", i)) {
             result.replace(i, i + 1, "\\\\");
             i += 2;
-        }
-        String pattern = "\"\\$(\\w*)\"";
-        Matcher matcher = Pattern.compile(pattern).matcher(result);
-        if (matcher.matches()) {
-            return matcher.group(1);
         }
         return result.toString();
     }

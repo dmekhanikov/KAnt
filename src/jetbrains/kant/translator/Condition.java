@@ -16,6 +16,15 @@ public class Condition extends Wrapper {
     }
 
     @Override
+    public String getDSLClassName() {
+        if (parent != null && (name.equals("not") || name.equals("and") || name.equals("or") || name.equals("xor"))) {
+            return parent.getDSLClassName();
+        } else {
+            return super.getDSLClassName();
+        }
+    }
+
+    @Override
     public String toString(PropertyManager propertyManager) {
         String result;
         switch (name) {
@@ -39,8 +48,6 @@ public class Condition extends Wrapper {
                     result = "(" + result + ")";
                 }
                 return result;
-            case "isset":
-                return "propertyIsSet(" + attributes.get(0).getDefaultValue(propertyManager) + ")";
             case "istrue":
                 return attributes.get(0).getDefaultValue(propertyManager);
             case "isfalse":

@@ -10,7 +10,7 @@ public class PropertyManager {
     public String toString() {
         StringBuilder result = new StringBuilder();
         for (Property property : pool.values()) {
-            result.append(property.getDeclaration(this)).append("\n");
+            result.append(property.getDeclaration(null)).append("\n");
         }
         return result.toString();
     }
@@ -33,8 +33,17 @@ public class PropertyManager {
 
     public void readAccess(String name) {
         if (!pool.containsKey(name)) {
-            Property property = new Property(name, null);
+            Property property = new Property(name, null, null);
             pool.put(name, property);
+        }
+    }
+
+    public String getPropType(String propName) {
+        Property prop = pool.get(propName);
+        if (prop != null) {
+            return prop.getPropType();
+        } else {
+            return null;
         }
     }
 
