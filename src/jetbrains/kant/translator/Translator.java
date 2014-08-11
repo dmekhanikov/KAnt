@@ -227,9 +227,7 @@ public class Translator {
             String value = new String(ch, start, length);
             if (!value.trim().isEmpty()) {
                 Wrapper parent = stack.get(stack.size() - 1);
-                Text text = new Text();
-                text.setText(value);
-                parent.addChild(text);
+                parent.addText(value);
             }
         }
 

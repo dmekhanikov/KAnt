@@ -19,6 +19,7 @@ public class Wrapper {
     protected List<Wrapper> children = new ArrayList<>();
     protected List<DSLAttribute> attributes;
     protected Wrapper parent;
+    private Text text;
 
     private Wrapper(String name, DSLFunction constructor, Attributes attributes) {
         this.constructor = constructor;
@@ -87,6 +88,14 @@ public class Wrapper {
         child.setParent(this);
         children.add(child);
         return child;
+    }
+
+    public void addText(String string) throws SAXException{
+        if (text == null) {
+            text = new Text();
+            addChild(text);
+        }
+        text.append(string);
     }
 
     public List<DSLAttribute> getAttributes() {
