@@ -274,7 +274,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         return result
     }
 
-    private fun dslAttribute(attr: Attribute, parentName: String): Attribute {
+    private fun dslAttribute(attr: AntAttribute, parentName: String): AntAttribute {
         val name = attr.name
         val typeName =
                 if (PRIMITIVE_TYPES.contains(attr.typeName)) {
@@ -290,7 +290,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                 } else {
                     "String"
                 }
-        return Attribute(name, typeName)
+        return AntAttribute(name, typeName)
     }
 
     private fun AntClass.toKotlin(pkg: String?): KotlinSourceFile {
@@ -341,7 +341,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
     }
 
     private fun AntClass.renderNestedElement(out: KotlinSourceFile,
-                                             parentName: String, element: Attribute) {
+                                             parentName: String, element: AntAttribute) {
         if (constructorIsGenerated(parentName, element.name)) {
             return
         }
@@ -461,13 +461,13 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             val invKotlinSrcFile = kotlinSrcFile!!
             if (topLevel) {
                 if (invAntClass.isTask || invAntClass.isCondition || invAntClass.hasRefId) {
-                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_TASK_CONTAINER, Attribute(tag, className))
+                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_TASK_CONTAINER, AntAttribute(tag, className))
                 }
             }
             for (interface in invAntClass.implementedInterfaces) {
                 if (containerGenerator.typeNeedsContainer(interface)) {
                     val containerName = containerGenerator.containerName(interface)
-                    invAntClass.renderNestedElement(invKotlinSrcFile, containerName, Attribute(tag, className))
+                    invAntClass.renderNestedElement(invKotlinSrcFile, containerName, AntAttribute(tag, className))
                 }
             }
         }
@@ -516,7 +516,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
 class DSLClass(val name: String, val traits: List<String>): Serializable {
     private val functions = HashMap<String, DSLFunction>()
 
-    fun addFunction(name: String, pkg: String?, attributes: List<Attribute>, receiver: String) {
+    fun addFunction(name: String, pkg: String?, attributes: List<AntAttribute>, receiver: String) {
         functions.put(name.toLowerCase(), DSLFunction(toCamelCase(name), pkg, attributes.valuesToMap {it.name.toLowerCase()}, receiver))
     }
 
@@ -529,8 +529,8 @@ class DSLClass(val name: String, val traits: List<String>): Serializable {
     }
 }
 
-class DSLFunction(val name: String, val pkg: String?, val attributes: Map<String, Attribute>, val initReceiver: String): Serializable {
-    public fun getAttribute(attributeName: String): Attribute? {
+class DSLFunction(val name: String, val pkg: String?, val attributes: Map<String, AntAttribute>, val initReceiver: String): Serializable {
+    public fun getAttribute(attributeName: String): AntAttribute? {
         return attributes[attributeName.toLowerCase()]
     }
 

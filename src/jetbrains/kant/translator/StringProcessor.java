@@ -31,19 +31,26 @@ public class StringProcessor {
                     propertyName.append(value.charAt(i));
                 }
                 String name = propertyName.toString();
-                if (name.equals("\"$\"")) {
+                if (isAttribute && (propertyManager == null || !propertyManager.containsAttribute(name))) {
+                    result.append("@{").append(name).append("}");
+                } else if (name.equals("\"$\"")) {
                     result.append("${\"$\"}");
                 } else {
-                    if (propertyManager != null && !isAttribute) {
-                        propertyManager.readAccess(propertyName.toString());
+                    String ccName = toCamelCase(name);
+                    if (propertyManager != null) {
+                        if (isAttribute) {
+                            name = propertyManager.getExactAttributeName(name);
+                            ccName = toCamelCase(name);
+                        } else {
+                            propertyManager.readAccess(propertyName.toString());
+                        }
                     }
-                    name = toCamelCase(name);
                     if (i + 1 < value.length() && Character.isJavaIdentifierPart(value.charAt(i + 1))) {
-                        name = "${" + name + "}";
+                        ccName = "${" + ccName + "}";
                     } else {
-                        name = "$" + name;
+                        ccName = "$" + ccName;
                     }
-                    result.append(name);
+                    result.append(ccName);
                 }
             } else {
                 result.append(value.charAt(i));
@@ -94,7 +101,7 @@ public class StringProcessor {
                     break;
                 case "Char":
                     if (value.length() == 1) {
-                        return "'" + value + "'";
+                        return "\'" + value + "\'";
                     }
                     break;
                 case "Byte":
@@ -114,17 +121,30 @@ public class StringProcessor {
         String pattern = "[$@]\\{([^\\{]+)\\}";
         Matcher matcher = Pattern.compile(pattern).matcher(value);
         if (matcher.matches()) {
+            boolean isAttribute = value.charAt(0) == '@';
             String propName = matcher.group(1);
             String propCCName = processProperties(value, propertyManager).substring(1);
-            String propType = propertyManager.getPropType(propName);
-            if (type.equals(propType)) {
-                return propCCName;
-            } else if (type.equals("Char") && propType.equals("String")) {
-                return propCCName + "[0]";
-            } else if (type.equals("String")) {
-                return propCCName + ".toString()";
-            } else {
-                return propCCName + ".to" + type + "()";
+            if (propCCName.charAt(0) != '{') {
+                String propType = null;
+                if (propertyManager != null) {
+                    if (isAttribute) {
+                        propType = propertyManager.getAttributeType(propName);
+                    } else {
+                        propType = propertyManager.getPropType(propName);
+                    }
+                }
+                if (propType == null) {
+                    propType = "String";
+                }
+                if (type.equals(propType)) {
+                    return propCCName;
+                } else if (type.equals("Char") && propType.equals("String")) {
+                    return propCCName + "[0]";
+                } else if (type.equals("String")) {
+                    return propCCName + ".toString()";
+                } else {
+                    return propCCName + ".to" + type + "()";
+                }
             }
         }
         StringBuilder result = new StringBuilder("\"");

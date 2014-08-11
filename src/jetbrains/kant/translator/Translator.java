@@ -198,7 +198,12 @@ public class Translator {
                 }
                 case "attribute": {
                     if (parent != null && parent instanceof Macrodef) {
-                        parent.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
+                        String attrName = attrs.getValue("name");
+                        String attrVal = attrs.getValue("default");
+                        String attrType = StringProcessor.getType(attrVal);
+                        DSLAttribute attribute = new DSLAttribute(attrName, attrType, attrVal);
+                        parent.addAttribute(attribute);
+                        propertyManager.addAttribute(attribute);
                         pushDummy();
                         break;
                     }
@@ -232,7 +237,16 @@ public class Translator {
         public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
             Wrapper wrapper = stack.get(stack.size() - 1);
             if (wrapper instanceof Macrodef) {
-                macrodefs.append(wrapper.toString(propertyManager, importManager)).append("\n\n");
+                Macrodef macrodef = (Macrodef) wrapper;
+                DSLClass dslTaskContainerClass = structure.get(getDSL_TASK_CONTAINER());
+                if (dslTaskContainerClass == null) {
+                    dslTaskContainerClass = new DSLClass(getDSL_TASK_CONTAINER(), new ArrayList<String>());
+                    structure.put(getDSL_TASK_CONTAINER(), dslTaskContainerClass);
+                }
+                dslTaskContainerClass.addFunction(macrodef.getMacrodefName(), getDSL_PACKAGE(),
+                        macrodef.getAttributes(), getDSL_TASK_CONTAINER());
+                macrodefs.append(macrodef.toString(propertyManager, importManager)).append("\n\n");
+                propertyManager.clearAttributes();
             } else if (stack.size() == 1) {
                 result.append(stack.get(0).toString(propertyManager, importManager));
                 result.append("\n");

@@ -6,6 +6,7 @@ import java.util.HashSet
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.io.Serializable
+import jetbrains.kant.AntAttribute
 
 val ANT_CLASS_PREFIX = "org.apache.tools.ant."
 
@@ -31,8 +32,8 @@ class AntClass(classLoader: ClassLoader, className: String) {
     }
 
     public val className: String = className
-    public val attributes: List<Attribute>
-    public val nestedElements: List<Attribute>
+    public val attributes: List<AntAttribute>
+    public val nestedElements: List<AntAttribute>
     public val nestedTypes: List<String>
     public val isTask: Boolean
     public val isTaskContainer: Boolean
@@ -60,7 +61,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
             nestedElements = classObject.getElements({parseNestedElement(it)})
             nestedTypes = classObject.getNestedTypes()
         } else {
-            nestedElements = ArrayList<Attribute>()
+            nestedElements = ArrayList<AntAttribute>()
             nestedTypes = ArrayList<String>()
         }
     }
@@ -81,8 +82,8 @@ class AntClass(classLoader: ClassLoader, className: String) {
         return res
     }
 
-    private fun Class<out Any?>.getElements(parseElement: (method: Method) -> Attribute?): List<Attribute> {
-        val elements = ArrayList<Attribute>()
+    private fun Class<out Any?>.getElements(parseElement: (method: Method) -> AntAttribute?): List<AntAttribute> {
+        val elements = ArrayList<AntAttribute>()
         val usedNames = HashSet<String>()
         for (method in getMethods()) {
             val element = parseElement(method)
@@ -94,7 +95,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
         return elements
     }
 
-    private fun parseAttribute(method: Method): Attribute? {
+    private fun parseAttribute(method: Method): AntAttribute? {
         val methodName = method.getName()!!
         if (method.isAntAttributeSetter()) {
             val attributeName = cutElementName(methodName, "set".length)
@@ -106,12 +107,12 @@ class AntClass(classLoader: ClassLoader, className: String) {
             if (PRIMITIVE_TYPES.containsKey(attributeTypeName)) {
                 attributeTypeName = PRIMITIVE_TYPES[attributeTypeName]!!
             }
-            return Attribute(attributeName, attributeTypeName)
+            return AntAttribute(attributeName, attributeTypeName)
         }
         return null
     }
 
-    private fun parseNestedElement(method: Method): Attribute? {
+    private fun parseNestedElement(method: Method): AntAttribute? {
         val methodName = method.getName()!!
         val returnTypeName = method.getReturnType()!!.getName()
         if (methodName.startsWith("create") && method.getReturnType()!!.isAntClass()) {
@@ -120,7 +121,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
                 return null
             }
             val elementType = returnTypeName
-            return Attribute(elementName, elementType)
+            return AntAttribute(elementName, elementType)
         }
         val parameterTypes = method.getParameterTypes()!!
         if (methodName.startsWith("add") &&
@@ -136,7 +137,7 @@ class AntClass(classLoader: ClassLoader, className: String) {
                 return null
             }
             val elementName = cutElementName(methodName, prefLen)
-            return Attribute(elementName, elementType)
+            return AntAttribute(elementName, elementType)
         }
         return null
     }
@@ -212,9 +213,4 @@ class AntClass(classLoader: ClassLoader, className: String) {
         }
         return Character.toLowerCase(methodName[prefLen]) + methodName.substring(prefLen + 1)
     }
-}
-
-class Attribute(name: String, typeName: String): Serializable {
-    public val name: String = name
-    public val typeName: String = typeName
 }

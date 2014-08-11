@@ -6,11 +6,7 @@ import java.util.HashMap;
 public class PropertyManager {
     private boolean isDeclaring = true;
     private HashMap<String, Property> pool = new HashMap<>();
-
-    @Override
-    public String toString() {
-        return toString(null);
-    }
+    private HashMap<String, DSLAttribute> attributes = new HashMap<>();
 
     public String toString(ImportManager importManager) {
         StringBuilder result = new StringBuilder();
@@ -47,6 +43,40 @@ public class PropertyManager {
         Property prop = pool.get(propName);
         if (prop != null) {
             return prop.getPropType();
+        } else {
+            return null;
+        }
+    }
+
+    public void addAttribute(DSLAttribute attribute) {
+        attributes.put(attribute.getName().toLowerCase(), attribute);
+    }
+
+    public void clearAttributes() {
+        attributes.clear();
+    }
+
+    public boolean containsAttribute(String attrName) {
+        return attributes.containsKey(attrName);
+    }
+
+    public DSLAttribute getAttribute(String attrName) {
+        return attributes.get(attrName.toLowerCase());
+    }
+
+    public String getExactAttributeName(String attrName) {
+        DSLAttribute attr = getAttribute(attrName);
+        if (attr != null) {
+            return attr.getName();
+        } else {
+            return attrName;
+        }
+    }
+
+    public String getAttributeType(String attrName) {
+        DSLAttribute attr = getAttribute(attrName);
+        if (attr != null) {
+            return attr.getTypeName();
         } else {
             return null;
         }

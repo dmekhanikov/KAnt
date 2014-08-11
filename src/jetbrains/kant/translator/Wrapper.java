@@ -17,7 +17,7 @@ public class Wrapper {
     protected String indent = "";
     protected String id;
     protected List<Wrapper> children = new ArrayList<>();
-    protected List<Attribute> attributes;
+    protected List<DSLAttribute> attributes;
     protected Wrapper parent;
 
     private Wrapper(String name, DSLFunction constructor, Attributes attributes) {
@@ -58,7 +58,7 @@ public class Wrapper {
         parent = wrapper.parent;
     }
 
-    public void addAttribute(Attribute attribute) {
+    public void addAttribute(DSLAttribute attribute) {
         attributes.add(attribute);
     }
 
@@ -75,7 +75,7 @@ public class Wrapper {
         if (type == null) {
             type = "String";
         }
-        addAttribute(new Attribute(name, type, defaultValue));
+        addAttribute(new DSLAttribute(name, type, defaultValue));
     }
 
     public void setIndent(String indent) {
@@ -87,6 +87,10 @@ public class Wrapper {
         child.setParent(this);
         children.add(child);
         return child;
+    }
+
+    public List<DSLAttribute> getAttributes() {
+        return attributes;
     }
 
     public Wrapper getParent() {
@@ -146,11 +150,6 @@ public class Wrapper {
             }
         }
         return result.toString();
-    }
-
-    @Override
-    public String toString() {
-        return toString(null, null);
     }
 
     public String toString(PropertyManager propertyManager, ImportManager importManager) {

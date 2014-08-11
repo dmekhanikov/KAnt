@@ -15,15 +15,15 @@ public class Macrodef extends Wrapper {
         if (macrodefName == null) {
             throw new SAXException("Macrodef should have a name");
         }
-        if (attrs.getLength() != 1) {
-            throw new SAXException("Illegal attributes for macrodef");
-        }
-        macrodefName = toCamelCase(macrodefName);
+    }
+
+    public String getMacrodefName() {
+        return macrodefName;
     }
 
     public String toString(PropertyManager propertyManager, ImportManager importManager) {
         String taskContainerShorten = importManager.shorten(getDSL_TASK_CONTAINER());
-        return indent + "fun DSLTaskContainer." + macrodefName + renderAttributes(true, propertyManager) + " {\n"
+        return indent + "fun " + taskContainerShorten + "." + toCamelCase(macrodefName) + renderAttributes(true, propertyManager) + " {\n"
                 + renderChildren(propertyManager, importManager) + "\n"
                 + indent + "}";
     }
