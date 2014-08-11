@@ -1,5 +1,6 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.ImportManager;
 import org.xml.sax.SAXException;
 
 public class Condition extends Wrapper {
@@ -25,26 +26,26 @@ public class Condition extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager) {
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
         String result;
         switch (name) {
             case "not":
-                return "!" + children.get(0).toString(propertyManager);
+                return "!" + children.get(0).toString(propertyManager, importManager);
             case "and":
-                result = children.get(0).toString(propertyManager) + " && " + children.get(1).toString(propertyManager);
-                if (parent != null && parent.name.equals("not")) {
+                result = children.get(0).toString(propertyManager, importManager) + " && " + children.get(1).toString(propertyManager, importManager);
+                if (parent != null && "not".equals(parent.name)) {
                     result = "(" + result + ")";
                 }
                 return result;
             case "or":
-                result = children.get(0).toString(propertyManager) + " || " + children.get(1).toString(propertyManager);
-                if (parent != null && (parent.name.equals("not") || parent.name.equals("and"))) {
+                result = children.get(0).toString(propertyManager, importManager) + " || " + children.get(1).toString(propertyManager, importManager);
+                if (parent != null && ("not".equals(parent.name) || "and".equals(parent.name))) {
                     result = "(" + result + ")";
                 }
                 return result;
             case "xor":
-                result = children.get(0).toString(propertyManager) + " ^ " + children.get(1).toString(propertyManager);
-                if (parent != null && (parent.name.equals("not") || parent.name.equals("and"))) {
+                result = children.get(0).toString(propertyManager, importManager) + " ^ " + children.get(1).toString(propertyManager, importManager);
+                if (parent != null && ("not".equals(parent.name) || "and".equals(parent.name))) {
                     result = "(" + result + ")";
                 }
                 return result;
@@ -53,7 +54,7 @@ public class Condition extends Wrapper {
             case "isfalse":
                 return "!" + attributes.get(0).getDefaultValue(propertyManager);
             default:
-                return super.toString(propertyManager);
+                return super.toString(propertyManager, importManager);
         }
     }
 }

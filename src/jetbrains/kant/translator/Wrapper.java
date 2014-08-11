@@ -1,5 +1,6 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.ImportManager;
 import jetbrains.kant.generator.DSLFunction;
 import static jetbrains.kant.generator.GeneratorPackage.*;
 import static jetbrains.kant.KantPackage.toCamelCase;
@@ -18,10 +19,15 @@ public class Wrapper {
     protected List<Wrapper> children = new ArrayList<>();
     protected List<Attribute> attributes;
     protected Wrapper parent;
-    public Wrapper(String name, Attributes attributes, DSLFunction constructor) {
-        this.name = name;
-        this.attributes = new ArrayList<>();
+
+    private Wrapper(String name, DSLFunction constructor, Attributes attributes) {
         this.constructor = constructor;
+        if (constructor != null) {
+            this.name = constructor.getName();
+        } else {
+            this.name = name;
+        }
+        this.attributes = new ArrayList<>();
         if (attributes != null) {
             for (int i = 0; i < attributes.getLength(); i++) {
                 String attrName = attributes.getQName(i);
@@ -33,6 +39,14 @@ public class Wrapper {
                 }
             }
         }
+    }
+
+    public Wrapper(String name, Attributes attributes) {
+        this(name, null, attributes);
+    }
+
+    public Wrapper(DSLFunction constructor, Attributes attributes) {
+        this(null, constructor, attributes);
     }
 
     public Wrapper(Wrapper wrapper) {
@@ -87,10 +101,22 @@ public class Wrapper {
         return constructor;
     }
 
+    public String getConstructorQName() {
+        if (constructor != null) {
+            return constructor.getPkg() + "." + constructor.getName();
+        } else if (name.equals("project")) {
+            return getDSL_PROJECT_FUNCTION();
+        } else if (name.equals("target")) {
+            return getDSL_TARGET_FUNCTION();
+        } else {
+            return null;
+        }
+    }
+
     public String getDSLClassName() {
-        if (name.equals("project")) {
+        if (getDSL_PROJECT_FUNCTION().equals(name)) {
             return getDSL_PROJECT();
-        } else  if (name.equals("target")) {
+        } else  if (getDSL_TARGET_FUNCTION().equals(name)) {
             return getDSL_TARGET();
         } else if (constructor == null) {
             return getDSL_TASK_CONTAINER();
@@ -111,12 +137,12 @@ public class Wrapper {
         return result.toString();
     }
 
-    protected String renderChildren(PropertyManager propertyManager) {
+    protected String renderChildren(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder();
         if (!children.isEmpty()) {
-            result.append(children.get(0).toString(propertyManager));
+            result.append(children.get(0).toString(propertyManager, importManager));
             for (Wrapper child : children.subList(1, children.size())) {
-                result.append("\n").append(child.toString(propertyManager));
+                result.append("\n").append(child.toString(propertyManager, importManager));
             }
         }
         return result.toString();
@@ -124,14 +150,15 @@ public class Wrapper {
 
     @Override
     public String toString() {
-        return toString(null);
+        return toString(null, null);
     }
 
-    public String toString(PropertyManager propertyManager) {
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder(indent);
         if (id != null) {
             result.append("val ").append(toCamelCase(id)).append(" = ");
         }
+        importManager.addImport(getConstructorQName());
         result.append(toCamelCase(name));
         if (!attributes.isEmpty()) {
             result.append(renderAttributes(false, propertyManager));
@@ -140,7 +167,7 @@ public class Wrapper {
         }
         if (!children.isEmpty()) {
             result.append(" {\n");
-            result.append(renderChildren(propertyManager));
+            result.append(renderChildren(propertyManager, importManager));
             result.append("\n").append(indent).append("}");
         }
         return result.toString();

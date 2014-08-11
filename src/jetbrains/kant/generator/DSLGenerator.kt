@@ -93,14 +93,15 @@ public val DSL_TASK_CONTAINER_TASK: String = "$DSL_PACKAGE.DSLTaskContainerTask"
 public val DSL_PROJECT: String = "$DSL_PACKAGE.DSLProject"
 public val DSL_TARGET: String = "$DSL_PACKAGE.DSLTarget"
 public val DSL_TASK: String = "$DSL_PACKAGE.DSLTask"
-public val DSL_PROPERTY: String = "$DSL_PACKAGE.taskdefs.DSLProperty"
 public val DSL_REFERENCE: String = "$DSL_PACKAGE.DSLReference"
 public val DSL_PATH: String = "$DSL_PACKAGE.types.DSLPath"
 public val DSL_TEXT_CONTAINER: String = "$DSL_PACKAGE.DSLTextContainer"
 public val DSL_CONDITION: String = "$DSL_PACKAGE.DSLCondition"
-public val DSL_CONDITION_TASK: String = "$DSL_PACKAGE.taskdefs.DSLCondition"
-public val DSL_IF_STATEMENT: String = "$DSL_PACKAGE.other.net.sf.antcontrib.logic.DSLIfTask"
-public val DSL_MACRODEF: String = "$DSL_PACKAGE.taskdefs.DSLMacroDef"
+
+public val DSL_PROJECT_FUNCTION: String = "$DSL_PACKAGE.project"
+public val DSL_TARGET_FUNCTION: String = "$DSL_PACKAGE.target"
+
+public val DSL_PROPERTIES_PACKAGE: String = DSL_PACKAGE
 
 class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles: Array<String>,
                    val seekForAliasFiles: Boolean = false, val defAl: Boolean = false) {
@@ -348,7 +349,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         val elementClass = resolved[explodeTypeName(element.typeName)[0]]!!.antClass!!
         elementClass.renderConstructor(out, parentName, element.name, true)
         elementClass.renderConstructor(out, parentName, element.name, false)
-        addConstructor(parentName, element.name, elementClass)
+        addConstructor(parentName, element.name, out.pkg, elementClass)
     }
 
     private fun AntClass.renderConstructorParameters(out: KotlinSourceFile) {
@@ -444,9 +445,9 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         return Character.toLowerCase(shortName.charAt(0)) + shortName.substring(1)
     }
 
-    private fun addConstructor(parent: String, function: String, antClass: AntClass) {
+    private fun addConstructor(parent: String, function: String, pkg: String?, antClass: AntClass) {
         val dslClass = structure[parent]!!
-        dslClass.addFunction(function,
+        dslClass.addFunction(function, pkg,
                 antClass.attributes.map { dslAttribute(it, antClass.className) },
                 resultClassName(antClass.className))
     }
@@ -515,8 +516,8 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
 class DSLClass(val name: String, val traits: List<String>): Serializable {
     private val functions = HashMap<String, DSLFunction>()
 
-    fun addFunction(name: String, attributes: List<Attribute>, receiver: String) {
-        functions.put(name.toLowerCase(), DSLFunction(toCamelCase(name), attributes.valuesToMap {it.name.toLowerCase()}, receiver))
+    fun addFunction(name: String, pkg: String?, attributes: List<Attribute>, receiver: String) {
+        functions.put(name.toLowerCase(), DSLFunction(toCamelCase(name), pkg, attributes.valuesToMap {it.name.toLowerCase()}, receiver))
     }
 
     fun containsFunction(name: String): Boolean {
@@ -528,7 +529,7 @@ class DSLClass(val name: String, val traits: List<String>): Serializable {
     }
 }
 
-class DSLFunction(val name: String, val attributes: Map<String, Attribute>, val initReceiver: String): Serializable {
+class DSLFunction(val name: String, val pkg: String?, val attributes: Map<String, Attribute>, val initReceiver: String): Serializable {
     public fun getAttribute(attributeName: String): Attribute? {
         return attributes[attributeName.toLowerCase()]
     }

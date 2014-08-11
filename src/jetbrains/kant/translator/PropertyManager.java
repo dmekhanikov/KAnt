@@ -1,5 +1,6 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.ImportManager;
 import java.util.HashMap;
 
 public class PropertyManager {
@@ -8,9 +9,13 @@ public class PropertyManager {
 
     @Override
     public String toString() {
+        return toString(null);
+    }
+
+    public String toString(ImportManager importManager) {
         StringBuilder result = new StringBuilder();
         for (Property property : pool.values()) {
-            result.append(property.getDeclaration(null)).append("\n");
+            result.append(property.getDeclaration(null, importManager)).append("\n");
         }
         return result.toString();
     }
@@ -33,7 +38,7 @@ public class PropertyManager {
 
     public void readAccess(String name) {
         if (!pool.containsKey(name)) {
-            Property property = new Property(name, null, null);
+            Property property = new Property(name, null);
             pool.put(name, property);
         }
     }

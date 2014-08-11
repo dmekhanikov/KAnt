@@ -1,14 +1,15 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.ImportManager;
 import org.xml.sax.SAXException;
 
 public class Sequential extends Wrapper {
     public Sequential() {
-        super("sequential", null, null);
+        super((String) null, null);
     }
 
     public Sequential(String name) {
-        super(name, null, null);
+        super(name, null);
     }
 
     public Sequential(Wrapper wrapper) {
@@ -32,7 +33,7 @@ public class Sequential extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager) {
-        return renderChildren(propertyManager);
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
+        return renderChildren(propertyManager, importManager);
     }
 }

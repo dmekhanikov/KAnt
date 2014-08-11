@@ -31,6 +31,30 @@ class ImportManager(val pkg: String?) {
         return packageName != "java.lang" && packageName != "kotlin" && packageName != pkg
     }
 
+    public fun addImport(name: String?, packageName: String?) {
+        if (name == null || packageName == null) {
+            return
+        }
+        var imported = imports[packageName]
+        if (imported == null) {
+            imported = HashSet()
+            imports[packageName] = imported!!
+        }
+        imported!!.add(name)
+        if (mustBePrinted(packageName)) {
+            empty = false
+        }
+    }
+
+    public fun addImport(name: String?) {
+        if (name == null) {
+            return
+        }
+        val shortName = cutName(name)
+        val packageName = cutPackageName(name)
+        addImport(shortName, packageName)
+    }
+
     public fun shorten(name: String): String {
         val names = explodeTypeName(name)
         val result = StringBuilder()
@@ -43,17 +67,7 @@ class ImportManager(val pkg: String?) {
             } else {
                 noGenericName
             }
-            if (packageName != null) {
-                var imported = imports[packageName]
-                if (imported == null) {
-                    imported = HashSet()
-                    imports[packageName] = imported!!
-                }
-                imported!!.add(cutName!!)
-                if (mustBePrinted(packageName)) {
-                    empty = false
-                }
-            }
+            addImport(cutName, packageName)
             if (result.length() != 0) {
                 result.append('<')
             }

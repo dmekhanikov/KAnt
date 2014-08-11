@@ -1,6 +1,8 @@
 package jetbrains.kant.translator;
 
 import static jetbrains.kant.KantPackage.toCamelCase;
+import static jetbrains.kant.generator.GeneratorPackage.getDSL_TASK_CONTAINER;
+import jetbrains.kant.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -8,7 +10,7 @@ public class Macrodef extends Wrapper {
     private String macrodefName;
 
     public Macrodef(Attributes attrs) throws SAXException {
-        super("macrodef", null, null);
+        super((String) null, null);
         macrodefName = attrs.getValue("name");
         if (macrodefName == null) {
             throw new SAXException("Macrodef should have a name");
@@ -19,9 +21,10 @@ public class Macrodef extends Wrapper {
         macrodefName = toCamelCase(macrodefName);
     }
 
-    public String toString(PropertyManager propertyManager) {
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
+        String taskContainerShorten = importManager.shorten(getDSL_TASK_CONTAINER());
         return indent + "fun DSLTaskContainer." + macrodefName + renderAttributes(true, propertyManager) + " {\n"
-                + renderChildren(propertyManager) + "\n"
+                + renderChildren(propertyManager, importManager) + "\n"
                 + indent + "}";
     }
 }

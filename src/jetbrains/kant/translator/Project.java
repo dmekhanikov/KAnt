@@ -1,6 +1,8 @@
 package jetbrains.kant.translator;
 
 import static jetbrains.kant.KantPackage.toCamelCase;
+import static jetbrains.kant.generator.GeneratorPackage.getDSL_PROJECT_FUNCTION;
+import jetbrains.kant.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import java.util.ArrayList;
@@ -13,7 +15,7 @@ public class Project extends Wrapper {
     private String defaultTarget;
 
     public Project(Attributes attributes) {
-        super("project", null, null);
+        super(getDSL_PROJECT_FUNCTION(), null);
         defaultTarget = attributes.getValue("default");
     }
 
@@ -31,15 +33,16 @@ public class Project extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager) {
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder(indent);
         result.append("project(args) {\n");
+        importManager.addImport(getDSL_PROJECT_FUNCTION());
         if (!children.isEmpty()) {
-            result.append(renderChildren(propertyManager)).append("\n");
+            result.append(renderChildren(propertyManager, importManager)).append("\n");
         }
         List<Target> sortedTargets = sortTargets();
         for (Target target : sortedTargets) {
-            result.append("\n").append(target.toString(propertyManager)).append("\n");
+            result.append("\n").append(target.toString(propertyManager, importManager)).append("\n");
             if (target.getTargetName().equals(defaultTarget)) {
                 result.append(indent).append(TAB).append("default = ");
                 result.append(toCamelCase(defaultTarget)).append("\n");

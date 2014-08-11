@@ -2,7 +2,6 @@ package jetbrains.kant.translator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import static jetbrains.kant.KantPackage.toCamelCase;
 import static jetbrains.kant.generator.GeneratorPackage.*;
 
@@ -112,7 +111,7 @@ public class StringProcessor {
                     return String.valueOf(Double.parseDouble(value));
             }
         } catch (NumberFormatException ignore) {}
-        String pattern = "[$@]\\{([^\\{]+)\\}"; //wrong
+        String pattern = "[$@]\\{([^\\{]+)\\}";
         Matcher matcher = Pattern.compile(pattern).matcher(value);
         if (matcher.matches()) {
             String propName = matcher.group(1);
@@ -128,8 +127,6 @@ public class StringProcessor {
                 return propCCName + ".to" + type + "()";
             }
         }
-
-
         StringBuilder result = new StringBuilder("\"");
         result.append(processProperties(escapeTemplates(value), propertyManager));
         result.append("\"");

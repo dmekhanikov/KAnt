@@ -1,5 +1,6 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.ImportManager;
 import jetbrains.kant.generator.DSLClass;
 import static jetbrains.kant.generator.GeneratorPackage.*;
 import static jetbrains.kant.KantPackage.createClassLoader;
@@ -85,12 +86,14 @@ public class Translator {
         List<Wrapper> stack;
         StringBuilder macrodefs;
         PropertyManager propertyManager;
+        ImportManager importManager;
 
         @Override
         public void startDocument() throws SAXException {
             stack = new ArrayList<>();
             macrodefs = new StringBuilder();
             propertyManager = new PropertyManager();
+            importManager = new ImportManager(null);
             result = new StringBuilder();
             result.append("fun main(args: Array<String>) {\n");
         }
@@ -98,7 +101,8 @@ public class Translator {
         @Override
         public void endDocument() throws SAXException {
             result.append("}\n");
-            result.insert(0, "import jetbrains.kant.dsl.*\n\n" + propertyManager + "\n" + macrodefs);
+            String propertiesDeclaration = propertyManager.toString(importManager);
+            result.insert(0, importManager + "\n" + propertiesDeclaration + "\n" + macrodefs);
         }
 
         private DSLFunction findConstructor(String parentClassName, String name) {
@@ -135,8 +139,8 @@ public class Translator {
             stack.add(child);
         }
 
-        private void pushDummy(String name) {
-            stack.add(new Wrapper(name, null, null));
+        private void pushDummy() {
+            stack.add(new Wrapper((String) null, null));
         }
 
         @Override
@@ -158,13 +162,14 @@ public class Translator {
                     break;
                 }
                 case "property": {
-                    Property property = new Property(attrs, findConstructor(parent, qName));
+                    DSLFunction constructor = findConstructor(parent, qName);
+                    Property property = new Property(attrs, constructor);
                     propertyManager.writeAccess(property);
                     String propName = attrs.getValue("name");
                     if (propName == null || !propertyManager.isDeclaring()) {
                         processChild(property, parent);
                     } else {
-                        pushDummy(qName);
+                        pushDummy();
                     }
                     break;
                 }
@@ -194,17 +199,19 @@ public class Translator {
                 case "attribute": {
                     if (parent != null && parent instanceof Macrodef) {
                         parent.addAttribute(attrs.getValue("name"), attrs.getValue("default"));
-                        pushDummy(qName);
+                        pushDummy();
                         break;
                     }
                 }
                 default: {
                     propertyManager.finishDeclaring();
                     DSLFunction constructor = findConstructor(parent, qName);
+                    Wrapper wrapper;
                     if (constructor != null) {
-                        qName = constructor.getName();
+                        wrapper = new Wrapper(constructor, attrs);
+                    } else {
+                        wrapper = new Wrapper(qName, attrs);
                     }
-                    Wrapper wrapper = new Wrapper(qName, attrs, constructor);
                     processChild(wrapper, parent);
                 }
             }
@@ -225,9 +232,9 @@ public class Translator {
         public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
             Wrapper wrapper = stack.get(stack.size() - 1);
             if (wrapper instanceof Macrodef) {
-                macrodefs.append(wrapper.toString(propertyManager)).append("\n\n");
+                macrodefs.append(wrapper.toString(propertyManager, importManager)).append("\n\n");
             } else if (stack.size() == 1) {
-                result.append(stack.get(0).toString(propertyManager));
+                result.append(stack.get(0).toString(propertyManager, importManager));
                 result.append("\n");
             }
             stack.remove(stack.size() - 1);

@@ -1,10 +1,12 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.ImportManager;
+
 public class Text extends Wrapper {
     private String text;
 
     public Text() {
-        super("text", null, null);
+        super((String) null, null);
     }
 
     public void setText(String text) {
@@ -12,7 +14,7 @@ public class Text extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager) {
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
         return indent + "text {\n" +
                 indent + TAB + "\"\"\"\n" +
                 StringProcessor.processProperties(StringProcessor.escapeTemplates(text), propertyManager) + "\n" +

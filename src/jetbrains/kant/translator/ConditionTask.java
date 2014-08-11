@@ -1,5 +1,6 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -10,7 +11,7 @@ public class ConditionTask extends Wrapper{
     private Condition condition;
 
     public ConditionTask(Attributes attributes) {
-        super("condition", attributes, null);
+        super((String) null, attributes);
         propName = attributes.getValue("property");
         value = attributes.getValue("value");
         if (value == null) {
@@ -29,7 +30,7 @@ public class ConditionTask extends Wrapper{
     }
 
     @Override
-    public String toString(PropertyManager propertyManager) {
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
         IfStatement ifStatement = new IfStatement();
         ifStatement.setIndent(indent);
         try {
@@ -47,6 +48,6 @@ public class ConditionTask extends Wrapper{
                 propertyManager.writeAccess(elseProperty);
             }
         } catch (SAXException ignore) {}
-        return ifStatement.toString();
+        return ifStatement.toString(propertyManager, importManager);
     }
 }

@@ -1,6 +1,8 @@
 package jetbrains.kant.translator;
 
 import static jetbrains.kant.KantPackage.toCamelCase;
+import static jetbrains.kant.generator.GeneratorPackage.getDSL_TARGET_FUNCTION;
+import jetbrains.kant.ImportManager;
 import org.xml.sax.Attributes;
 
 public class Target extends Wrapper {
@@ -9,7 +11,7 @@ public class Target extends Wrapper {
     private String[] depends;
 
     public Target(Attributes attributes) {
-        super("target", null, null);
+        super(getDSL_TARGET_FUNCTION(), null);
         targetName = attributes.getValue("name");
         String dependsString = attributes.getValue("depends");
         if (dependsString != null) {
@@ -29,10 +31,11 @@ public class Target extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager) {
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder();
         result.append(indent).append("val ").append(toCamelCase(targetName));
         result.append(" = target(\"").append(targetName).append("\"");
+        importManager.addImport(getDSL_TARGET_FUNCTION());
         if (depends != null) {
             for (String depend : depends) {
                 result.append(", ").append(toCamelCase(depend));
@@ -41,7 +44,7 @@ public class Target extends Wrapper {
         result.append(")");
         if (!children.isEmpty()) {
             result.append(" {\n");
-            result.append(renderChildren(propertyManager));
+            result.append(renderChildren(propertyManager, importManager));
             result.append("\n").append(indent).append("}");
         } else {
             result.append(" {}");

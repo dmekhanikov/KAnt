@@ -1,7 +1,9 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.ImportManager;
 import jetbrains.kant.generator.DSLFunction;
 import static jetbrains.kant.KantPackage.toCamelCase;
+import static jetbrains.kant.generator.GeneratorPackage.getDSL_PROPERTIES_PACKAGE;
 import org.xml.sax.Attributes;
 
 public class Property extends Wrapper {
@@ -12,14 +14,21 @@ public class Property extends Wrapper {
     private boolean isMutable;
 
     public Property(Attributes attributes, DSLFunction constructor) {
-        super("property", attributes, constructor);
+        super(constructor, attributes);
         propName = attributes.getValue("name");
         propVal = attributes.getValue("value");
         setPropType();
     }
 
+    public Property(String propName, String propVal) {
+        super((String) null, null);
+        this.propName = propName;
+        this.propVal = propVal;
+        setPropType();
+    }
+
     public Property(String propName, String propVal, DSLFunction constructor) {
-        super("property", null, constructor);
+        super(constructor, null);
         this.propName = propName;
         this.propVal = propVal;
         setPropType();
@@ -50,15 +59,15 @@ public class Property extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager) {
+    public String toString(PropertyManager propertyManager, ImportManager importManager) {
         if (propName != null && propVal != null && attributes.size() <= 2) {
             return indent + toCamelCase(propName) + " = " + StringProcessor.prepareValue(propVal, propertyManager, propType);
         } else {
-            return super.toString(propertyManager);
+            return super.toString(propertyManager, importManager);
         }
     }
 
-    public String getDeclaration(PropertyManager propertyManager) {
+    public String getDeclaration(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder();
         if (isMutable) {
             result.append("var");
@@ -66,7 +75,8 @@ public class Property extends Wrapper {
             result.append("val");
         }
         String ccName = toCamelCase(propName);
-        result.append(" ").append(ccName).append(" by ").append(propType).append("Property");
+        String propDelegateType = importManager.shorten(getDSL_PROPERTIES_PACKAGE() + "." + propType + "Property");
+        result.append(" ").append(ccName).append(" by ").append(propDelegateType);
         if (!propName.equals(ccName)) {
             result.append("(\"").append(propName).append("\")");
         } else {
