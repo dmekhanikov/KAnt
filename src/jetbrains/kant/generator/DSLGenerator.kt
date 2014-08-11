@@ -399,7 +399,6 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
                 val dslAttr = dslAttribute(attr, className)
                 out.append("    if (${escapeKeywords(dslAttr.name)} != null) { dslObject.${escapeKeywords(dslAttr.name)} = ${escapeKeywords(dslAttr.name)} }\n")
             }
-
             if (!isTaskContainer) {
                 out.append("    dslObject.init()\n")
             }

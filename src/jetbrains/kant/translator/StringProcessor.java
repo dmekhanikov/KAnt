@@ -10,8 +10,36 @@ public class StringProcessor {
         if (value != null && (value.equals("true") || value.equals("false")
                 || value.equals("yes") || value.equals("no"))) {
             return "Boolean";
+        } else if (isInt(value)) {
+            return "Int";
+        } else if (isDouble(value)) {
+            return "Double";
         } else {
             return "String";
+        }
+    }
+
+    public static boolean isDouble(String string) { //Isn't the best solution but I don't know any better
+        if (string == null || string.contains(" ")) {
+            return false;
+        }
+        try {
+            Double.parseDouble(string);
+            return true;
+        } catch(NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public static boolean isInt(String string) {
+        if (string == null || string.contains(" ")) {
+            return false;
+        }
+        try {
+            Integer.parseInt(string);
+            return true;
+        } catch(NumberFormatException e) {
+            return false;
         }
     }
 
@@ -83,6 +111,14 @@ public class StringProcessor {
         return result.toString();
     }
 
+    private static void escape(StringBuilder sb, char c) {
+        String pattern = String.valueOf(c);
+        for (int i = sb.indexOf(pattern); i != -1; i = sb.indexOf(pattern, i)) {
+            sb.replace(i, i + 1, "\\" + pattern);
+            i += 2;
+        }
+    }
+
     public static String prepareValue(String value, PropertyManager propertyManager, String type) {
         if (value == null) {
             return null;
@@ -147,13 +183,12 @@ public class StringProcessor {
                 }
             }
         }
-        StringBuilder result = new StringBuilder("\"");
+        StringBuilder result = new StringBuilder();
         result.append(processProperties(escapeTemplates(value), propertyManager));
+        escape(result, '\\');
+        escape(result, '\"');
+        result.insert(0, "\"");
         result.append("\"");
-        for (int i = result.indexOf("\\"); i != -1; i = result.indexOf("\\", i)) {
-            result.replace(i, i + 1, "\\\\");
-            i += 2;
-        }
         return result.toString();
     }
 }
