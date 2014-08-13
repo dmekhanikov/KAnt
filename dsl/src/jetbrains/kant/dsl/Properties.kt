@@ -7,19 +7,10 @@ import java.io.File
 
 var propertyHelper: PropertyHelper? = null
 
-fun initProperties(project: Project, args: Array<String>) {
-    propertyHelper = PropertyHelper.getPropertyHelper(project)
+fun initProperties(projectAO: Project) {
+    propertyHelper = PropertyHelper.getPropertyHelper(projectAO)
     val basedir = File(".").getAbsoluteFile()!!.getParent()
     propertyHelper!!.setUserProperty("basedir", basedir)
-    for (arg in args) {
-        val pattern = Pattern.compile("-D(\\w+)=(.*)")!!
-        val matcher = pattern.matcher(arg)!!
-        if (matcher.matches()) {
-            val propName = matcher.group(1)!!
-            val propVal = matcher.group(2)!!
-            propertyHelper!!.setUserProperty(propName, propVal)
-        }
-    }
 }
 
 open class Property<T>(val name: String? = null, val convert: (value: String) -> T, val defaultValue: () -> T) {

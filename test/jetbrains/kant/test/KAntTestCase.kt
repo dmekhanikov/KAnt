@@ -41,4 +41,22 @@ abstract class KAntTestCase : TestCase() {
         }
         assert(line != null, "File is empty.")
     }
+
+    class Property(val name: String, val value: String)
+
+    protected fun setProperties(properties: Array<Property>?) {
+        if (properties != null) {
+            for (property in properties) {
+                System.setProperty(property.name, property.value)
+            }
+        }
+    }
+
+    protected fun clearProperties(properties: Array<Property>?) {
+        if (properties != null) {
+            for (property in properties) {
+                System.clearProperty(property.name)
+            }
+        }
+    }
 }

@@ -6,6 +6,7 @@ import jetbrains.kant.*
 import java.lang.reflect.Method
 import java.io.File
 import java.io.File.pathSeparator
+import jetbrains.kant.test.KAntTestCase.Property
 
 var dslGeneratorTestInitComplete = false
 
@@ -38,19 +39,21 @@ class DSLGeneratorTest : KAntTestCase() {
         return packageClass.getMethod("main", javaClass<Array<String>?>())
     }
 
-    private fun runDSLGeneratorTest(packageName: String, args: Array<String>?,
+    private fun runDSLGeneratorTest(packageName: String, properties: Array<Property>?,
                                     init: () -> Boolean, check: () -> Boolean) {
         val mainMethod = getMainMethod(packageName)
+        setProperties(properties)
         assert(init())
-        mainMethod.invoke(null, args)
+        mainMethod.invoke(null, null)
         assert(check())
+        clearProperties(properties)
     }
 
     public fun testMkdir() {
         val dir = File(WORKING_DIR + "temp/")
         runDSLGeneratorTest(
                 "mkdir",
-                array("-Ddir=" + dir.toString()),
+                array(Property("dir", dir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { dir.exists() }
         )
@@ -64,7 +67,9 @@ class DSLGeneratorTest : KAntTestCase() {
         val resFile = File(resDir.toString() + "/toZip.txt")
         runDSLGeneratorTest(
                 "zipUnzip",
-                array("-DsourceDir=" + toTarDir.toString(), "-DzipFile=" + destFile.toString(), "-DoutDir=" + resDir.toString()),
+                array(Property("sourceDir", toTarDir.toString()),
+                      Property("zipFile", destFile.toString()),
+                      Property("outDir", resDir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(toTarFile, resFile); true }
         )
@@ -77,7 +82,8 @@ class DSLGeneratorTest : KAntTestCase() {
         val resFile = File(destDir.toString() + "/toCopy.txt")
         runDSLGeneratorTest(
                 "copy",
-                array("-DsrcDir=" + srcDir.toString(), "-DdestDir=" + destDir.toString()),
+                array(Property("srcDir", srcDir.toString()),
+                      Property("destDir", destDir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(srcFile, resFile); true }
         )
@@ -91,13 +97,13 @@ class DSLGeneratorTest : KAntTestCase() {
         val userExpFile = File(propertiesResDir.toString() + "/user.txt")
         runDSLGeneratorTest(
                 "properties",
-                array("-DpropertiesFile=" + propertiesFile,
-                        "-DsystemPropertiesOutFile=" + systemPropertiesOutFile.toString(),
-                        "-DuserPropertiesOutFile=" + userPropertiesOutFile.toString(),
-                        "-DstringProperty=passed value",
-                        "-DintProperty=42",
-                        "-DbooleanProperty=true",
-                        "-DdoubleProperty=21568.3"),
+                array(Property("propertiesFile", propertiesFile.toString()),
+                      Property("systemPropertiesOutFile", systemPropertiesOutFile.toString()),
+                      Property("userPropertiesOutFile", userPropertiesOutFile.toString()),
+                      Property("stringProperty", "passed value"),
+                      Property("intProperty", "42"),
+                      Property("booleanProperty", "true"),
+                      Property("doubleProperty", "21568.3")),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 {
                     assertNotEmpty(systemPropertiesOutFile)
@@ -118,10 +124,10 @@ class DSLGeneratorTest : KAntTestCase() {
         val dest2File = File(destDir.toString() + "/test2.txt")
         runDSLGeneratorTest(
                 "dependencies",
-                array("-Dsrc1Dir=" + src1Dir.toString(),
-                        "-Dsrc2Dir=" + src2Dir.toString(),
-                        "-DsrcDir=" + srcDir.toString(),
-                        "-DdestDir=" + destDir.toString()),
+                array(Property("src1Dir", src1Dir.toString()),
+                      Property("src2Dir", src2Dir.toString()),
+                      Property("srcDir", srcDir.toString()),
+                      Property("destDir", destDir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 {
                     assertFilesMatch(src1File, dest1File)
@@ -136,8 +142,8 @@ class DSLGeneratorTest : KAntTestCase() {
         val expFile = File(DSL_GENERATOR_TEST_RES + "math/out.txt")
         runDSLGeneratorTest(
                 "math",
-                array("-DdestFile=" + destFile.toString(),
-                        "-DantContribJarFile=$ANT_CONTRIB_JAR_FILE"),
+                array(Property("destFile", destFile.toString()),
+                      Property("antContribJarFile", ANT_CONTRIB_JAR_FILE)),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, destFile); true }
         )
@@ -148,9 +154,9 @@ class DSLGeneratorTest : KAntTestCase() {
         val expFile = File(DSL_GENERATOR_TEST_RES + "switch/out.txt")
         runDSLGeneratorTest(
                 "switch",
-                array("-DdestFile=" + destFile.toString(),
-                        "-Dvalue=bar",
-                        "-DantContribJarFile=$ANT_CONTRIB_JAR_FILE"),
+                array(Property("destFile", destFile.toString()),
+                      Property("value", "bar"),
+                      Property("antContribJarFile", ANT_CONTRIB_JAR_FILE)),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, destFile); true }
         )
@@ -161,7 +167,7 @@ class DSLGeneratorTest : KAntTestCase() {
         val expFile = File(DSL_GENERATOR_TEST_RES + "replace/out.txt")
         runDSLGeneratorTest(
                 "replace",
-                array("-Dfile=" + file.toString()),
+                array(Property("file", file.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, file); true }
         )
@@ -174,8 +180,8 @@ class DSLGeneratorTest : KAntTestCase() {
         val actFile = File(destDir.toString() + "/toCopy.txt")
         runDSLGeneratorTest(
                 "cutdirsmapper",
-                array("-DsrcDir=" + srcDir.toString(),
-                        "-DdestDir=" + destDir.toString()),
+                array(Property("srcDir", srcDir.toString()),
+                      Property("destDir", destDir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, actFile); true }
         )
@@ -186,10 +192,12 @@ class DSLGeneratorTest : KAntTestCase() {
         val actFile = File(WORKING_DIR + "/toCopy.txt")
         runDSLGeneratorTest(
                 "conditions",
-                array("-Dfile=" + actFile,
-                        "-DbooleanProperty=true",
-                        "-Dstring=Hello, World!", "-Dpattern=.*World!",
-                        "-Darg1=15", "-Darg2=fifteen"),
+                array(Property("file", actFile.toString()),
+                      Property("booleanProperty", "true"),
+                      Property("string", "Hello, World!"),
+                      Property("pattern", ".*World!"),
+                      Property("arg1", "15"),
+                      Property("arg2", "fifteen")),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, actFile); true }
         )

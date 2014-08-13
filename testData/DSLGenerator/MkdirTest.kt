@@ -6,7 +6,7 @@ import jetbrains.kant.dsl.taskdefs.*
 val dir by StringProperty()
 
 fun main(args: Array<String>) {
-    object : DSLProject(args) {
+    object : DSLProject() {
         {
             default = ::mkdirTest
         }

@@ -8,7 +8,7 @@ val zipFile by StringProperty()
 val outDir by StringProperty()
 
 fun main(args: Array<String>) {
-    object : DSLProject(args) {
+    object : DSLProject() {
         {
             default = ::zipUnzip
         }

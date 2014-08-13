@@ -6,7 +6,7 @@ import jetbrains.kant.dsl.taskdefs.*
 val file by StringProperty()
 
 fun main(args: Array<String>) {
-    object : DSLProject(args) {
+    object : DSLProject() {
         {
             echo(message = "cat", file = file)
             replace(file = file) {

@@ -18,7 +18,7 @@ val intFileProperty by IntProperty("int.file.property")
 val doubleFileProperty by DoubleProperty("double.file.property")
 
 fun main(args: Array<String>) {
-    object : DSLProject(args) {
+    object : DSLProject() {
         {
             property(file = propertiesFile)
             default = ::propertiesTest

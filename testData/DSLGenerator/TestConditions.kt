@@ -12,7 +12,7 @@ val arg2 by StringProperty()
 val file by StringProperty()
 
 fun main(args: Array<String>) {
-    object : DSLProject(args) {
+    object : DSLProject() {
         {
             val message = StringBuilder()
             message.append(istrue(booleanProperty))!!.append("\n")

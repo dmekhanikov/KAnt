@@ -115,11 +115,11 @@ abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
     }
 }
 
-open class DSLProject(args: Array<String>) : DSLElement(Project(), Target()), DSLTaskContainer {
+open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
     var default: KMemberProperty<out DSLProject, DSLTarget>? = null
     val targets = HashMap<String, DSLTarget>();
     {
-        initProperties(projectAO, args)
+        initProperties(projectAO)
         targetAO.setProject(projectAO)
         targetAO.setName("")
         projectAO.init()

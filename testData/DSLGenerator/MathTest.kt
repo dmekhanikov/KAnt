@@ -9,7 +9,7 @@ val antContribJarFile by StringProperty()
 val fact by DoubleProperty()
 
 fun main(args: Array<String>) {
-    object : DSLProject(args) {
+    object : DSLProject() {
         {
             taskdef(resource = "net/sf/antcontrib/antcontrib.properties",
                     classpath = antContribJarFile)

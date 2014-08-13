@@ -9,7 +9,7 @@ val srcDir by StringProperty()
 val destDir by StringProperty()
 
 fun main(args: Array<String>) {
-    object : DSLProject(args) {
+    object : DSLProject() {
         {
             default = ::testCutDirsMapper
         }
