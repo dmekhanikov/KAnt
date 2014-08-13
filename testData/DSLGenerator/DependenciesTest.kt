@@ -10,23 +10,27 @@ val srcDir by StringProperty()
 val destDir by StringProperty()
 
 fun main(args: Array<String>) {
-    project(args) {
-        val copy1 = target(name = "copy1") {
+    object : DSLProject(args) {
+        {
+            default = ::testDepends
+        }
+
+        val copy1 = target {
             copy(todir = srcDir) {
                 fileset(dir = src1Dir)
             }
         }
 
-        val copy2 = target(name = "copy2") {
+        val copy2 = target {
             copy(todir = srcDir) {
                 fileset(dir = src2Dir)
             }
         }
 
-        default = target("Test depends", copy1, copy2) {
+        val testDepends = target("Test depends", ::copy1, ::copy2) {
             copy(todir = destDir) {
                 fileset(dir = srcDir)
             }
         }
-    }
+    }.perform()
 }

@@ -5,6 +5,12 @@ import kotlin.properties.Delegates
 import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
+import kotlin.reflect.KMemberProperty
+import kotlin.reflect.jvm.javaGetter
+import java.lang.reflect.Method
+import java.lang.reflect.Field
+
+val DSL_TARGET = "jetbrains.kant.dsl.DSLTarget"
 
 abstract class DSLElement(val projectAO: Project, val targetAO: Target)
 
@@ -109,15 +115,15 @@ abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
     }
 }
 
-class DSLProject(val args: Array<String>) : DSLElement(Project(), Target()), DSLTaskContainer {
-    var default: DSLTarget? = null
-    val targets = ArrayList<DSLTarget>();
+open class DSLProject(args: Array<String>) : DSLElement(Project(), Target()), DSLTaskContainer {
+    var default: KMemberProperty<out DSLProject, DSLTarget>? = null
+    val targets = HashMap<String, DSLTarget>();
     {
+        initProperties(projectAO, args)
         targetAO.setProject(projectAO)
         targetAO.setName("")
         projectAO.init()
         projectAO.addBuildListener(createLogger())
-        initProperties(projectAO, args)
     }
 
     private fun createLogger(): BuildLogger {
@@ -131,28 +137,89 @@ class DSLProject(val args: Array<String>) : DSLElement(Project(), Target()), DSL
         return logger
     }
 
-    fun perform() {
-        if (default != null) {
-            projectAO.setDefault(default!!.name)
-            val basedir = propertyHelper!!.getProperty("basedir") as String
-            projectAO.setBaseDir(File(basedir))
-            projectAO.executeTarget(projectAO.getDefaultTarget())
+    private fun <K, V>List<V>.valuesToMap(key: (V) -> K): Map<K, V> {
+        val result = HashMap<K, V>()
+        for (value in this) {
+            result[key(value)] = value
+        }
+        return result
+    }
+
+    private fun Class<*>.getTargetNames(): Map<String, String> {
+        val names = ArrayList<String>()
+        var klass = this as Class<Any?>?
+        while (klass != null) {
+            names.addAll(klass!!.getDeclaredFields()!!.
+                    filter { it.getType()!!.getName() == DSL_TARGET }.
+                    map { it.getName()!! })
+            klass = klass!!.getSuperclass()
+        }
+        return names.valuesToMap { it.toLowerCase() }
+    }
+
+    private fun configureTargets() {
+        val targetNames = javaClass.getTargetNames()
+        val targetGetters = javaClass.getMethods()!!
+                .filter { it.getName()!!.startsWith("get") && it.getReturnType()!!.getName() == DSL_TARGET }
+        for (targetGetter in targetGetters) {
+            val fieldName = targetNames[targetGetter.getName()!!.substring("get".length).toLowerCase()]
+            if (fieldName != null) {
+                val target = targetGetter.invoke(this) as DSLTarget
+                if (target.name == null) {
+                    target.name = fieldName
+                }
+                targets[fieldName] = target
+            }
+        }
+        for (target in targets.values()) {
+            target.configure()
+        }
+    }
+
+    public fun perform() {
+        configureTargets()
+        var error: Throwable? = null
+        try {
+            projectAO.fireBuildStarted()
+            if (default != null) {
+                val defaultName = (default!!.javaGetter!!.invoke(this) as DSLTarget).name
+                projectAO.setDefault(defaultName)
+                val basedir = propertyHelper!!.getProperty("basedir") as String
+                projectAO.setBaseDir(File(basedir))
+                projectAO.executeTarget(projectAO.getDefaultTarget())
+            }
+        } catch (t: Throwable) {
+            error = t
+        } finally {
+            try {
+                projectAO.fireBuildFinished(error);
+            } catch (t: Throwable) {
+                System.err.println("Caught an exception while logging the"
+                        + " end of the build.  Exception was:");
+                t.printStackTrace();
+                if (error != null) {
+                    System.err.println("There has been an error prior to"
+                            + " that:");
+                    error!!.printStackTrace();
+                }
+            }
         }
     }
 }
 
-class DSLTarget(projectAO: Project, val name: String,
-                val depends: Array<DSLTarget>,
-                val init: DSLTaskContainer.() -> Unit) : DSLElement(projectAO, Target()), DSLTaskContainer {
-    {
+class DSLTarget(val project: DSLProject, var name: String?,
+                val depends: Array<KMemberProperty<out DSLProject, DSLTarget>>,
+                val init: DSLTaskContainer.() -> Unit) : DSLElement(project.projectAO, Target()), DSLTaskContainer {
+    fun configure() {
         targetAO.setProject(projectAO)
         targetAO.setName(name)
         projectAO.addTarget(name, targetAO)
         val dependsString = StringBuilder()
-        for (depend in depends) {
+        for (dependRef in depends) {
             if (dependsString.length() > 0) {
                 dependsString.append(",")
             }
+            val depend = project.targets[dependRef.name]!!
             dependsString.append(depend.name)
         }
         targetAO.setDepends(dependsString.toString())
@@ -160,32 +227,14 @@ class DSLTarget(projectAO: Project, val name: String,
     }
 }
 
-public fun project(args: Array<String>, init: DSLProject.() -> Unit): DSLProject {
-    val dslProject = DSLProject(args)
-    var error: Throwable? = null
-    try {
-        dslProject.projectAO.fireBuildStarted()
-        dslProject.init()
-        dslProject.perform()
-    } catch (t: Throwable) {
-        error = t
-    } finally {
-        try {
-            dslProject.projectAO.fireBuildFinished(error);
-        } catch (t: Throwable) {
-            System.err.println("Caught an exception while logging the"
-                    + " end of the build.  Exception was:");
-            t.printStackTrace();
-            if (error != null) {
-                System.err.println("There has been an error prior to"
-                        + " that:");
-                error!!.printStackTrace();
-            }
-        }
-    }
-    return dslProject
+private fun DSLProject.target(depends: Array<KMemberProperty<out DSLProject, DSLTarget>>, name: String?, init: DSLTaskContainer.() -> Unit): DSLTarget {
+    return DSLTarget(this, name, depends, init)
 }
 
-public fun DSLProject.target(name: String, vararg depends: DSLTarget, init: DSLTaskContainer.() -> Unit): DSLTarget {
-    return DSLTarget(projectAO, name, depends, init)
+public fun DSLProject.target(name: String, vararg depends: KMemberProperty<out DSLProject, DSLTarget>, init: DSLTaskContainer.() -> Unit): DSLTarget {
+    return target(depends, name, init)
+}
+
+public fun DSLProject.target(vararg depends: KMemberProperty<out DSLProject, DSLTarget>, init: DSLTaskContainer.() -> Unit): DSLTarget {
+    return target(depends, null, init)
 }

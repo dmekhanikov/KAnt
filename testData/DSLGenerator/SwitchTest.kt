@@ -9,11 +9,14 @@ val antContribJarFile by StringProperty()
 val value by StringProperty()
 
 fun main(args: Array<String>) {
-    project(args) {
-        taskdef(resource = "net/sf/antcontrib/antcontrib.properties",
-                classpath = antContribJarFile)
+    object : DSLProject(args) {
+        {
+            taskdef(resource = "net/sf/antcontrib/antcontrib.properties",
+                    classpath = antContribJarFile)
+            default = ::testSwitch
+        }
 
-        default = target("Test switch") {
+        val testSwitch = target("Test switch") {
             switch(value = value) {
                 case(value = "foo") {
                     echo(message = "Value is foo", file = destFile)
@@ -26,5 +29,5 @@ fun main(args: Array<String>) {
                 }
             }
         }
-    }
+    }.perform()
 }

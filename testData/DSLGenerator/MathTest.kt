@@ -9,11 +9,14 @@ val antContribJarFile by StringProperty()
 val fact by DoubleProperty()
 
 fun main(args: Array<String>) {
-    project(args) {
-        taskdef(resource = "net/sf/antcontrib/antcontrib.properties",
-                classpath = antContribJarFile)
+    object : DSLProject(args) {
+        {
+            taskdef(resource = "net/sf/antcontrib/antcontrib.properties",
+                    classpath = antContribJarFile)
+            default = ::testMath
+        }
 
-        default = target("Test math") {
+        val testMath = target("Test math") {
             math(result = "fact") {
                 op(op = "*") {
                     num(value = "1")
@@ -25,5 +28,5 @@ fun main(args: Array<String>) {
             }
             echo(message = "$fact", file = destFile)
         }
-    }
+    }.perform()
 }

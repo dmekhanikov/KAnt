@@ -8,8 +8,11 @@ val zipFile by StringProperty()
 val outDir by StringProperty()
 
 fun main(args: Array<String>) {
-    project(args) {
-        default = target("Zip and unzip") {
+    object : DSLProject(args) {
+        {
+            default = ::zipUnzip
+        }
+        val zipUnzip = target("Zip and unzip") {
             zip (basedir = sourceDir) {
                 destFile = zipFile
             }
@@ -18,5 +21,5 @@ fun main(args: Array<String>) {
                 dest = outDir
             }
         }
-    }
+    }.perform()
 }

@@ -18,13 +18,16 @@ val intFileProperty by IntProperty("int.file.property")
 val doubleFileProperty by DoubleProperty("double.file.property")
 
 fun main(args: Array<String>) {
-    project(args) {
-        property(file = propertiesFile)
-        default = target("Properties test") {
+    object : DSLProject(args) {
+        {
+            property(file = propertiesFile)
+            default = ::propertiesTest
+        }
+        val propertiesTest = target("Properties test") {
             echo(message = antVersion, file = systemPropertiesOutFile)
             val message = "$stringProperty\n$booleanProperty\n$intProperty\n$doubleProperty\n$defaultProperty\n" +
                     "$stringFileProperty\n$intFileProperty\n$doubleFileProperty\n"
             echo(message = message, file = userPropertiesOutFile)
         }
-    }
+    }.perform()
 }

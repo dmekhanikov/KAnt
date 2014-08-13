@@ -6,13 +6,16 @@ import jetbrains.kant.dsl.taskdefs.*
 val dir by StringProperty()
 
 fun main(args: Array<String>) {
-    project(args) {
-        default = target("Mkdir test") {
+    object : DSLProject(args) {
+        {
+            default = ::mkdirTest
+        }
+        val mkdirTest = target("Mkdir test") {
             mkdir(dir = dir)
         }
 
-        target("Delete") {
+        val delete = target {
             delete(dir = dir)
         }
-    }
+    }.perform()
 }
