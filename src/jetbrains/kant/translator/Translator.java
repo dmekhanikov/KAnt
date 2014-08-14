@@ -163,7 +163,12 @@ public class Translator {
                 }
                 case "property": {
                     DSLFunction constructor = findConstructor(parent, qName);
-                    Property property = new Property(attrs, constructor);
+                    Property property;
+                    if (constructor != null) {
+                         property = new Property(attrs, constructor);
+                    } else {
+                        property = new Property(attrs);
+                    }
                     propertyManager.writeAccess(property);
                     String propName = attrs.getValue("name");
                     if (propName == null || !propertyManager.isDeclaring()) {
