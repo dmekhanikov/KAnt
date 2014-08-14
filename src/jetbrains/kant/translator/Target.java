@@ -38,7 +38,7 @@ public class Target extends Wrapper {
         importManager.addImport(getDSL_TARGET_FUNCTION());
         if (depends != null) {
             for (String depend : depends) {
-                result.append(", ").append(toCamelCase(depend));
+                result.append(", ::").append(toCamelCase(depend));
             }
         }
         result.append(")");
