@@ -179,7 +179,7 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
                             addTarget(antTask)
                         }
                         if (!constructorIsGenerated(dslClassName, taskName)) {
-                            resolved[antTask.className]?.generateConstructors(taskName, true)
+                            resolved[antTask.className]?.generateConstructors(taskName, false)
                         }
                     }
                     jis.close()
@@ -212,9 +212,9 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
     private fun resolveAlias(alias: Alias) {
         val tag = alias.tag
         val className = alias.className
-        val topLevel = alias.topLevel
+        val restricted = alias.restricted
         resolveClass(className)
-        resolved[className]?.generateConstructors(tag, topLevel)
+        resolved[className]?.generateConstructors(tag, restricted)
     }
 
     private fun resultClassName(srcClassName: String): String {
@@ -315,7 +315,7 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
         }
         res.append("}\n")
         for (element in nestedElements) {
-            renderNestedElement(res, dslTypeName, element)
+            renderNestedElement(res, dslTypeName, element, false, false)
         }
         return res
     }
@@ -332,14 +332,15 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
     }
 
     private fun AntClass.renderNestedElement(out: KotlinSourceFile,
-                                             parentName: String, element: AntAttribute) {
+                                             parentName: String, element: AntAttribute,
+                                             define: Boolean, restricted: Boolean) {
         if (constructorIsGenerated(parentName, element.name)) {
             return
         }
         resolveClass(element.typeName)
         val elementClass = resolved[explodeTypeName(element.typeName)[0]]!!.antClass!!
-        elementClass.renderConstructor(out, parentName, element.name, true)
-        elementClass.renderConstructor(out, parentName, element.name, false)
+        elementClass.renderConstructor(out, parentName, element.name, define, restricted, true)
+        elementClass.renderConstructor(out, parentName, element.name, define, restricted, false)
         addConstructor(parentName, element.name, out.pkg, elementClass)
     }
 
@@ -357,7 +358,8 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
     }
 
     private fun AntClass.renderConstructor(out: KotlinSourceFile,
-                                           parentName: String, tag: String, withInit: Boolean) {
+                                           parentName: String, tag: String,
+                                           define: Boolean, restricted: Boolean, withInit: Boolean) {
         val dslTypeName = out.importManager.shorten(resultClassName(className))
         val dslTaskContainerShorten = out.importManager.shorten(DSL_TASK_CONTAINER)
         val dslReferenceShorten = out.importManager.shorten(DSL_REFERENCE)
@@ -395,6 +397,13 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
             }
             if (!isCondition && returnType != null) {
                 out.append("    val reference = $dslReferenceShorten(dslObject)\n")
+            }
+            if (define) {
+                if (restricted) {
+                    out.append("    dslObject.defineType(\"$className\")\n")
+                } else {
+                    out.append("    dslObject.defineComponent(\"$className\")\n")
+                }
             }
             out.append("    dslObject.configure()\n")
             if (isTaskContainer) {
@@ -446,18 +455,18 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
         var antClass: AntClass? = null
         var kotlinSrcFile: KotlinSourceFile? = null
 
-        fun generateConstructors(tag: String, topLevel: Boolean) {
+        fun generateConstructors(tag: String, restricted: Boolean) {
             val invAntClass = antClass!!
             val invKotlinSrcFile = kotlinSrcFile!!
-            if (topLevel) {
+            if (!restricted) {
                 if (invAntClass.isTask || invAntClass.isCondition || invAntClass.hasRefId) {
-                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_TASK_CONTAINER, AntAttribute(tag, className))
+                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_TASK_CONTAINER, AntAttribute(tag, className), true, restricted)
                 }
             }
             for (interface in invAntClass.implementedInterfaces) {
                 if (containerGenerator.typeNeedsContainer(interface)) {
                     val containerName = containerGenerator.containerName(interface)
-                    invAntClass.renderNestedElement(invKotlinSrcFile, containerName, AntAttribute(tag, className))
+                    invAntClass.renderNestedElement(invKotlinSrcFile, containerName, AntAttribute(tag, className), true, restricted)
                 }
             }
         }

@@ -58,6 +58,31 @@ public open class DSLTask(projectAO: Project, targetAO: Target,
         }
     }
 
+    public fun defineType(className: String) {
+        val componentHelper = ComponentHelper.getComponentHelper(projectAO)!!
+        if (componentHelper.getDefinition(elementTag) != null) {
+            return
+        }
+        val typedef = DSLTask(projectAO, targetAO, null, "typedef", null)
+        typedef.attributes["name"] = elementTag
+        typedef.attributes["classname"] = className
+        typedef.configure()
+        typedef.execute()
+    }
+
+    public fun defineComponent(className: String) {
+        val componentHelper = ComponentHelper.getComponentHelper(projectAO)!!
+        val definitions = componentHelper.getRestrictedDefinitions(elementTag)
+        if (definitions != null && definitions.contains(className) || componentHelper.getDefinition(elementTag) != null) {
+            return
+        }
+        val componentdef = DSLTask(projectAO, targetAO, null, "componentdef", null)
+        componentdef.attributes["name"] = elementTag
+        componentdef.attributes["classname"] = className
+        componentdef.configure()
+        componentdef.execute()
+    }
+
     open public fun configure() {
         setAttributes()
         if (parentWrapperAO != null) {

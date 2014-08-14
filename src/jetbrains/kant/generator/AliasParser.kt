@@ -11,7 +11,7 @@ import java.io.InputStreamReader
 import javax.xml.parsers.SAXParserFactory
 import javax.xml.parsers.ParserConfigurationException
 
-class Alias(val tag: String, val className: String, val topLevel: Boolean)
+class Alias(val tag: String, val className: String, val restricted: Boolean)
 
 class AliasParser(val inputStream: InputStream) {
     fun parseProperties(): List<Alias> {
@@ -34,7 +34,7 @@ class AliasParser(val inputStream: InputStream) {
         if (matcher.matches()) {
             val tag = matcher.group(1)!!
             val className = matcher.group(2)!!
-            return Alias(tag, className, true)
+            return Alias(tag, className, false)
         } else {
             return null
         }
@@ -69,11 +69,11 @@ class AliasParser(val inputStream: InputStream) {
             val name = attributes.getValue("name")
             val className = attributes.getValue("classname")
             if (name != null && className != null) {
-                val topLevel = when (qName) {
-                    "taskdef", "typedef" -> true
-                    else -> false
+                val restricted = when (qName) {
+                    "taskdef", "typedef" -> false
+                    else -> true
                 }
-                result.add(Alias(name, className, topLevel))
+                result.add(Alias(name, className, restricted))
             }
         }
         override fun endElement(uri: String?, localName: String, qName: String) {
