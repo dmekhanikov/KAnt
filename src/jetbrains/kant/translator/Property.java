@@ -20,6 +20,13 @@ public class Property extends Wrapper {
         setPropType();
     }
 
+    public Property(Attributes attributes) {
+        super("property", attributes);
+        propName = attributes.getValue("name");
+        propVal = attributes.getValue("value");
+        setPropType();
+    }
+
     public Property(String propName, String propVal) {
         super((String) null, null);
         this.propName = propName;

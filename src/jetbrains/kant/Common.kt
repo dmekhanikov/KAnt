@@ -53,7 +53,7 @@ public fun escapeKeywords(string: String): String {
 
 public fun toCamelCase(name: String): String {
     val stringBuilder = StringBuilder(name)
-    val separators = ".-_"
+    val separators = ".-_ "
     for (c in separators) {
         val separator = c.toString()
         var j = stringBuilder.indexOf(separator)
