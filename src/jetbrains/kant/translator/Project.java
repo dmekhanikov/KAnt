@@ -59,7 +59,9 @@ public class Project extends Wrapper {
             for (String dependName : depends) {
                 if (!visited.contains(dependName)) {
                     Target depend = targets.get(dependName);
-                    dfs(depend, visited, result);
+                    if (depend != null) {
+                        dfs(depend, visited, result);
+                    }
                 }
             }
         }
