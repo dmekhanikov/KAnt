@@ -18,6 +18,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="args4j:args4j:2.0.29" level="project" />
   </component>
 </module>
 
