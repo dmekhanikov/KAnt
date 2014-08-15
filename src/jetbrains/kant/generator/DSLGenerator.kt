@@ -9,7 +9,6 @@ import java.util.HashSet
 import java.util.ArrayList
 import java.util.regex.Pattern
 import java.util.jar.JarInputStream
-import org.jetbrains.jet.utils.valuesToMap
 
 public val DSL_ROOT: String = "dsl/src/"
 public val DSL_PACKAGE: String = "jetbrains.kant.dsl"

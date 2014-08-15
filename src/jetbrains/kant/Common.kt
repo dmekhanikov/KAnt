@@ -9,6 +9,7 @@ import java.util.regex.Pattern
 import java.util.jar.JarOutputStream
 import java.util.jar.*
 import java.io.*
+import java.util.HashMap
 
 public val KOTLIN_RUNTIME_JAR_FILE: String = "lib/kotlin-runtime.jar"
 public val ANT_JAR_FILE: String = "lib/ant-1.9.4.jar"
@@ -159,4 +160,13 @@ public fun explodeTypeName(name: String): List<String> {
     }
     result.add(remaining)
     return result.toList()
+}
+
+public fun <K, V> List<V>.valuesToMap(getKey: (V) -> K): Map<K, V> {
+    val result = HashMap<K, V>()
+    for (value in this) {
+        val key = getKey(value)
+        result[key] = value
+    }
+    return result
 }
