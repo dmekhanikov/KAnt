@@ -24,7 +24,7 @@ public class Project extends Wrapper {
             if (init == null) {
                 init = new Sequential();
                 init.setParent(this);
-                init.setIndent(indent + TAB);
+                init.setIndent(indent + TAB + TAB);
             }
             return init.addChild(child);
         }
