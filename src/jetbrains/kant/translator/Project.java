@@ -6,7 +6,6 @@ import static jetbrains.kant.generator.GeneratorPackage.getDSL_PROJECT_FUNCTION;
 import jetbrains.kant.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import java.util.HashMap;
 
 public class Project extends Wrapper {
     private String defaultTarget;

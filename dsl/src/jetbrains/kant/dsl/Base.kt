@@ -10,7 +10,7 @@ import kotlin.reflect.jvm.javaGetter
 import java.lang.reflect.Method
 import java.lang.reflect.Field
 
-val DSL_TARGET = "jetbrains.kant.dsl.DSLTarget"
+val DSL_TARGET = javaClass<DSLTarget>().getName()
 
 abstract class DSLElement(val projectAO: Project, val targetAO: Target)
 
