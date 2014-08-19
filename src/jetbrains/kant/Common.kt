@@ -114,7 +114,7 @@ public fun copy(inputStream: InputStream, outputStream: OutputStream) {
         if (len == -1) {
             break
         }
-        outputStream.write(buffer)
+        outputStream.write(buffer, 0, len)
     }
     bufferedInputStream.close()
 }
