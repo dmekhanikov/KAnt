@@ -27,8 +27,7 @@ class DSLGeneratorTest : KAntTestCase() {
             File(DSL_GENERATED_ROOT).cleanDirectory()
             DSLGenerator(DSL_ROOT, array(ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE), array(), true, true).generate()
             File(DSL_GENERATOR_OUT_ROOT).cleanDirectory()
-            compileKotlinCode(DSL_ROOT + pathSeparator + DSL_GENERATOR_TEST_DATA, ANT_JAR_FILE,
-                    DSL_GENERATOR_OUT_ROOT)
+            compileKotlinCode(ANT_JAR_FILE, DSL_GENERATOR_OUT_ROOT, DSL_ROOT, DSL_GENERATOR_TEST_DATA)
             dslGeneratorTestInitComplete = true
         }
     }
@@ -36,7 +35,7 @@ class DSLGeneratorTest : KAntTestCase() {
     private fun getMainMethod(packageName: String): Method {
         val fullPackageName = DSL_GENERATOR_TEST_PACKAGE + "." + packageName + "." + packageName.capitalize() + "Package"
         val packageClass = classLoader.loadClass(fullPackageName)!!
-        return packageClass.getMethod("main", javaClass<Array<String>?>())
+        return packageClass.getMethod("main", javaClass<Array<String>>())
     }
 
     private fun runDSLGeneratorTest(packageName: String, properties: Array<Property>?,
@@ -44,7 +43,7 @@ class DSLGeneratorTest : KAntTestCase() {
         val mainMethod = getMainMethod(packageName)
         setProperties(properties)
         assert(init())
-        mainMethod.invoke(null, null)
+        mainMethod.invoke(null, array(): Array<String>)
         assert(check())
         clearProperties(properties)
     }
