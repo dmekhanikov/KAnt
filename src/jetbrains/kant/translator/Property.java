@@ -3,7 +3,7 @@ package jetbrains.kant.translator;
 import jetbrains.kant.ImportManager;
 import jetbrains.kant.generator.DSLFunction;
 import static jetbrains.kant.KantPackage.toCamelCase;
-import static jetbrains.kant.generator.GeneratorPackage.getDSL_PROPERTIES_PACKAGE;
+import static jetbrains.kant.constants.ConstantsPackage.getDSL_PROPERTIES_PACKAGE;
 import org.xml.sax.Attributes;
 
 public class Property extends Wrapper {

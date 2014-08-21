@@ -7,8 +7,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.io.Serializable
 import jetbrains.kant.AntAttribute
-
-val ANT_CLASS_PREFIX = "org.apache.tools.ant."
+import jetbrains.kant.constants.ANT_CLASS_PREFIX
 
 class AntClass(classLoader: ClassLoader, className: String) {
     private val PRIMITIVE_TYPES = HashMap<String, String>();

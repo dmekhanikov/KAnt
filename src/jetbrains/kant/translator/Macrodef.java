@@ -1,7 +1,7 @@
 package jetbrains.kant.translator;
 
 import static jetbrains.kant.KantPackage.toCamelCase;
-import static jetbrains.kant.generator.GeneratorPackage.getDSL_TASK_CONTAINER;
+import static jetbrains.kant.constants.ConstantsPackage.getDSL_TASK_CONTAINER;
 import jetbrains.kant.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

@@ -9,39 +9,8 @@ import java.util.regex.Pattern
 import java.util.jar.JarOutputStream
 import java.util.jar.*
 import java.io.*
-
-public val KOTLIN_RUNTIME_JAR_FILE: String = "lib/kotlin-runtime.jar"
-public val ANT_JAR_FILE: String = "lib/ant-1.9.4.jar"
-public val keywords: HashSet<String> = array(
-        "package",
-        "as",
-        "type",
-        "class",
-        "this",
-        "super",
-        "val",
-        "var",
-        "fun",
-        "for",
-        "null",
-        "true",
-        "false",
-        "is",
-        "in",
-        "throw",
-        "return",
-        "break",
-        "continue",
-        "object",
-        "if",
-        "try",
-        "else",
-        "while",
-        "do",
-        "when",
-        "trait",
-        "This"
-).toHashSet()
+import jetbrains.kant.constants.keywords
+import jetbrains.kant.constants.KOTLIN_RUNTIME_JAR_FILE
 
 public fun escapeKeywords(string: String): String {
     return if (keywords.contains(string)) {

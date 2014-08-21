@@ -1,8 +1,8 @@
 package jetbrains.kant.test
 
-import jetbrains.kant.generator.DSLGenerator
-import jetbrains.kant.generator.DSL_ROOT
 import jetbrains.kant.*
+import jetbrains.kant.constants.*
+import jetbrains.kant.generator.DSLGenerator
 import java.lang.reflect.Method
 import java.io.File
 import java.io.File.pathSeparator
@@ -11,8 +11,6 @@ import jetbrains.kant.test.KAntTestCase.Property
 var dslGeneratorTestInitComplete = false
 
 class DSLGeneratorTest : KAntTestCase() {
-    val ANT_LAUNCHER_JAR_FILE = "lib/ant-launcher-1.9.4.jar"
-    val ANT_CONTRIB_JAR_FILE = "lib/ant-contrib-1.0b3.jar"
     val DSL_GENERATOR_OUT_ROOT = TEST_OUT_ROOT + "DSLGenrator/"
     val DSL_GENERATOR_TEST_DATA = TEST_DATA_ROOT + "DSLGenerator/"
     val DSL_GENERATOR_TEST_RES = TEST_RES_ROOT + "DSLGenerator/"
@@ -67,8 +65,8 @@ class DSLGeneratorTest : KAntTestCase() {
         runDSLGeneratorTest(
                 "zipUnzip",
                 array(Property("sourceDir", toTarDir.toString()),
-                      Property("zipFile", destFile.toString()),
-                      Property("outDir", resDir.toString())),
+                        Property("zipFile", destFile.toString()),
+                        Property("outDir", resDir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(toTarFile, resFile); true }
         )
@@ -82,7 +80,7 @@ class DSLGeneratorTest : KAntTestCase() {
         runDSLGeneratorTest(
                 "copy",
                 array(Property("srcDir", srcDir.toString()),
-                      Property("destDir", destDir.toString())),
+                        Property("destDir", destDir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(srcFile, resFile); true }
         )
@@ -97,12 +95,12 @@ class DSLGeneratorTest : KAntTestCase() {
         runDSLGeneratorTest(
                 "properties",
                 array(Property("propertiesFile", propertiesFile.toString()),
-                      Property("systemPropertiesOutFile", systemPropertiesOutFile.toString()),
-                      Property("userPropertiesOutFile", userPropertiesOutFile.toString()),
-                      Property("stringProperty", "passed value"),
-                      Property("intProperty", "42"),
-                      Property("booleanProperty", "true"),
-                      Property("doubleProperty", "21568.3")),
+                        Property("systemPropertiesOutFile", systemPropertiesOutFile.toString()),
+                        Property("userPropertiesOutFile", userPropertiesOutFile.toString()),
+                        Property("stringProperty", "passed value"),
+                        Property("intProperty", "42"),
+                        Property("booleanProperty", "true"),
+                        Property("doubleProperty", "21568.3")),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 {
                     assertNotEmpty(systemPropertiesOutFile)
@@ -124,9 +122,9 @@ class DSLGeneratorTest : KAntTestCase() {
         runDSLGeneratorTest(
                 "dependencies",
                 array(Property("src1Dir", src1Dir.toString()),
-                      Property("src2Dir", src2Dir.toString()),
-                      Property("srcDir", srcDir.toString()),
-                      Property("destDir", destDir.toString())),
+                        Property("src2Dir", src2Dir.toString()),
+                        Property("srcDir", srcDir.toString()),
+                        Property("destDir", destDir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 {
                     assertFilesMatch(src1File, dest1File)
@@ -142,7 +140,7 @@ class DSLGeneratorTest : KAntTestCase() {
         runDSLGeneratorTest(
                 "math",
                 array(Property("destFile", destFile.toString()),
-                      Property("antContribJarFile", ANT_CONTRIB_JAR_FILE)),
+                        Property("antContribJarFile", ANT_CONTRIB_JAR_FILE)),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, destFile); true }
         )
@@ -154,8 +152,8 @@ class DSLGeneratorTest : KAntTestCase() {
         runDSLGeneratorTest(
                 "switch",
                 array(Property("destFile", destFile.toString()),
-                      Property("value", "bar"),
-                      Property("antContribJarFile", ANT_CONTRIB_JAR_FILE)),
+                        Property("value", "bar"),
+                        Property("antContribJarFile", ANT_CONTRIB_JAR_FILE)),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, destFile); true }
         )
@@ -180,7 +178,7 @@ class DSLGeneratorTest : KAntTestCase() {
         runDSLGeneratorTest(
                 "cutdirsmapper",
                 array(Property("srcDir", srcDir.toString()),
-                      Property("destDir", destDir.toString())),
+                        Property("destDir", destDir.toString())),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, actFile); true }
         )
@@ -192,11 +190,11 @@ class DSLGeneratorTest : KAntTestCase() {
         runDSLGeneratorTest(
                 "conditions",
                 array(Property("file", actFile.toString()),
-                      Property("booleanProperty", "true"),
-                      Property("string", "Hello, World!"),
-                      Property("pattern", ".*World!"),
-                      Property("arg1", "15"),
-                      Property("arg2", "fifteen")),
+                        Property("booleanProperty", "true"),
+                        Property("string", "Hello, World!"),
+                        Property("pattern", ".*World!"),
+                        Property("arg1", "15"),
+                        Property("arg2", "fifteen")),
                 { File(WORKING_DIR).cleanDirectory(); true },
                 { assertFilesMatch(expFile, actFile); true }
         )

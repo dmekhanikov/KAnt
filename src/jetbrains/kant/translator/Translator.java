@@ -2,7 +2,7 @@ package jetbrains.kant.translator;
 
 import jetbrains.kant.ImportManager;
 import jetbrains.kant.generator.DSLClass;
-import static jetbrains.kant.generator.GeneratorPackage.*;
+import static jetbrains.kant.constants.ConstantsPackage.*;
 import static jetbrains.kant.KantPackage.createClassLoader;
 import jetbrains.kant.generator.DSLFunction;
 import org.kohsuke.args4j.*;
@@ -65,7 +65,7 @@ public class Translator {
         String[] classpathArray = classpath.split(File.pathSeparator);
         for (String jar : classpathArray) {
             ClassLoader classLoader = createClassLoader(new String[]{jar});
-            InputStream inputStream = classLoader.getResourceAsStream(getSTRUCTURE_FILE_NAME());
+            InputStream inputStream = classLoader.getResourceAsStream(getSTRUCTURE_FILE());
             if (inputStream != null) {
                 try (ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
                     HashMap<String, DSLClass> readStructure = (HashMap<String, DSLClass>) objectInputStream.readObject();

@@ -10,11 +10,7 @@ import java.util.ArrayList
 import java.util.regex.Pattern
 import java.util.jar.JarInputStream
 import org.jetbrains.jet.utils.valuesToMap
-
-public val DSL_ROOT: String = "dsl/src/"
-public val DSL_PACKAGE: String = "jetbrains.kant.dsl"
-val BASE_DSL_FILE_NAMES = array("Base.kt", "LazyTask.kt", "Misc.kt", "Properties.kt")
-public val STRUCTURE_FILE_NAME: String = "resources/structure.ser"
+import jetbrains.kant.constants.*
 
 fun main(args: Array<String>) {
     GeneratorRunner().doMain(args)
@@ -63,7 +59,7 @@ class GeneratorRunner {
         generator.generate()
         if (compile || createJar) {
             compileKotlinCode(classpath, binRoot, srcRoot)
-            val outFile = File(binRoot + STRUCTURE_FILE_NAME)
+            val outFile = File(binRoot + STRUCTURE_FILE)
             outFile.getParentFile()!!.mkdirs()
             val fileOut = FileOutputStream(outFile)
             val objectOutputStream = ObjectOutputStream(fileOut)
@@ -87,21 +83,6 @@ private fun copyBaseFiles(dest: File) {
         srcFile.copyTo(destFile)
     }
 }
-
-public val DSL_TASK_CONTAINER: String = "$DSL_PACKAGE.DSLTaskContainer"
-public val DSL_TASK_CONTAINER_TASK: String = "$DSL_PACKAGE.DSLTaskContainerTask"
-public val DSL_PROJECT: String = "$DSL_PACKAGE.DSLProject"
-public val DSL_TARGET: String = "$DSL_PACKAGE.DSLTarget"
-public val DSL_TASK: String = "$DSL_PACKAGE.DSLTask"
-public val DSL_REFERENCE: String = "$DSL_PACKAGE.DSLReference"
-public val DSL_PATH: String = "$DSL_PACKAGE.types.DSLPath"
-public val DSL_TEXT_CONTAINER: String = "$DSL_PACKAGE.DSLTextContainer"
-public val DSL_CONDITION: String = "$DSL_PACKAGE.DSLCondition"
-
-public val DSL_PROJECT_FUNCTION: String = "$DSL_PACKAGE.project"
-public val DSL_TARGET_FUNCTION: String = "$DSL_PACKAGE.target"
-
-public val DSL_PROPERTIES_PACKAGE: String = DSL_PACKAGE
 
 class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles: Array<String>,
                    val seekForAliasFiles: Boolean = false, val defAl: Boolean = false) {

@@ -11,7 +11,6 @@ import java.io.InputStreamReader
 import javax.xml.parsers.SAXParserFactory
 import javax.xml.parsers.ParserConfigurationException
 
-
 class Alias(val tag: String, val className: String, val topLevel: Boolean)
 
 class AliasParser(val inputStream: InputStream) {

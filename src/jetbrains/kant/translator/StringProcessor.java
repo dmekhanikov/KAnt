@@ -3,7 +3,7 @@ package jetbrains.kant.translator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import static jetbrains.kant.KantPackage.toCamelCase;
-import static jetbrains.kant.generator.GeneratorPackage.*;
+import static jetbrains.kant.constants.ConstantsPackage.getDSL_REFERENCE;
 
 public class StringProcessor {
     public static String getType(String value) {
