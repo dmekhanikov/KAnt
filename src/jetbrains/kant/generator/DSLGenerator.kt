@@ -21,25 +21,25 @@ fun main(args: Array<String>) {
 }
 
 class GeneratorRunner {
-    [Option(name = "-cp", usage = "classpath")]
+    [Option(name = "-cp", metaVar = "<path>",usage = "Classpath")]
     private val classpath: String = ""
 
-    [Option(name = "-o", usage = "output directory", required = true)]
+    [Option(name = "-d", metaVar = "<directory>", usage = "Output directory", required = true)]
     private val outDir: File? = null
 
-    [Option(name = "--seek", usage = "seek alias files")]
+    [Option(name = "-seek", usage = "Seek alias files")]
     private val seek = false
 
-    [Option(name = "--defaultAliases", usage = "generate functions with names similar to class names")]
+    [Option(name = "-defaultaliases", usage = "Generate functions with names similar to class names")]
     private val defAl = false
 
-    [Option(name = "--compile", usage = "compile the library after generation")]
+    [Option(name = "-compile", usage = "Compile the library after generation")]
     private val compile = false
 
-    [Option(name = "--jar", usage = "create jar file containing all class files of the generated library and some information about its structure")]
+    [Option(name = "-jar", usage = "Create jar file containing all class files of the generated library and some information about its structure")]
     private val createJar = false
 
-    [Argument]
+    [Argument(metaVar = "alias files", usage = "Antlib or properties files with aliases that the generator should use")]
     private val aliasFiles: Array<String> = array()
 
     fun doMain(args: Array<String>) {
@@ -48,7 +48,7 @@ class GeneratorRunner {
             parser.parseArgument(args.toArrayList())
         } catch(e: CmdLineException) {
             System.err.println(e.getMessage())
-            System.err.println("java GeneratorPackage [options...] arguments...")
+            System.err.println("Usage: java jetbrains.kant.generator.GeneratorPackage <options> <alias files>")
             parser.printUsage(System.err)
             System.err.println()
             return
@@ -62,7 +62,7 @@ class GeneratorRunner {
         val generator = DSLGenerator(srcRoot, classpathArray, aliasFiles, seek, defAl)
         generator.generate()
         if (compile || createJar) {
-            compileKotlinCode(srcRoot, classpath, binRoot)
+            compileKotlinCode(classpath, binRoot, srcRoot)
             val outFile = File(binRoot + STRUCTURE_FILE_NAME)
             outFile.getParentFile()!!.mkdirs()
             val fileOut = FileOutputStream(outFile)

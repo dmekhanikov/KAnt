@@ -19,13 +19,13 @@ public class Translator {
     private StringBuilder result;
     private HashMap<String, DSLClass> structure = new HashMap<>();
 
-    @Option(name = "-cp", usage = "classpath with DSL library")
+    @Option(name = "-cp", metaVar = "<path>", usage = "Classpath with DSL library")
     private String classpath = "";
 
-    @Argument(index = 0)
+    @Argument(index = 0, metaVar = "input file", usage = "Input file with an Ant script", required = true)
     private File inputFile;
 
-    @Argument(index = 1)
+    @Argument(index = 1, metaVar = "output file", required = true)
     private File outputFile;
 
     public static void main(String ... args) {
@@ -33,12 +33,9 @@ public class Translator {
         CmdLineParser parser = new CmdLineParser(translator);
         try {
             parser.parseArgument(args);
-            if (translator.outputFile == null) {
-                throw new CmdLineException("Too few arguments");
-            }
         } catch(CmdLineException e) {
             System.err.println(e.getMessage());
-            System.err.println("java Translator [options...] <input file> <output file>");
+            System.err.println("Usage: java jetbrains.kant.translator.TranslatorPackage <options> <input file> <output file>");
             parser.printUsage(System.err);
             System.err.println();
             return;
