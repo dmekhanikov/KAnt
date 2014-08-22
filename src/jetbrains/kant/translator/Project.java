@@ -34,7 +34,7 @@ public class Project extends Wrapper {
     public String toString(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder(indent);
         String dslProjectShorten = importManager.shorten(getDSL_PROJECT());
-        result.append("object : ").append(dslProjectShorten).append("() {\n");
+        result.append("val project = object : ").append(dslProjectShorten).append("() {\n");
         if (defaultTarget != null || init != null) {
             result.append(indent).append(TAB).append("{\n");
             result.append(indent).append(TAB).append(TAB).
@@ -42,10 +42,10 @@ public class Project extends Wrapper {
             result.append(init.toString(propertyManager, importManager)).append("\n");
             result.append(indent).append(TAB).append("}\n");
         }
-        if (!children.isEmpty()) {
-            result.append(renderChildren(propertyManager, importManager)).append("\n");
+        for (Wrapper child : children) {
+            result.append("\n").append(child.toString(propertyManager, importManager)).append("\n");
         }
-        result.append(indent).append("}.perform()");
+        result.append(indent).append("}");
         return result.toString();
     }
 }

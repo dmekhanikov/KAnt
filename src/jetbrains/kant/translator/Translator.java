@@ -92,12 +92,10 @@ public class Translator {
             propertyManager = new PropertyManager();
             importManager = new ImportManager(null);
             result = new StringBuilder();
-            result.append("fun main(args: Array<String>) {\n");
         }
 
         @Override
         public void endDocument() throws SAXException {
-            result.append("}\n");
             String propertiesDeclaration = propertyManager.toString(importManager);
             result.insert(0, importManager + "\n" + propertiesDeclaration + "\n" + macrodefs);
         }
@@ -130,8 +128,6 @@ public class Translator {
         private void processChild(Wrapper child, Wrapper parent) throws SAXException {
             if (parent != null) {
                 child = parent.addChild(child);
-            } else {
-                child.setIndent(TAB);
             }
             stack.add(child);
         }
