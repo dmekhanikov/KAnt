@@ -50,10 +50,9 @@ class GeneratorRunner {
             return
         }
         val srcRoot = outDir.toString() + "/src/"
-        val outRoot = outDir.toString() + "/out/"
-        val binRoot = outRoot + "bin/"
-        val distRoot = outRoot + "dist/"
-        copyBaseFiles(File(srcRoot))
+        val binRoot = outDir.toString() + "/bin/"
+        val distRoot = outDir.toString() + "/dist/"
+        copyBaseFiles(DSL_SRC_ROOT, srcRoot)
         val classpathArray = classpath.split(pathSeparator)
         val generator = DSLGenerator(srcRoot, classpathArray, aliasFiles, seek, defAl)
         generator.generate()
@@ -74,13 +73,14 @@ class GeneratorRunner {
     }
 }
 
-private fun copyBaseFiles(dest: File) {
-    val srcPrefix = "$DSL_SRC_ROOT${DSL_PACKAGE.replace('.', '/')}/"
-    val destPrefix = "$dest/${DSL_PACKAGE.replace('.', '/')}/"
-    for (fileName in BASE_DSL_FILES) {
-        val srcFile = File(srcPrefix + fileName)
-        val destFile = File(destPrefix + fileName)
-        srcFile.copyTo(destFile)
+private fun copyBaseFiles(src: String, dst: String) {
+    for (file in File(src).listFiles { it != File(DSL_GENERATED_DIR) }!!) {
+        val dstFile = dst + file.name
+        if (file.isDirectory()) {
+            copyBaseFiles(file.toString(), dstFile + "/")
+        } else {
+            file.copyTo(File(dstFile))
+        }
     }
 }
 
