@@ -64,7 +64,7 @@ public class Translator {
     private void readStructure() {
         String[] classpathArray = classpath.split(File.pathSeparator);
         for (String jar : classpathArray) {
-            ClassLoader classLoader = createClassLoader(new String[]{jar});
+            ClassLoader classLoader = createClassLoader(jar);
             InputStream inputStream = classLoader.getResourceAsStream(getSTRUCTURE_FILE());
             if (inputStream != null) {
                 try (ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {

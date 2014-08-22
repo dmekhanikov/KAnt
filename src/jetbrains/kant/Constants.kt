@@ -7,13 +7,15 @@ public val DSL_PACKAGE: String = "$KANT_PACKAGE.dsl"
 public val DSL_PROPERTIES_PACKAGE: String = DSL_PACKAGE
 public val ANT_CLASS_PREFIX: String = "org.apache.tools.ant."
 
-public val DSL_ROOT: String = "dsl/src/"
-public val BASE_DSL_FILE_NAMES: Array<String> = array("Base.kt", "LazyTask.kt", "Misc.kt", "Properties.kt")
+public val DSL_SRC_ROOT: String = "dsl/src/"
+public val DSL_GENERATED_DIR: String = DSL_SRC_ROOT + DSL_PACKAGE.replace(".", "/") + "/generated/"
+public val BASE_DSL_FILES: Array<String> = array("Base.kt", "LazyTask.kt", "Misc.kt", "Properties.kt")
 public val STRUCTURE_FILE: String = "resources/structure.ser"
-public val KOTLIN_RUNTIME_JAR_FILE: String = "lib/kotlin-runtime.jar"
-public val ANT_JAR_FILE: String = "lib/ant-1.9.4.jar"
-public val ANT_LAUNCHER_JAR_FILE: String = "lib/ant-launcher-1.9.4.jar"
-public val ANT_CONTRIB_JAR_FILE: String = "lib/ant-contrib-1.0b3.jar"
+public val KOTLIN_RUNTIME_JAR: String = "lib/kotlin-runtime.jar"
+public val ANT_JAR: String = "lib/ant-1.9.4.jar"
+public val ANT_LAUNCHER_JAR: String = "lib/ant-launcher-1.9.4.jar"
+public val ANT_CONTRIB_JAR: String = "lib/ant-contrib-1.0b3.jar"
+public val ARGS4J_JAR: String = "lib/args4j-2.0.29.jar"
 
 public val keywords: Set<String> = array(
         "package",

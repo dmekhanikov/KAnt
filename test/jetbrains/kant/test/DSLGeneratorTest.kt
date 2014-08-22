@@ -1,202 +1,180 @@
 package jetbrains.kant.test
 
-import jetbrains.kant.*
-import jetbrains.kant.constants.*
 import jetbrains.kant.generator.DSLGenerator
+import jetbrains.kant.constants.*
+import jetbrains.kant.createClassLoader
+import jetbrains.kant.cleanDirectory
+import jetbrains.kant.compileKotlinCode
 import java.lang.reflect.Method
 import java.io.File
 import java.io.File.pathSeparator
 import jetbrains.kant.test.KAntTestCase.Property
+import jetbrains.kant.getClassByPackage
 
 var dslGeneratorTestInitComplete = false
 
 class DSLGeneratorTest : KAntTestCase() {
-    val DSL_GENERATOR_OUT_ROOT = TEST_OUT_ROOT + "DSLGenrator/"
-    val DSL_GENERATOR_TEST_DATA = TEST_DATA_ROOT + "DSLGenerator/"
-    val DSL_GENERATOR_TEST_RES = TEST_RES_ROOT + "DSLGenerator/"
-    val DSL_GENERATOR_TEST_PACKAGE = "testData.DSLGenerator"
-    val DSL_GENERATED_ROOT = DSL_ROOT + "jetbrains/kant/dsl/generated/"
-    val WORKING_DIR = DSL_GENERATOR_OUT_ROOT + "playground/"
+    val GENERATOR_TEST_DATA_DIR = TEST_DATA_DIR + "DSLGenerator/"
+    val GENERATOR_TEST_RES_DIR = TEST_RES_DIR + "DSLGenerator/"
 
-    val classLoader = createClassLoader(array(DSL_GENERATOR_OUT_ROOT,
-            ANT_JAR_FILE, ANT_LAUNCHER_JAR_FILE, KOTLIN_RUNTIME_JAR_FILE));
+    val runnerMainMethod: Method;
     {
+        val dslDepends = array(ANT_JAR, ANT_LAUNCHER_JAR, ANT_CONTRIB_JAR, ARGS4J_JAR, KOTLIN_RUNTIME_JAR).join(pathSeparator)
         if (!dslGeneratorTestInitComplete) {
-            File(DSL_GENERATED_ROOT).cleanDirectory()
-            DSLGenerator(DSL_ROOT, array(ANT_JAR_FILE, ANT_CONTRIB_JAR_FILE), array(), true, true).generate()
-            File(DSL_GENERATOR_OUT_ROOT).cleanDirectory()
-            compileKotlinCode(ANT_JAR_FILE, DSL_GENERATOR_OUT_ROOT, DSL_ROOT, DSL_GENERATOR_TEST_DATA)
+            File(DSL_GENERATED_DIR).cleanDirectory()
+            DSLGenerator(DSL_SRC_ROOT, array(ANT_JAR, ANT_CONTRIB_JAR), array(), true, true).generate()
+            File(DSL_BIN_DIR).cleanDirectory()
+            compileKotlinCode(dslDepends, DSL_BIN_DIR, DSL_SRC_ROOT)
             dslGeneratorTestInitComplete = true
         }
+        val classLoader = createClassLoader(DSL_BIN_DIR + pathSeparator + dslDepends)
+        val packageClass = classLoader.loadClass(getClassByPackage(KANT_PACKAGE))!!
+        runnerMainMethod = packageClass.getMethod("main", javaClass<Array<String>>())
     }
 
-    private fun getMainMethod(packageName: String): Method {
-        val fullPackageName = DSL_GENERATOR_TEST_PACKAGE + "." + packageName + "." + packageName.capitalize() + "Package"
-        val packageClass = classLoader.loadClass(fullPackageName)!!
-        return packageClass.getMethod("main", javaClass<Array<String>>())
-    }
-
-    private fun runDSLGeneratorTest(packageName: String, properties: Array<Property>?,
-                                    init: () -> Boolean, check: () -> Boolean) {
-        val mainMethod = getMainMethod(packageName)
+    private fun  runDSLGeneratorTest(testName: String, vararg properties: Property, check: () -> Boolean) {
         setProperties(properties)
-        assert(init())
-        mainMethod.invoke(null, array(): Array<String>)
+        val fileName = GENERATOR_TEST_DATA_DIR + testName.capitalize() + ".kt"
+        File(TEST_PLAYGROUND_BIN_DIR).cleanDirectory()
+        compileKotlinCode(DSL_BIN_DIR, TEST_PLAYGROUND_BIN_DIR, fileName)
+        File(TEST_PLAYGROUND_WORK_DIR).cleanDirectory()
+        val projectName = testName + "Project"
+        runnerMainMethod.invoke(null, array("-cp", TEST_PLAYGROUND_BIN_DIR, projectName))
         assert(check())
         clearProperties(properties)
     }
 
     public fun testMkdir() {
-        val dir = File(WORKING_DIR + "temp/")
+        val dir = File(TEST_PLAYGROUND_WORK_DIR + "temp/")
         runDSLGeneratorTest(
                 "mkdir",
-                array(Property("dir", dir.toString())),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                { dir.exists() }
-        )
+                Property("dir", dir.toString())
+        ) { dir.exists() }
     }
 
     public fun testZipUnzip() {
-        val toTarDir = File(DSL_GENERATOR_TEST_RES + "toZip/")
+        val toTarDir = File(GENERATOR_TEST_RES_DIR + "toZip/")
         val toTarFile = File(toTarDir.toString() + "/toZip.txt")
-        val destFile = File(WORKING_DIR + "toUnzip.tar")
-        val resDir = File(WORKING_DIR)
+        val destFile = File(TEST_PLAYGROUND_WORK_DIR + "toUnzip.tar")
+        val resDir = File(TEST_PLAYGROUND_WORK_DIR)
         val resFile = File(resDir.toString() + "/toZip.txt")
         runDSLGeneratorTest(
                 "zipUnzip",
-                array(Property("sourceDir", toTarDir.toString()),
-                        Property("zipFile", destFile.toString()),
-                        Property("outDir", resDir.toString())),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                { assertFilesMatch(toTarFile, resFile); true }
-        )
+                Property("sourceDir", toTarDir.toString()),
+                Property("zipFile", destFile.toString()),
+                Property("outDir", resDir.toString())
+        ) { assertFilesMatch(toTarFile, resFile); true }
     }
 
     public fun testCopy() {
-        val srcDir = File(DSL_GENERATOR_TEST_RES + "toCopy/")
+        val srcDir = File(GENERATOR_TEST_RES_DIR + "toCopy/")
         val srcFile = File(srcDir.toString() + "/toCopy.txt")
-        val destDir = File(WORKING_DIR)
+        val destDir = File(TEST_PLAYGROUND_WORK_DIR)
         val resFile = File(destDir.toString() + "/toCopy.txt")
         runDSLGeneratorTest(
                 "copy",
-                array(Property("srcDir", srcDir.toString()),
-                        Property("destDir", destDir.toString())),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                { assertFilesMatch(srcFile, resFile); true }
-        )
+                Property("srcDir", srcDir.toString()),
+                Property("destDir", destDir.toString())
+        ) { assertFilesMatch(srcFile, resFile); true }
     }
 
     public fun testProperties() {
-        val systemPropertiesOutFile = File(WORKING_DIR + "system.txt")
-        val userPropertiesOutFile = File(WORKING_DIR + "user.txt")
-        val propertiesResDir = File(DSL_GENERATOR_TEST_RES + "properties/")
+        val systemPropertiesOutFile = File(TEST_PLAYGROUND_WORK_DIR + "system.txt")
+        val userPropertiesOutFile = File(TEST_PLAYGROUND_WORK_DIR + "user.txt")
+        val propertiesResDir = File(GENERATOR_TEST_RES_DIR + "properties/")
         val propertiesFile = File(propertiesResDir.toString() + "/manifest.properties")
         val userExpFile = File(propertiesResDir.toString() + "/user.txt")
         runDSLGeneratorTest(
                 "properties",
-                array(Property("propertiesFile", propertiesFile.toString()),
-                        Property("systemPropertiesOutFile", systemPropertiesOutFile.toString()),
-                        Property("userPropertiesOutFile", userPropertiesOutFile.toString()),
-                        Property("stringProperty", "passed value"),
-                        Property("intProperty", "42"),
-                        Property("booleanProperty", "true"),
-                        Property("doubleProperty", "21568.3")),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                {
-                    assertNotEmpty(systemPropertiesOutFile)
-                    assertFilesMatch(userExpFile, userPropertiesOutFile)
-                    true
-                }
-        )
+                Property("propertiesFile", propertiesFile.toString()),
+                Property("systemPropertiesOutFile", systemPropertiesOutFile.toString()),
+                Property("userPropertiesOutFile", userPropertiesOutFile.toString()),
+                Property("stringProperty", "passed value"),
+                Property("intProperty", "42"),
+                Property("booleanProperty", "true"),
+                Property("doubleProperty", "21568.3")
+        ) {
+            assertNotEmpty(systemPropertiesOutFile)
+            assertFilesMatch(userExpFile, userPropertiesOutFile)
+            true
+        }
     }
 
     public fun testDepends() {
-        val src1Dir = File(DSL_GENERATOR_TEST_RES + "toCopy/src1")
+        val src1Dir = File(GENERATOR_TEST_RES_DIR + "toCopy/src1")
         val src1File = File(src1Dir.toString() + "/test1.txt")
-        val src2Dir = File(DSL_GENERATOR_TEST_RES + "toCopy/src2")
+        val src2Dir = File(GENERATOR_TEST_RES_DIR + "toCopy/src2")
         val src2File = File(src2Dir.toString() + "/test2.txt")
-        val srcDir = File(WORKING_DIR + "src")
-        val destDir = File(WORKING_DIR + "dest")
+        val srcDir = File(TEST_PLAYGROUND_WORK_DIR + "src")
+        val destDir = File(TEST_PLAYGROUND_WORK_DIR + "dest")
         val dest1File = File(destDir.toString() + "/test1.txt")
         val dest2File = File(destDir.toString() + "/test2.txt")
         runDSLGeneratorTest(
                 "dependencies",
-                array(Property("src1Dir", src1Dir.toString()),
-                        Property("src2Dir", src2Dir.toString()),
-                        Property("srcDir", srcDir.toString()),
-                        Property("destDir", destDir.toString())),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                {
-                    assertFilesMatch(src1File, dest1File)
-                    assertFilesMatch(src2File, dest2File)
-                    true
-                }
-        )
+                Property("src1Dir", src1Dir.toString()),
+                Property("src2Dir", src2Dir.toString()),
+                Property("srcDir", srcDir.toString()),
+                Property("destDir", destDir.toString())
+        ) {
+            assertFilesMatch(src1File, dest1File)
+            assertFilesMatch(src2File, dest2File)
+            true
+        }
     }
 
     public fun testMath() {
-        val destFile = File(WORKING_DIR + "out.txt")
-        val expFile = File(DSL_GENERATOR_TEST_RES + "math/out.txt")
+        val destFile = File(TEST_PLAYGROUND_WORK_DIR + "out.txt")
+        val expFile = File(GENERATOR_TEST_RES_DIR + "math/out.txt")
         runDSLGeneratorTest(
                 "math",
-                array(Property("destFile", destFile.toString()),
-                        Property("antContribJarFile", ANT_CONTRIB_JAR_FILE)),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                { assertFilesMatch(expFile, destFile); true }
-        )
+                Property("destFile", destFile.toString()),
+                Property("antContribJarFile", ANT_CONTRIB_JAR)
+        ) { assertFilesMatch(expFile, destFile); true }
     }
 
     public fun testSwitch() {
-        val destFile = File(WORKING_DIR + "out.txt")
-        val expFile = File(DSL_GENERATOR_TEST_RES + "switch/out.txt")
+        val destFile = File(TEST_PLAYGROUND_WORK_DIR + "out.txt")
+        val expFile = File(GENERATOR_TEST_RES_DIR + "switch/out.txt")
         runDSLGeneratorTest(
                 "switch",
-                array(Property("destFile", destFile.toString()),
-                        Property("value", "bar"),
-                        Property("antContribJarFile", ANT_CONTRIB_JAR_FILE)),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                { assertFilesMatch(expFile, destFile); true }
-        )
+                Property("destFile", destFile.toString()),
+                Property("value", "bar"),
+                Property("antContribJarFile", ANT_CONTRIB_JAR)
+        ) { assertFilesMatch(expFile, destFile); true }
     }
 
     public fun testReplace() {
-        val file = File(WORKING_DIR + "out.txt")
-        val expFile = File(DSL_GENERATOR_TEST_RES + "replace/out.txt")
+        val file = File(TEST_PLAYGROUND_WORK_DIR + "out.txt")
+        val expFile = File(GENERATOR_TEST_RES_DIR + "replace/out.txt")
         runDSLGeneratorTest(
                 "replace",
-                array(Property("file", file.toString())),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                { assertFilesMatch(expFile, file); true }
-        )
+                Property("file", file.toString())
+        ) { assertFilesMatch(expFile, file); true }
     }
 
     public fun testCutDirsMapper() {
-        val srcDir = File(DSL_GENERATOR_TEST_RES + "toCopyAndCut/")
-        val destDir = File(WORKING_DIR + "dest")
+        val srcDir = File(GENERATOR_TEST_RES_DIR + "toCopyAndCut/")
+        val destDir = File(TEST_PLAYGROUND_WORK_DIR + "dest")
         val expFile = File(srcDir.toString() + "/foo/bar/toCopy.txt")
         val actFile = File(destDir.toString() + "/toCopy.txt")
         runDSLGeneratorTest(
-                "cutdirsmapper",
-                array(Property("srcDir", srcDir.toString()),
-                        Property("destDir", destDir.toString())),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                { assertFilesMatch(expFile, actFile); true }
-        )
+                "cutDirsMapper",
+                Property("srcDir", srcDir.toString()),
+                Property("destDir", destDir.toString())
+        ) { assertFilesMatch(expFile, actFile); true }
     }
 
     public fun testConditions() {
-        val expFile = File(DSL_GENERATOR_TEST_RES + "conditions/out.txt")
-        val actFile = File(WORKING_DIR + "/toCopy.txt")
+        val expFile = File(GENERATOR_TEST_RES_DIR + "conditions/out.txt")
+        val actFile = File(TEST_PLAYGROUND_WORK_DIR + "/toCopy.txt")
         runDSLGeneratorTest(
                 "conditions",
-                array(Property("file", actFile.toString()),
-                        Property("booleanProperty", "true"),
-                        Property("string", "Hello, World!"),
-                        Property("pattern", ".*World!"),
-                        Property("arg1", "15"),
-                        Property("arg2", "fifteen")),
-                { File(WORKING_DIR).cleanDirectory(); true },
-                { assertFilesMatch(expFile, actFile); true }
-        )
+                Property("file", actFile.toString()),
+                Property("booleanProperty", "true"),
+                Property("string", "Hello, World!"),
+                Property("pattern", ".*World!"),
+                Property("arg1", "15"),
+                Property("arg2", "fifteen")
+        ) { assertFilesMatch(expFile, actFile); true }
     }
 }

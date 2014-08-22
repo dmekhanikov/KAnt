@@ -1,5 +1,3 @@
-package testData.DSLGenerator.properties
-
 import jetbrains.kant.dsl.*
 import jetbrains.kant.dsl.taskdefs.*
 
@@ -17,17 +15,16 @@ val stringFileProperty by StringProperty("string.file.property")
 val intFileProperty by IntProperty("int.file.property")
 val doubleFileProperty by DoubleProperty("double.file.property")
 
-fun main(args: Array<String>) {
-    object : DSLProject() {
-        {
-            property(file = propertiesFile)
-            default = ::propertiesTest
-        }
-        val propertiesTest = target("Properties test") {
-            echo(message = antVersion, file = systemPropertiesOutFile)
-            val message = "$stringProperty\n$booleanProperty\n$intProperty\n$doubleProperty\n$defaultProperty\n" +
-                    "$stringFileProperty\n$intFileProperty\n$doubleFileProperty\n"
-            echo(message = message, file = userPropertiesOutFile)
-        }
-    }.perform()
+val propertiesProject = object : DSLProject() {
+    {
+        property(file = propertiesFile)
+        default = ::testProperties
+    }
+    val testProperties = target {
+        echo(message = antVersion, file = systemPropertiesOutFile)
+        val message = "$stringProperty\n$booleanProperty\n$intProperty\n$doubleProperty\n$defaultProperty\n" +
+                "$stringFileProperty\n$intFileProperty\n$doubleFileProperty\n"
+        echo(message = message, file = userPropertiesOutFile)
+    }
 }
+

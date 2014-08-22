@@ -7,10 +7,13 @@ import java.io.FileReader
 import kotlin.test.assertEquals
 
 abstract class KAntTestCase : TestCase() {
-    val TEST_DATA_ROOT = "testData/"
-    val TEST_RES_ROOT = TEST_DATA_ROOT + "res/"
-    val TEST_OUT_ROOT = "out/test/KAnt/"
-    val TEST_DATA_OUT_ROOT = TEST_OUT_ROOT + "testData/"
+    val TEST_DATA_DIR = "testData/"
+    val TEST_RES_DIR = TEST_DATA_DIR + "res/"
+    val TEST_BIN_DIR = "out/test/KAnt/"
+    val DSL_BIN_DIR = TEST_BIN_DIR + "dsl/"
+    val TEST_PLAYGROUND_DIR = TEST_BIN_DIR + "playground/"
+    val TEST_PLAYGROUND_BIN_DIR = TEST_PLAYGROUND_DIR + "bin/"
+    val TEST_PLAYGROUND_WORK_DIR = TEST_PLAYGROUND_DIR + "work/"
 
     private fun readFile(file: File): String {
         val br = BufferedReader(FileReader(file))

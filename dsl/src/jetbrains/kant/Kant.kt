@@ -64,7 +64,7 @@ public class Kant {
                 e.printStackTrace()
             }
         }
-        return URLClassLoader(path.toArray(Array(path.size()) { path[0] }))
+        return URLClassLoader(path.toArray(Array(path.size()) { path[0] }), javaClass.getClassLoader())
     }
 
     fun doMain(args: Array<String>) {
@@ -83,17 +83,21 @@ public class Kant {
         val classLoader = createClassLoader()
         try {
             val classObject = classLoader.loadClass(className)!!
-            val projectGetter = classObject.getMethod(getterName(fieldName))
+            val projectGetter = classObject.getMethod(getterName(fieldName))!!
             val project = projectGetter.invoke(null) as DSLProject
             project.perform()
         } catch (e: ClassNotFoundException) {
-            failWithError("Class " + className + " was not found")
+            System.err.println("Class " + className + " was not found")
+            e.printStackTrace()
         } catch (e: NoSuchMethodException) {
-            failWithError("Field " + fieldName + " in class " + className + " was not found")
+            System.err.println("Field " + fieldName + " in class " + className + " was not found")
+            e.printStackTrace()
         } catch (e: IllegalAccessException) {
-            failWithError("Cannot get the specified object")
+            System.err.println("Cannot get the specified object")
+            e.printStackTrace()
         } catch (e: InvocationTargetException) {
-            failWithError("Cannot get the specified object")
+            System.err.println("Cannot get the specified object")
+            e.printStackTrace()
         }
     }
 }

@@ -10,7 +10,9 @@ import java.util.jar.JarOutputStream
 import java.util.jar.*
 import java.io.*
 import jetbrains.kant.constants.keywords
-import jetbrains.kant.constants.KOTLIN_RUNTIME_JAR_FILE
+import jetbrains.kant.constants.KOTLIN_RUNTIME_JAR
+import java.lang.reflect.Method
+import java.net.MalformedURLException
 
 public fun escapeKeywords(string: String): String {
     return if (keywords.contains(string)) {
@@ -37,16 +39,32 @@ public fun toCamelCase(name: String): String {
     return escapeKeywords(stringBuilder.toString())
 }
 
+public fun getClassByPackage(pkgName: String): String {
+    if (pkgName == "") {
+        return "_DefaultPackage"
+    } else {
+        return "$pkgName.${pkgName.split('.').last().capitalize()}Package"
+    }
+}
+
 public fun createClassLoader(jars: Array<String>): ClassLoader {
     val path = ArrayList<URL>()
     for (jar in jars) {
-        if (jar.endsWith(".jar")) {
-            path.add(URL("jar:file:" + jar + "!/"))
-        } else {
-            path.add(URL("file:" + jar))
+        try {
+            if (jar.endsWith(".jar")) {
+                path.add(URL("jar:file:" + jar + "!/"))
+            } else {
+                path.add(URL("file:" + jar))
+            }
+        } catch (e: MalformedURLException) {
+            e.printStackTrace()
         }
     }
-    return URLClassLoader(path.toArray(array(path[0])))
+    return URLClassLoader(path.toArray(array(path[0])), null)
+}
+
+public fun createClassLoader(classpath: String): ClassLoader {
+    return createClassLoader(classpath.split(File.pathSeparator))
 }
 
 public fun File.cleanDirectory() {
@@ -70,7 +88,7 @@ public fun File.deleteRecursively() {
 
 public fun compileKotlinCode(classpath: String, output: String, vararg src: String) {
     val compiler = K2JVMCompiler()
-    compiler.exec(System.out, "-classpath", classpath + File.pathSeparator + KOTLIN_RUNTIME_JAR_FILE, "-d", output,
+    compiler.exec(System.out, "-classpath", classpath + File.pathSeparator + KOTLIN_RUNTIME_JAR, "-d", output,
             *(src as Array<String?>))
 }
 

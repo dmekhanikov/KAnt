@@ -75,9 +75,9 @@ class GeneratorRunner {
 }
 
 private fun copyBaseFiles(dest: File) {
-    val srcPrefix = "$DSL_ROOT${DSL_PACKAGE.replace('.', '/')}/"
+    val srcPrefix = "$DSL_SRC_ROOT${DSL_PACKAGE.replace('.', '/')}/"
     val destPrefix = "$dest/${DSL_PACKAGE.replace('.', '/')}/"
-    for (fileName in BASE_DSL_FILE_NAMES) {
+    for (fileName in BASE_DSL_FILES) {
         val srcFile = File(srcPrefix + fileName)
         val destFile = File(destPrefix + fileName)
         srcFile.copyTo(destFile)
