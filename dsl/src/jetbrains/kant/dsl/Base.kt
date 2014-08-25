@@ -5,9 +5,10 @@ import kotlin.properties.Delegates
 import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
-import kotlin.reflect.KMemberProperty
 import java.lang.reflect.Method
 import java.lang.reflect.Field
+import kotlin.reflect.KMemberProperty
+import jetbrains.kant.common.valuesToMap
 
 val DSL_TARGET = javaClass<DSLTarget>().getName()
 
@@ -135,14 +136,6 @@ open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
         return logger
     }
 
-    private fun <K, V>List<V>.valuesToMap(key: (V) -> K): Map<K, V> {
-        val result = HashMap<K, V>()
-        for (value in this) {
-            result[key(value)] = value
-        }
-        return result
-    }
-
     private fun Class<*>.getTargetFields(): List<Field> {
         return getDeclaredFields()!!.filter { it.getType()!!.getName() == DSL_TARGET }
     }
@@ -210,8 +203,7 @@ open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
                         + " end of the build.  Exception was:")
                 t.printStackTrace()
                 if (error != null) {
-                    System.err.println("There has been an error prior to"
-                            + " that:")
+                    System.err.println("There has been an error prior to that:")
                     error!!.printStackTrace()
                 }
             }

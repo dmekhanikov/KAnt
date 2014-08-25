@@ -2,7 +2,7 @@ package jetbrains.kant.generator
 
 import java.io.File
 import java.io.FileWriter
-import jetbrains.kant.ImportManager
+import jetbrains.kant.gtcommon.ImportManager
 
 class KotlinSourceFile(public val pkg: String?) {
     public val importManager: ImportManager = ImportManager(pkg)

@@ -2,8 +2,8 @@ package jetbrains.kant.translator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static jetbrains.kant.KantPackage.toCamelCase;
-import static jetbrains.kant.constants.ConstantsPackage.getDSL_REFERENCE;
+import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
+import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_REFERENCE;
 
 public class StringProcessor {
     public static String getType(String value) {

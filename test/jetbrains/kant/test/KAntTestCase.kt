@@ -10,6 +10,7 @@ abstract class KAntTestCase : TestCase() {
     val TEST_DATA_DIR = "testData/"
     val TEST_RES_DIR = TEST_DATA_DIR + "res/"
     val TEST_BIN_DIR = "out/test/KAnt/"
+    val COMMON_BIN_DIR = "out/production/common/"
     val DSL_BIN_DIR = TEST_BIN_DIR + "dsl/"
     val TEST_PLAYGROUND_DIR = TEST_BIN_DIR + "playground/"
     val TEST_PLAYGROUND_BIN_DIR = TEST_PLAYGROUND_DIR + "bin/"

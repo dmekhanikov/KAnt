@@ -1,6 +1,6 @@
 package jetbrains.kant.translator;
 
-import jetbrains.kant.ImportManager;
+import jetbrains.kant.gtcommon.ImportManager;
 
 public class Text extends Wrapper {
     private StringBuilder text = new StringBuilder();

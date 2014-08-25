@@ -1,6 +1,6 @@
 package jetbrains.kant.translator;
 
-import jetbrains.kant.ImportManager;
+import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 

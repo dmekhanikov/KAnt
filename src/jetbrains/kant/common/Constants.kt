@@ -1,4 +1,4 @@
-package jetbrains.kant.constants
+package jetbrains.kant.gtcommon.constants
 
 import java.util.HashSet
 

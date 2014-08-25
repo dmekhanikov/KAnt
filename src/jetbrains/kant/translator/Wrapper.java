@@ -1,9 +1,10 @@
 package jetbrains.kant.translator;
 
-import jetbrains.kant.ImportManager;
+import jetbrains.kant.gtcommon.ImportManager;
 import jetbrains.kant.generator.DSLFunction;
-import static jetbrains.kant.constants.ConstantsPackage.*;
-import static jetbrains.kant.KantPackage.toCamelCase;
+
+import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
+import static jetbrains.kant.gtcommon.constants.ConstantsPackage.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import java.util.ArrayList;

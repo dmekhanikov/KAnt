@@ -1,12 +1,12 @@
-package jetbrains.kant
+package jetbrains.kant.gtcommon
 
-import java.util.HashMap
 import java.util.HashSet
+import java.util.HashMap
 
 class ImportManager(val pkg: String?) {
     private val MIN_FOR_WILDCARD = 5
     private val fullNames = HashMap<String, String>() // short name -> full name
-    private val imports = HashMap<String, HashSet<String>>()
+    private val imports = java.util.HashMap<String, HashSet<String>>()
     private var empty = true
 
     private fun cutName(name: String): String? {
@@ -37,7 +37,7 @@ class ImportManager(val pkg: String?) {
         }
         var imported = imports[packageName]
         if (imported == null) {
-            imported = HashSet()
+            imported = java.util.HashSet()
             imports[packageName] = imported!!
         }
         imported!!.add(name)

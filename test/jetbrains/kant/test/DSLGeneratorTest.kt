@@ -1,15 +1,15 @@
 package jetbrains.kant.test
 
 import jetbrains.kant.generator.DSLGenerator
-import jetbrains.kant.constants.*
-import jetbrains.kant.createClassLoader
-import jetbrains.kant.cleanDirectory
-import jetbrains.kant.compileKotlinCode
+import jetbrains.kant.test.KAntTestCase.Property
+import jetbrains.kant.gtcommon.constants.*
+import jetbrains.kant.gtcommon.cleanDirectory
+import jetbrains.kant.gtcommon.compileKotlinCode
+import jetbrains.kant.gtcommon.getClassByPackage
+import jetbrains.kant.common.createClassLoader
 import java.lang.reflect.Method
 import java.io.File
 import java.io.File.pathSeparator
-import jetbrains.kant.test.KAntTestCase.Property
-import jetbrains.kant.getClassByPackage
 
 var dslGeneratorTestInitComplete = false
 
@@ -19,7 +19,8 @@ class DSLGeneratorTest : KAntTestCase() {
 
     val runnerMainMethod: Method;
     {
-        val dslDepends = array(ANT_JAR, ANT_LAUNCHER_JAR, ANT_CONTRIB_JAR, ARGS4J_JAR, KOTLIN_RUNTIME_JAR).join(pathSeparator)
+        val dslDepends = array(COMMON_BIN_DIR, ANT_JAR, ANT_LAUNCHER_JAR,
+                ANT_CONTRIB_JAR, ARGS4J_JAR, KOTLIN_RUNTIME_JAR).join(pathSeparator)
         if (!dslGeneratorTestInitComplete) {
             File(DSL_GENERATED_DIR).cleanDirectory()
             DSLGenerator(DSL_SRC_ROOT, array(ANT_JAR, ANT_CONTRIB_JAR), array(), true, true).generate()
@@ -27,7 +28,7 @@ class DSLGeneratorTest : KAntTestCase() {
             compileKotlinCode(dslDepends, DSL_BIN_DIR, DSL_SRC_ROOT)
             dslGeneratorTestInitComplete = true
         }
-        val classLoader = createClassLoader(DSL_BIN_DIR + pathSeparator + dslDepends)
+        val classLoader = createClassLoader(DSL_BIN_DIR + pathSeparator + dslDepends, null)
         val packageClass = classLoader.loadClass(getClassByPackage(KANT_PACKAGE))!!
         runnerMainMethod = packageClass.getMethod("main", javaClass<Array<String>>())
     }

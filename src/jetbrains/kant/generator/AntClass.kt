@@ -6,8 +6,8 @@ import java.util.HashSet
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.io.Serializable
-import jetbrains.kant.AntAttribute
-import jetbrains.kant.constants.ANT_CLASS_PREFIX
+import jetbrains.kant.gtcommon.AntAttribute
+import jetbrains.kant.gtcommon.constants.ANT_CLASS_PREFIX
 
 class AntClass(classLoader: ClassLoader, className: String) {
     private val PRIMITIVE_TYPES = HashMap<String, String>();

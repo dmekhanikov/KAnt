@@ -1,6 +1,9 @@
 package jetbrains.kant.generator
 
-import jetbrains.kant.*
+import jetbrains.kant.gtcommon.constants.*
+import jetbrains.kant.gtcommon.*
+import jetbrains.kant.common.createClassLoader
+import jetbrains.kant.common.valuesToMap
 import java.io.*
 import java.io.File.pathSeparator
 import org.kohsuke.args4j.*
@@ -9,8 +12,6 @@ import java.util.HashSet
 import java.util.ArrayList
 import java.util.regex.Pattern
 import java.util.jar.JarInputStream
-import org.jetbrains.jet.utils.valuesToMap
-import jetbrains.kant.constants.*
 
 fun main(args: Array<String>) {
     GeneratorRunner().doMain(args)
@@ -89,7 +90,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
     private val resolved = HashMap<String, Target>()
     public val structure: HashMap<String, DSLClass> = HashMap()
     private val containerGenerator = ContainerGenerator()
-    private var classLoader: ClassLoader = createClassLoader(classpath)
+    private var classLoader: ClassLoader = createClassLoader(classpath, null)
     private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
     private val aliasFiles = ArrayList<String>(); {
         this.aliasFiles.addAll(aliasFiles)

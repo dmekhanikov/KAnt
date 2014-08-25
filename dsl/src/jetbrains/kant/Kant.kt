@@ -10,6 +10,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.net.URLClassLoader
 import java.util.ArrayList
+import jetbrains.kant.common.createClassLoader
 
 fun main(args: Array<String>) {
     Kant().doMain(args)
@@ -32,23 +33,6 @@ public class Kant {
         System.exit(1)
     }
 
-    private fun createClassLoader(): ClassLoader  {
-        val path = ArrayList<URL>()
-        val jars = classpath.split(File.pathSeparator)
-        for (jar in jars) {
-            try {
-                if (jar.endsWith(".jar")) {
-                    path.add(URL("jar:file:" + jar + "!/"))
-                } else {
-                    path.add(URL("file:" + jar))
-                }
-            } catch (e: MalformedURLException) {
-                e.printStackTrace()
-            }
-        }
-        return URLClassLoader(path.toArray(Array(path.size()) { path[0] }), javaClass.getClassLoader())
-    }
-
     fun doMain(args: Array<String>) {
         val parser = CmdLineParser(this)
         try {
@@ -60,7 +44,7 @@ public class Kant {
             System.err.println()
             return
         }
-        val classLoader = createClassLoader()
+        val classLoader = createClassLoader(classpath, javaClass.getClassLoader())
         try {
             val classObject = classLoader.loadClass(className!!)!!
             val project = classObject.getField("INSTANCE$")!!.get(null) as DSLProject

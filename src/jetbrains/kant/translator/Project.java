@@ -1,9 +1,9 @@
 package jetbrains.kant.translator;
 
-import static jetbrains.kant.KantPackage.toCamelCase;
-import static jetbrains.kant.constants.ConstantsPackage.getDSL_PROJECT;
-import static jetbrains.kant.constants.ConstantsPackage.getDSL_PROJECT_FUNCTION;
-import jetbrains.kant.ImportManager;
+import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
+import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_PROJECT;
+import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_PROJECT_FUNCTION;
+import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
