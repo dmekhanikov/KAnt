@@ -3,7 +3,7 @@ import jetbrains.kant.dsl.taskdefs.*
 
 val file by StringProperty()
 
-val replaceProject = object : DSLProject() {
+object replaceProject : DSLProject() {
     {
         echo(message = "cat", file = file)
         replace(file = file) {

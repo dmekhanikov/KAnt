@@ -6,7 +6,7 @@ import jetbrains.kant.dsl.types.mappers.cutdirsmapper
 val srcDir by StringProperty()
 val destDir by StringProperty()
 
-val cutDirsMapperProject = object : DSLProject() {
+object cutDirsMapperProject : DSLProject() {
     {
         default = ::testCutDirsMapper
     }

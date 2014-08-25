@@ -34,7 +34,7 @@ public class Project extends Wrapper {
     public String toString(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder(indent);
         String dslProjectShorten = importManager.shorten(getDSL_PROJECT());
-        result.append("val project = object : ").append(dslProjectShorten).append("() {\n");
+        result.append("object project : ").append(dslProjectShorten).append("() {\n");
         if (defaultTarget != null || init != null) {
             result.append(indent).append(TAB).append("{\n");
             result.append(indent).append(TAB).append(TAB).

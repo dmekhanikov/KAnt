@@ -15,7 +15,7 @@ val stringFileProperty by StringProperty("string.file.property")
 val intFileProperty by IntProperty("int.file.property")
 val doubleFileProperty by DoubleProperty("double.file.property")
 
-val propertiesProject = object : DSLProject() {
+object propertiesProject : DSLProject() {
     {
         property(file = propertiesFile)
         default = ::testProperties
@@ -27,4 +27,3 @@ val propertiesProject = object : DSLProject() {
         echo(message = message, file = userPropertiesOutFile)
     }
 }
-

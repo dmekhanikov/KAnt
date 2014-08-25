@@ -21,25 +21,7 @@ public class Kant {
 
     [Argument(index = 0, metaVar = "project name", usage = "Fully qualified name of the project that must be performed",
             required = true)]
-    private var objectFQName: String? = null
-
-    private fun getClassName(): String {
-        val p = objectFQName!!.lastIndexOf('.')
-        if (p == -1) {
-            return "_DefaultPackage"
-        } else {
-            return objectFQName!!.substring(0, p)
-        }
-    }
-
-    private fun getFieldName(): String {
-        val p = objectFQName!!.lastIndexOf('.')
-        if (p == -1) {
-            return objectFQName!!
-        } else {
-            return objectFQName!!.substring(p + 1)
-        }
-    }
+    private var className: String? = null
 
     private fun getterName(fieldName: String): String {
         return "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1)
@@ -78,26 +60,19 @@ public class Kant {
             System.err.println()
             return
         }
-        val className = getClassName()
-        val fieldName = getFieldName()
         val classLoader = createClassLoader()
         try {
-            val classObject = classLoader.loadClass(className)!!
-            val projectGetter = classObject.getMethod(getterName(fieldName))!!
-            val project = projectGetter.invoke(null) as DSLProject
+            val classObject = classLoader.loadClass(className!!)!!
+            val project = classObject.getField("INSTANCE$")!!.get(null) as DSLProject
             project.perform()
         } catch (e: ClassNotFoundException) {
             System.err.println("Class " + className + " was not found")
-            e.printStackTrace()
-        } catch (e: NoSuchMethodException) {
-            System.err.println("Field " + fieldName + " in class " + className + " was not found")
-            e.printStackTrace()
         } catch (e: IllegalAccessException) {
             System.err.println("Cannot get the specified object")
             e.printStackTrace()
         } catch (e: InvocationTargetException) {
             System.err.println("Cannot get the specified object")
-            e.printStackTrace()
+            e.getCause()?.printStackTrace()
         }
     }
 }

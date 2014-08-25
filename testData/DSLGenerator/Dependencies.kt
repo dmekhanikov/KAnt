@@ -7,7 +7,7 @@ val src2Dir by StringProperty()
 val srcDir by StringProperty()
 val destDir by StringProperty()
 
-val dependenciesProject = object : DSLProject() {
+object dependenciesProject : DSLProject() {
     {
         default = ::testDepends
     }

@@ -6,7 +6,7 @@ val destFile by StringProperty()
 val antContribJarFile by StringProperty()
 val value by StringProperty()
 
-val switchProject = object : DSLProject() {
+object switchProject : DSLProject() {
     {
         taskdef(resource = "net/sf/antcontrib/antcontrib.properties",
                 classpath = antContribJarFile)

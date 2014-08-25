@@ -3,7 +3,7 @@ import jetbrains.kant.dsl.taskdefs.*
 
 val dir by StringProperty()
 
-val mkdirProject = object : DSLProject() {
+object mkdirProject : DSLProject() {
     {
         default = ::testMkdir
     }

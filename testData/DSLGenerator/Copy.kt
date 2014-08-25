@@ -5,7 +5,7 @@ import jetbrains.kant.dsl.types.fileset
 val srcDir by StringProperty()
 val destDir by StringProperty()
 
-val copyProject = object : DSLProject() {
+object copyProject : DSLProject() {
     {
         default = ::testCopy
     }

@@ -9,7 +9,7 @@ val arg1 by StringProperty()
 val arg2 by StringProperty()
 val file by StringProperty()
 
-val conditionsProject = object : DSLProject() {
+object conditionsProject : DSLProject() {
     {
         val message = StringBuilder()
         message.append(istrue(booleanProperty))!!.append("\n")
