@@ -10,9 +10,9 @@ object mathProject : DSLProject() {
     {
         taskdef(resource = "net/sf/antcontrib/antcontrib.properties",
                 classpath = antContribJarFile)
-        default = ::testMath
     }
 
+    [default]
     val testMath = target {
         math(result = "fact") {
             op(op = "*") {

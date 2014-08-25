@@ -2,6 +2,8 @@ package jetbrains.kant.dsl
 
 import org.apache.tools.ant.taskdefs.condition.Condition
 import org.apache.tools.ant.taskdefs.ConditionTask
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
 
 var maxRefid = 0
 
@@ -12,10 +14,15 @@ class DSLReference<T : DSLTask>(public val value: T) {
     }
 }
 
-trait DSLTextContainer: DSLTask
+[Retention(RetentionPolicy.RUNTIME)]
+annotation class default
 
-public fun DSLTextContainer.text(init: DSLTextContainer.() -> String) {
-    nestedText = init()
+class DSLException(message: String) : Exception(message)
+
+trait DSLTextContainer: DSLTask {
+    fun text(init: DSLTextContainer.() -> String) {
+        nestedText = init()
+    }
 }
 
 trait DSLCondition: DSLTask {

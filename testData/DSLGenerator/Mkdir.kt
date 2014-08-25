@@ -4,9 +4,7 @@ import jetbrains.kant.dsl.taskdefs.*
 val dir by StringProperty()
 
 object mkdirProject : DSLProject() {
-    {
-        default = ::testMkdir
-    }
+    [default]
     val testMkdir = target {
         mkdir(dir = dir)
     }

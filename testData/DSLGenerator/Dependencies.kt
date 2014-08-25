@@ -8,10 +8,6 @@ val srcDir by StringProperty()
 val destDir by StringProperty()
 
 object dependenciesProject : DSLProject() {
-    {
-        default = ::testDepends
-    }
-
     val copy1 = target {
         copy(todir = srcDir) {
             fileset(dir = src1Dir)
@@ -24,6 +20,7 @@ object dependenciesProject : DSLProject() {
         }
     }
 
+    [default]
     val testDepends = target(::copy1, ::copy2) {
         copy(todir = destDir) {
             fileset(dir = srcDir)

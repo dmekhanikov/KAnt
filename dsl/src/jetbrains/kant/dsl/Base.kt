@@ -6,7 +6,6 @@ import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
 import kotlin.reflect.KMemberProperty
-import kotlin.reflect.jvm.javaGetter
 import java.lang.reflect.Method
 import java.lang.reflect.Field
 
@@ -116,8 +115,7 @@ abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
 }
 
 open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
-    var default: KMemberProperty<out DSLProject, DSLTarget>? = null
-    val targets = HashMap<String, DSLTarget>();
+    val targets = HashMap<String, DSLTarget>(); // field name -> DSLTarget
     {
         initProperties(projectAO)
         targetAO.setProject(projectAO)
@@ -145,45 +143,59 @@ open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
         return result
     }
 
-    private fun Class<*>.getTargetNames(): Map<String, String> {
-        val names = ArrayList<String>()
-        var klass = this as Class<Any?>?
-        while (klass != null) {
-            names.addAll(klass!!.getDeclaredFields()!!.
-                    filter { it.getType()!!.getName() == DSL_TARGET }.
-                    map { it.getName()!! })
-            klass = klass!!.getSuperclass()
-        }
-        return names.valuesToMap { it.toLowerCase() }
+    private fun Class<*>.getTargetFields(): List<Field> {
+        return getDeclaredFields()!!.filter { it.getType()!!.getName() == DSL_TARGET }
     }
 
     private fun configureTargets() {
-        val targetNames = javaClass.getTargetNames()
-        val targetGetters = javaClass.getMethods()!!
-                .filter { it.getName()!!.startsWith("get") && it.getReturnType()!!.getName() == DSL_TARGET }
-        for (targetGetter in targetGetters) {
-            val fieldName = targetNames[targetGetter.getName()!!.substring("get".length).toLowerCase()]
-            if (fieldName != null) {
-                val target = targetGetter.invoke(this) as DSLTarget
-                if (target.name == null) {
-                    target.name = fieldName
+        var klass = javaClass as Class<Any?>?
+        while (klass != null) {
+            val targetFieldNames = klass!!.getTargetFields().map { it.getName()!! }.
+                    valuesToMap { it.toLowerCase() } // names in lower case -> normal names
+            val targetGetters = klass!!.getMethods()!!
+                    .filter { it.getName()!!.startsWith("get") && it.getReturnType()!!.getName() == DSL_TARGET }
+            for (targetGetter in targetGetters) {
+                val fieldName = targetFieldNames[targetGetter.getName()!!.substring("get".length).toLowerCase()]
+                if (fieldName != null && !targets.contains(fieldName)) {
+                    val target = targetGetter.invoke(this) as DSLTarget
+                    if (target.name == null) {
+                        target.name = fieldName
+                    }
+                    targets[fieldName] = target
                 }
-                targets[fieldName] = target
             }
+            klass = klass!!.getSuperclass()
         }
         for (target in targets.values()) {
             target.configure()
         }
     }
 
+    private fun getDefaultName(): String? {
+        var klass = javaClass as Class<Any?>?
+        var default: String? = null
+        while (default == null && klass != null) {
+            for (targetField in klass!!.getTargetFields()) {
+                if (targetField.isAnnotationPresent(javaClass<default>())) {
+                    if (default != null) {
+                        throw DSLException("Project cannot have more than one default target")
+                    }
+                    default = targets[targetField.getName()]!!.name
+                }
+            }
+            klass = klass!!.getSuperclass()
+        }
+        return default
+    }
+
     public fun perform() {
         configureTargets()
+        val default = getDefaultName()
         var error: Throwable? = null
         try {
             projectAO.fireBuildStarted()
             if (default != null) {
-                val defaultName = (default!!.javaGetter!!.invoke(this) as DSLTarget).name
-                projectAO.setDefault(defaultName)
+                projectAO.setDefault(default)
                 val basedir = propertyHelper!!.getProperty("basedir") as String
                 projectAO.setBaseDir(File(basedir))
                 projectAO.executeTarget(projectAO.getDefaultTarget())
@@ -192,15 +204,15 @@ open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
             error = t
         } finally {
             try {
-                projectAO.fireBuildFinished(error);
+                projectAO.fireBuildFinished(error)
             } catch (t: Throwable) {
                 System.err.println("Caught an exception while logging the"
-                        + " end of the build.  Exception was:");
-                t.printStackTrace();
+                        + " end of the build.  Exception was:")
+                t.printStackTrace()
                 if (error != null) {
                     System.err.println("There has been an error prior to"
-                            + " that:");
-                    error!!.printStackTrace();
+                            + " that:")
+                    error!!.printStackTrace()
                 }
             }
         }

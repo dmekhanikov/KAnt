@@ -18,8 +18,9 @@ val doubleFileProperty by DoubleProperty("double.file.property")
 object propertiesProject : DSLProject() {
     {
         property(file = propertiesFile)
-        default = ::testProperties
     }
+
+    [default]
     val testProperties = target {
         echo(message = antVersion, file = systemPropertiesOutFile)
         val message = "$stringProperty\n$booleanProperty\n$intProperty\n$doubleProperty\n$defaultProperty\n" +

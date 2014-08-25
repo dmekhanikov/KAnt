@@ -7,9 +7,7 @@ val srcDir by StringProperty()
 val destDir by StringProperty()
 
 object cutDirsMapperProject : DSLProject() {
-    {
-        default = ::testCutDirsMapper
-    }
+    [default]
     val testCutDirsMapper = target {
         copy(todir = destDir) {
             fileset(dir = srcDir)

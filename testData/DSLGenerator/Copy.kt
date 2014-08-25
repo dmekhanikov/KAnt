@@ -6,11 +6,9 @@ val srcDir by StringProperty()
 val destDir by StringProperty()
 
 object copyProject : DSLProject() {
-    {
-        default = ::testCopy
-    }
     val filesToCopy = fileset(dir = srcDir)
 
+    [default]
     val testCopy = target {
         retry(retryCount = 3) {
             copy(todir = destDir) {

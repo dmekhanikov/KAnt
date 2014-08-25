@@ -10,9 +10,9 @@ object switchProject : DSLProject() {
     {
         taskdef(resource = "net/sf/antcontrib/antcontrib.properties",
                 classpath = antContribJarFile)
-        default = ::testSwitch
     }
 
+    [default]
     val testSwitch = target {
         switch(value = value) {
             case(value = "foo") {

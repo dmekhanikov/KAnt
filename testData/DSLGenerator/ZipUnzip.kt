@@ -6,9 +6,7 @@ val zipFile by StringProperty()
 val outDir by StringProperty()
 
 object zipUnzipProject : DSLProject() {
-    {
-        default = ::zipAndUnzip
-    }
+    [default]
     val zipAndUnzip = target {
         zip (basedir = sourceDir) {
             destFile = zipFile
