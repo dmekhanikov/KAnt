@@ -13,7 +13,6 @@ public fun File.cleanDirectory() {
         }
         file.delete()
     }
-    delete()
 }
 
 public fun File.deleteRecursively() {

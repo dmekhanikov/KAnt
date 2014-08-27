@@ -22,7 +22,7 @@ class GeneratorRunner {
     private val classpath: String = ""
 
     [Option(name = "-d", metaVar = "<directory>", usage = "Output directory", required = true)]
-    private val outDir: File? = null
+    private val outDir: String = ""
 
     [Option(name = "-seek", usage = "Seek alias files")]
     private val seek = false
@@ -50,26 +50,13 @@ class GeneratorRunner {
             System.err.println()
             return
         }
-        val srcRoot = outDir.toString() + "/src/"
-        val binRoot = outDir.toString() + "/bin/"
-        val distRoot = outDir.toString() + "/dist/"
-        copyBaseFiles(DSL_SRC_ROOT, srcRoot)
-        val classpathArray = classpath.split(pathSeparator)
-        val generator = DSLGenerator(srcRoot, classpathArray, aliasFiles, seek, defAl)
+        val generator = DSLGenerator(outDir, classpath, aliasFiles, seek, defAl)
         generator.generate()
         if (compile || createJar) {
-            compileKotlinCode(classpath, binRoot, srcRoot)
-            val outFile = File(binRoot + STRUCTURE_FILE)
-            outFile.getParentFile()!!.mkdirs()
-            val fileOut = FileOutputStream(outFile)
-            val objectOutputStream = ObjectOutputStream(fileOut)
-            objectOutputStream.writeObject(generator.structure)
-            objectOutputStream.close()
-            fileOut.close()
+            generator.compile()
         }
         if (createJar) {
-            val jarFile = distRoot + "kant.jar"
-            createJar(jarFile, binRoot)
+            generator.createJar()
         }
     }
 }
@@ -85,13 +72,16 @@ private fun copyBaseFiles(src: String, dst: String) {
     }
 }
 
-class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles: Array<String>,
+class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<String>,
                    val seekForAliasFiles: Boolean = false, val defAl: Boolean = false) {
     private val resolved = HashMap<String, Target>()
     public val structure: HashMap<String, DSLClass> = HashMap()
     private val containerGenerator = ContainerGenerator()
     private var classLoader: ClassLoader = createClassLoader(classpath, null)
-    private val resultRoot = resultRoot + if (resultRoot.endsWith('/')) {""} else {'/'}
+    private val outDir = outDir + if (outDir.endsWith('/')) {""} else {'/'}
+    private val srcOutDir = outDir + "src/"
+    private val binOutDir = outDir + "bin/"
+    private val distOutDir = outDir + "dist/"
     private val aliasFiles = ArrayList<String>(); {
         this.aliasFiles.addAll(aliasFiles)
         structure.put(DSL_TASK_CONTAINER, DSLClass(DSL_TASK_CONTAINER, ArrayList<String>()))
@@ -143,10 +133,12 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
     }
 
     public fun generate() {
-        val generatedRoot = resultRoot + DSL_PACKAGE.replace('.', '/') + "/generated"
+        copyBaseFiles(DSL_SRC_ROOT, srcOutDir)
+        val generatedRoot = srcOutDir + DSL_PACKAGE.replace('.', '/') + "/generated"
         File(generatedRoot).mkdirs()
+        val classpathArray = classpath.split(pathSeparator)
         if (seekForAliasFiles) {
-            for (jar in classpath) {
+            for (jar in classpathArray) {
                 if (jar.endsWith(".jar")) {
                     val jis = JarInputStream(FileInputStream(jar))
                     aliasFiles.addAll(jis.getAliasFiles())
@@ -175,7 +167,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
             resolveAlias(alias)
         }
         if (defAl) {
-            for (jar in classpath) {
+            for (jar in classpathArray) {
                 if (jar.endsWith(".jar")) {
                     val jis = JarInputStream(FileInputStream(jar))
                     val antTasks = jis.getAntTasks()
@@ -200,6 +192,23 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
         containerGenerator.dump(File(generatedRoot + "/Containers.kt"))
     }
 
+    public fun compile() {
+        val depends = array(classpath, ARGS4J_JAR, COMMON_BIN_DIR).join(pathSeparator)
+        compileKotlinCode(depends, binOutDir, srcOutDir)
+        val outFile = File(binOutDir + STRUCTURE_FILE)
+        outFile.getParentFile()!!.mkdirs()
+        val fileOut = FileOutputStream(outFile)
+        val objectOutputStream = ObjectOutputStream(fileOut)
+        objectOutputStream.writeObject(structure)
+        objectOutputStream.close()
+        fileOut.close()
+    }
+
+    public fun createJar() {
+        val jarFile = distOutDir + "kant.jar"
+        createJar(jarFile, binOutDir)
+    }
+
     private fun resolveAlias(alias: Alias) {
         val tag = alias.tag
         val className = alias.className
@@ -222,7 +231,7 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
     }
 
     private fun resultFile(srcClassName: String): File {
-        return File(resultRoot + resultClassName(srcClassName)
+        return File(srcOutDir + resultClassName(srcClassName)
                 .replace(DSL_PACKAGE, DSL_PACKAGE + ".generated").replace('.', '/') + ".kt")
     }
 
@@ -497,8 +506,8 @@ class DSLGenerator(resultRoot: String, val classpath: Array<String>, aliasFiles:
 class DSLClass(val name: String, val traits: List<String>): Serializable {
     private val functions = HashMap<String, DSLFunction>()
 
-    fun addFunction(name: String, pkg: String?, attributes: List<AntAttribute>, receiver: String) {
-        functions.put(name.toLowerCase(), DSLFunction(toCamelCase(name), pkg, attributes.valuesToMap {it.name.toLowerCase()}, receiver))
+    fun addFunction(functionName: String, pkg: String?, attributes: List<AntAttribute>, receiver: String) {
+        functions.put(functionName.toLowerCase(), DSLFunction(toCamelCase(functionName), pkg, attributes.valuesToMap {it.name.toLowerCase()}, name, receiver))
     }
 
     fun containsFunction(name: String): Boolean {
@@ -510,7 +519,7 @@ class DSLClass(val name: String, val traits: List<String>): Serializable {
     }
 }
 
-class DSLFunction(val name: String, val pkg: String?, val attributes: Map<String, AntAttribute>, val initReceiver: String): Serializable {
+class DSLFunction(val name: String, val pkg: String?, val attributes: Map<String, AntAttribute>, val parentName: String, val initReceiver: String): Serializable {
     public fun getAttribute(attributeName: String): AntAttribute? {
         return attributes[attributeName.toLowerCase()]
     }

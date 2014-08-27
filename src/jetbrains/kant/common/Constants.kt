@@ -9,6 +9,7 @@ public val ANT_CLASS_PREFIX: String = "org.apache.tools.ant."
 
 public val DSL_SRC_ROOT: String = "dsl/src/"
 public val DSL_GENERATED_DIR: String = DSL_SRC_ROOT + DSL_PACKAGE.replace(".", "/") + "/generated/"
+public val COMMON_BIN_DIR: String = "out/production/common/"
 public val STRUCTURE_FILE: String = "resources/structure.ser"
 public val KOTLIN_RUNTIME_JAR: String = "lib/kotlin-runtime.jar"
 public val ANT_JAR: String = "lib/ant-1.9.4.jar"
