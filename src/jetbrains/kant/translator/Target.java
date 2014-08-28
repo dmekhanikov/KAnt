@@ -4,15 +4,19 @@ import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
 import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_TARGET_FUNCTION;
 import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 
 public class Target extends Wrapper {
     private String targetName;
 
     private String[] depends;
 
-    public Target(Attributes attributes) {
+    public Target(Attributes attributes) throws SAXException {
         super(getDSL_TARGET_FUNCTION(), null);
         targetName = attributes.getValue("name");
+        if (targetName == null) {
+            throw new SAXException("Target should have a name");
+        }
         String dependsString = attributes.getValue("depends");
         if (dependsString != null) {
             depends = dependsString.split(",");
@@ -33,15 +37,32 @@ public class Target extends Wrapper {
     @Override
     public String toString(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder();
-        result.append(indent).append("val ").append(toCamelCase(targetName));
-        result.append(" = target(\"").append(targetName).append("\"");
+        if (((Project) parent).getDefaultTarget().equals(targetName)) {
+            result.append(indent).append("[default]\n");
+        }
+        String fieldName = toCamelCase(targetName);
+        result.append(indent).append("val ").append(fieldName);
+        result.append(" = target");
+        boolean firstArgument = true;
+        if (!fieldName.equals(targetName)) {
+            result.append("(\"").append(targetName).append("\"");
+            firstArgument = false;
+        }
         importManager.addImport(getDSL_TARGET_FUNCTION());
         if (depends != null) {
             for (String depend : depends) {
-                result.append(", ::").append(toCamelCase(depend));
+                if (firstArgument) {
+                    firstArgument = false;
+                    result.append("(");
+                } else {
+                    result.append(", ");
+                }
+                result.append("::").append(toCamelCase(depend));
             }
         }
-        result.append(")");
+        if (!firstArgument) {
+            result.append(")");
+        }
         if (!children.isEmpty()) {
             result.append(" {\n");
             result.append(renderChildren(propertyManager, importManager));

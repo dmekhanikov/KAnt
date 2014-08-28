@@ -10,9 +10,12 @@ public class ConditionTask extends Wrapper{
     private String elseValue;
     private Condition condition;
 
-    public ConditionTask(Attributes attributes) {
+    public ConditionTask(Attributes attributes) throws SAXException {
         super((String) null, attributes);
         propName = attributes.getValue("property");
+        if (propName == null) {
+            throw new SAXException("Condition task should have a \"property\" attribute");
+        }
         value = attributes.getValue("value");
         if (value == null) {
             value = "true";

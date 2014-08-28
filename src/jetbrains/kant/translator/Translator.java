@@ -137,11 +137,27 @@ public class Translator {
             stack.add(new Wrapper((String) null, null));
         }
 
+        private void defaultHandler(String name, Attributes attrs, Wrapper parent, DSLFunction constructor) throws SAXException {
+            propertyManager.finishDeclaring();
+            Wrapper wrapper;
+            if (constructor != null) {
+                wrapper = new Wrapper(constructor, attrs);
+            } else {
+                wrapper = new Wrapper(name, attrs);
+            }
+            processChild(wrapper, parent);
+        }
+
         @Override
         public void startElement(String namespaceURI, String localName, String qName, Attributes attrs) throws SAXException {
             Wrapper parent = null;
             if (!stack.isEmpty()) {
                 parent = stack.get(stack.size() - 1);
+            }
+            DSLFunction constructor = findConstructor(parent, qName);
+            if (constructor != null && !constructor.getParentName().equals(getDSL_TASK_CONTAINER())) { // it's a nested element
+                defaultHandler(qName, attrs, parent, constructor);
+                return;
             }
             switch (qName) {
                 case "project": {
@@ -156,7 +172,6 @@ public class Translator {
                     break;
                 }
                 case "property": {
-                    DSLFunction constructor = findConstructor(parent, qName);
                     Property property;
                     if (constructor != null) {
                          property = new Property(attrs, constructor);
@@ -208,15 +223,7 @@ public class Translator {
                     }
                 }
                 default: {
-                    propertyManager.finishDeclaring();
-                    DSLFunction constructor = findConstructor(parent, qName);
-                    Wrapper wrapper;
-                    if (constructor != null) {
-                        wrapper = new Wrapper(constructor, attrs);
-                    } else {
-                        wrapper = new Wrapper(qName, attrs);
-                    }
-                    processChild(wrapper, parent);
+                    defaultHandler(qName, attrs, parent, constructor);
                 }
             }
         }

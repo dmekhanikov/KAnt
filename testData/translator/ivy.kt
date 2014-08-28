@@ -77,7 +77,6 @@ val envIVYHOME by StringProperty("env.IVY_HOME")
 
 object project : DSLProject() {
     {
-        default = ::coverageReport
         property(environment = "env")
         property(file = "version.properties")
         property(file = "build.properties")
@@ -107,7 +106,7 @@ object project : DSLProject() {
         ivy:configure(override = "true")
     }
 
-    val install = target("install", ::initIvyHome, ::jar) {
+    val install = target(::initIvyHome, ::jar) {
         ivyJarFile = "$ivyHome/jars/ivy.jar"
         copy(file = "$artifactsBuildDir/jars/$finalName", tofile = ivyJarFile)
     }
@@ -120,7 +119,7 @@ object project : DSLProject() {
         copy(file = "$artifactsBuildDir/jars/$finalName", tofile = "$antHome/lib/ivy.jar")
     }
 
-    val init = target("init") {
+    val init = target {
         val libClasspath = path {
             fileset(dir = libDir) {
                 include(name = "*.jar")
@@ -158,7 +157,7 @@ object project : DSLProject() {
         }
     }
 
-    val prepare = target("prepare", ::init) {
+    val prepare = target(::init) {
         mkdir(dir = classesBuildDir)
         mkdir(dir = coreClassesBuildDir)
         mkdir(dir = bootstrapClassesBuildDir)
@@ -171,7 +170,7 @@ object project : DSLProject() {
         mkdir(dir = ivyReportDir)
     }
 
-    val clean = target("clean") {
+    val clean = target {
         delete(dir = classesBuildDir)
         delete(dir = testBuildDir)
         delete(dir = artifactsBuildDir)
@@ -201,23 +200,23 @@ object project : DSLProject() {
 
     val cleanAll = target("clean-all", ::clean, ::cleanLib, ::cleanExamples) {}
 
-    val /noresolve = target("/noresolve") {
+    val /noresolve = target {
         noResolve = true
     }
 
-    val /notest = target("/notest") {
+    val /notest = target {
         skipTest = true
     }
 
-    val /nojavadoc = target("/nojavadoc") {
+    val /nojavadoc = target {
         skipJavadoc = true
     }
 
-    val /localivy = target("/localivy") {
+    val /localivy = target {
         ivyUseLocalHome = true
     }
 
-    val /offline = target("/offline", ::/noresolve) {
+    val /offline = target(::/noresolve) {
         offline = true
     }
 
@@ -230,7 +229,7 @@ object project : DSLProject() {
         bundleVersion = "$targetIvyBundleVersion.${targetIvyBundleVersionQualifier}$pubdate"
     }
 
-    val resolve = target("resolve", ::initIvy) {
+    val resolve = target(::initIvy) {
         ivy:retrieve(conf = "default,test", pattern = "$libDir/[artifact].[ext]", sync = "yes")
     }
 
@@ -292,7 +291,7 @@ object project : DSLProject() {
         }
     }
 
-    val jar = target("jar", ::compileOptional, ::defaultVersion) {
+    val jar = target(::compileOptional, ::defaultVersion) {
         echo(message = "version=${buildVersion}$lineSeparator", file = "$coreClassesBuildDir/module.properties", append = true)
         echo(message = "date=${pubdate}$lineSeparator", file = "$coreClassesBuildDir/module.properties", append = true)
         mkdir(dir = "$artifactsBuildDir/jars/")
@@ -354,7 +353,7 @@ object project : DSLProject() {
 
     val initTests = target("init-tests", ::initTestsOffline, ::initTestsOnline) {}
 
-    val emma = target("emma", ::jar) {
+    val emma = target(::jar) {
         ivy:cachepath(organisation = "emma", module = "emma", revision = "2.0.5312", inline = "true", conf = "default", pathid = "emma.classpath", log = "download-only")
         ivy:cachepath(organisation = "emma", module = "emma_ant", revision = "2.0.5312", inline = "true", conf = "default", pathid = "emma.ant.classpath", transitive = "false", log = "download-only")
         taskdef(resource = "emma_ant.properties") {
@@ -427,7 +426,7 @@ object project : DSLProject() {
         }
     }
 
-    val test = target("test", ::testInternal) {
+    val test = target(::testInternal) {
         fail(`if` = "test.failed", message = "At least one test has failed. See logs (in $testXmlDir) for details (use the target test-report to run the test with a report)")
     }
 
@@ -441,6 +440,7 @@ object project : DSLProject() {
         fail(`if` = "test.failed", message = "At least one test has failed. See logs (in $testXmlDir) or report (in $testReportDir)")
     }
 
+    [default]
     val coverageReport = target("coverage-report", ::emma, ::testReport) {
         mkdir(dir = coverageReportDir)
         emma {
@@ -458,13 +458,13 @@ object project : DSLProject() {
         ivy:report(todir = ivyReportDir)
     }
 
-    val javadoc = target("javadoc") {
+    val javadoc = target {
         javadoc(destdir = javadocBuildDir, useExternalFile = true) {
             fileset(dir = srcDir, includes = "**/*.java")
         }
     }
 
-    val sources = target("sources", ::defaultVersion) {
+    val sources = target(::defaultVersion) {
         mkdir(dir = "$artifactsBuildDir/sources/")
         jar(destFile = "$artifactsBuildDir/sources/$finalName") {
             metainf(dir = basedir, includes = "LICENSE,NOTICE")
@@ -477,7 +477,7 @@ object project : DSLProject() {
         }
     }
 
-    val fixcrlf = target("fixcrlf") {
+    val fixcrlf = target {
         eolNativeIncludes = "**/*.html,**/*.json,**/*.java,**/*.xml,**/*.txt,**/*.MF,**/*.properties,**/*.patterns,**/*.pom,**/*.xsl,**/*.css"
         eolNativeExcludes = "build/**,bin/**,lib/**"
         val eolNativeFileset = fileset(dir = basedir, includes = eolNativeIncludes, excludes = eolNativeExcludes)
@@ -508,7 +508,7 @@ object project : DSLProject() {
         }
     }
 
-    val checkstyle = target("checkstyle", ::checkstyleInternal) {
+    val checkstyle = target(::checkstyleInternal) {
         fail(`if` = "checkstyle.failed", message = "Checkstyle has errors. See report in $checkstyleReportDir")
     }
 
@@ -536,7 +536,7 @@ object project : DSLProject() {
         mkdir(dir = "$findbugsHome/plugin")
     }
 
-    val findbugs = target("findbugs", ::initFindbugs, ::compileCore) {
+    val findbugs = target(::initFindbugs, ::compileCore) {
         val findbugsRealClasspath = path {
             fileset(dir = "$findbugsHome/lib", includes = "*.jar")
         }

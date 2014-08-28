@@ -99,7 +99,6 @@ fun DSLTaskContainer.newKotlinc(src: String, output: String, classpath: String) 
 
 object project : DSLProject() {
     {
-        default = ::dist
         property(file = "resources/manifest.properties")
         val classpath = path {
             file(file = bootstrapRuntime)
@@ -171,16 +170,16 @@ object project : DSLProject() {
         }
     }
 
-    val clean = target("clean") {
+    val clean = target {
         delete(dir = output)
     }
 
-    val init = target("init") {
+    val init = target {
         mkdir(dir = kotlinHome)
         mkdir(dir = "$kotlinHome/lib")
     }
 
-    val prepareDist = target("prepareDist") {
+    val prepareDist = target {
         copy(todir = "$kotlinHome/bin") {
             fileset(dir = "$basedir/compiler/cli/bin")
         }
@@ -192,7 +191,7 @@ object project : DSLProject() {
         chmod(dir = "$kotlinHome/bin", excludes = "**/*.bat", perm = "755")
     }
 
-    val compilerSources = target("compilerSources") {
+    val compilerSources = target {
         jar(jarfile = "$output/kotlin-compiler-sources.jar") {
             fileset(dir = "compiler/frontend/src")
             fileset(dir = "core/descriptors/src")
@@ -244,7 +243,7 @@ object project : DSLProject() {
         }
     }
 
-    val jslib = target("jslib") {
+    val jslib = target {
         jar(jarfile = "$kotlinHome/lib/kotlin-jslib.jar") {
             fileset(dir = "$basedir/js/js.libraries/src") {
                 include(name = "core/**")
@@ -274,7 +273,7 @@ object project : DSLProject() {
         }
     }
 
-    val preloader = target("preloader") {
+    val preloader = target {
         cleandir(dir = "$output/classes/preloader")
         javac2(destdir = "$output/classes/preloader", debug = "true", debuglevel = "lines,vars,source", includeAntRuntime = "false", source = javaTarget.toString(), target = javaTarget.toString()) {
             src(refid = "preloaderSources.path")
@@ -291,7 +290,7 @@ object project : DSLProject() {
         }
     }
 
-    val builtins = target("builtins") {
+    val builtins = target {
         cleandir(dir = "$output/builtins")
         java(classname = "org.jetbrains.jet.utils.builtinsSerializer.BuiltinsSerializerPackage", classpath = "$bootstrapCompilerHome/lib/kotlin-compiler.jar", failonerror = true, fork = true) {
             assertions {
@@ -315,7 +314,7 @@ object project : DSLProject() {
         packCompiler(jarfile = "$kotlinHome/lib/kotlin-compiler.jar", compress = false)
     }
 
-    val compiler = target("compiler") {
+    val compiler = target {
         taskdef(resource = "proguard/ant/task.properties", classpath = "$dependenciesDir/proguard.jar")
         cleandir(dir = "$output/classes/compiler")
         javac2(destdir = "$output/classes/compiler", debug = "true", debuglevel = "lines,vars,source", includeAntRuntime = "false", source = javaTarget.toString(), target = javaTarget.toString()) {
@@ -453,7 +452,7 @@ object project : DSLProject() {
         }
     }
 
-    val antTools = target("antTools") {
+    val antTools = target {
         cleandir(dir = "$output/classes/buildTools")
         javac2(destdir = "$output/classes/buildTools", debug = "true", debuglevel = "lines,vars,source", includeAntRuntime = "false", source = javaTarget.toString(), target = javaTarget.toString()) {
             withKotlin(externalannotations = externalAnnotationsPath)
@@ -484,15 +483,15 @@ object project : DSLProject() {
         }
     }
 
-    val jdkAnnotations = target("jdkAnnotations") {
+    val jdkAnnotations = target {
         copy(file = "dependencies/annotations/kotlin-jdk-annotations.jar", todir = "$kotlinHome/lib")
     }
 
-    val androidSdkAnnotations = target("androidSdkAnnotations") {
+    val androidSdkAnnotations = target {
         copy(file = "dependencies/annotations/kotlin-android-sdk-annotations.jar", todir = "$kotlinHome/lib")
     }
 
-    val runtime = target("runtime") {
+    val runtime = target {
         newKotlinc(src = "$basedir/core/builtins/src $basedir/core/runtime.jvm/src $basedir/core/reflection/src", output = "$output/classes/runtime", classpath = "$basedir/core/runtime.jvm/src")
         javac2(destdir = "$output/classes/runtime", debug = "true", debuglevel = "lines,vars,source", includeAntRuntime = "false", source = javaTarget.toString(), target = javaTarget.toString()) {
             src(path = "$basedir/core/runtime.jvm/src")
@@ -529,13 +528,14 @@ object project : DSLProject() {
         }
     }
 
-    val dist = target("dist", ::clean, ::init, ::prepareDist, ::preloader, ::builtins, ::compiler, ::compilerSources, ::antTools, ::jdkAnnotations, ::androidSdkAnnotations, ::runtime, ::runtimeSources, ::jslib) {}
+    [default]
+    val dist = target(::clean, ::init, ::prepareDist, ::preloader, ::builtins, ::compiler, ::compilerSources, ::antTools, ::jdkAnnotations, ::androidSdkAnnotations, ::runtime, ::runtimeSources, ::jslib) {}
 
     val distQuick = target("dist_quick", ::clean, ::init, ::prepareDist, ::preloader, ::builtins, ::compilerQuick, ::antTools, ::jdkAnnotations, ::androidSdkAnnotations, ::runtime, ::runtimeSources, ::jslib) {}
 
     val distQuickCompilerOnly = target("dist_quick_compiler_only", ::init, ::prepareDist, ::preloader, ::builtins, ::compilerQuick) {}
 
-    val zip = target("zip", ::dist) {
+    val zip = target(::dist) {
         zip(destFile = "$output/$outputName.zip") {
             zipfileset(prefix = "kotlinc", dir = kotlinHome, excludes = "bin/*")
             zipfileset(prefix = "kotlinc/bin", dir = "$kotlinHome/bin", includes = "*.bat", fileMode = "644")
