@@ -116,7 +116,8 @@ abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
 }
 
 open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
-    val targets = HashMap<String, DSLTarget>(); // field name -> DSLTarget
+    val targets = HashMap<String, DSLTarget>() // field name -> DSLTarget
+    private var configured = false
     {
         initProperties(projectAO)
         targetAO.setProject(projectAO)
@@ -140,7 +141,11 @@ open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
         return getDeclaredFields()!!.filter { it.getType()!!.getName() == DSL_TARGET }
     }
 
-    private fun configureTargets() {
+    public fun configureTargets() {
+        if (configured) {
+            return
+        }
+        configured = true
         var klass = javaClass as Class<Any?>?
         while (klass != null) {
             val targetFieldNames = klass!!.getTargetFields().map { it.getName()!! }.
@@ -150,8 +155,16 @@ open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
             for (targetGetter in targetGetters) {
                 val fieldName = targetFieldNames[targetGetter.getName()!!.substring("get".length).toLowerCase()]
                 if (fieldName != null && !targets.contains(fieldName)) {
-                    val target = targetGetter.invoke(this) as DSLTarget
-                    if (target.name == null) {
+                    var target = targetGetter.invoke(this) as DSLTarget
+                    if (target.project != this) {
+                        val name = if (target.namedAsField) {
+                            null
+                        } else {
+                            target.name
+                        }
+                        target = target(target.depends, name, target.init)
+                    }
+                    if (target.namedAsField) {
                         target.name = fieldName
                     }
                     targets[fieldName] = target
@@ -214,7 +227,9 @@ open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
 class DSLTarget(val project: DSLProject, var name: String?,
                 val depends: Array<KMemberProperty<out DSLProject, DSLTarget>>,
                 val init: DSLTaskContainer.() -> Unit) : DSLElement(project.projectAO, Target()), DSLTaskContainer {
-    fun configure() {
+    val namedAsField = name == null
+
+    public fun configure() {
         targetAO.setProject(projectAO)
         targetAO.setName(name)
         projectAO.addTarget(name, targetAO)
@@ -228,6 +243,12 @@ class DSLTarget(val project: DSLProject, var name: String?,
         }
         targetAO.setDepends(dependsString.toString())
         addTask(createLazyTask(init))
+    }
+
+    public fun execute() {
+        project.configureTargets()
+        System.out.println("\n$name:")
+        targetAO.execute()
     }
 }
 
