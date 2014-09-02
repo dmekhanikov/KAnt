@@ -26,7 +26,7 @@ public class IfStatement extends Wrapper {
         switch (child.name) {
             case "then":
                 if (thenStatement != null) {
-                    throw new SAXException("\"if\" cannot contain more than one \"then\" statements");
+                    throw new SAXException("\"if\" cannot contain more than one \"then\" statement");
                 }
                 thenStatement = new Sequential(child);
                 return thenStatement;
@@ -35,7 +35,7 @@ public class IfStatement extends Wrapper {
                     throw new SAXException("\"elseif\" cannot contain \"else\" statements");
                 }
                 if (elseStatement != null) {
-                    throw new SAXException("\"if\" cannot contain more than one \"else\" statements");
+                    throw new SAXException("\"if\" cannot contain more than one \"else\" statement");
                 }
                 elseStatement = new Sequential(child);
                 return elseStatement;
