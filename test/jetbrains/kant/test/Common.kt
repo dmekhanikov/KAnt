@@ -4,7 +4,6 @@ import java.io.File
 import java.io.BufferedReader
 import java.io.FileReader
 import java.util.HashMap
-import jetbrains.kant.gtcommon.constants.COMMON_BIN_DIR
 import jetbrains.kant.gtcommon.constants.ANT_JAR
 import jetbrains.kant.gtcommon.constants.ANT_LAUNCHER_JAR
 import jetbrains.kant.gtcommon.constants.ANT_CONTRIB_JAR
@@ -20,7 +19,7 @@ val DSL_BIN_DIR = GENERATOR_OUT_DIR + "bin/"
 val TEST_PLAYGROUND_DIR = TEST_BIN_DIR + "playground/"
 val TEST_PLAYGROUND_BIN_DIR = TEST_PLAYGROUND_DIR + "bin/"
 val TEST_PLAYGROUND_WORK_DIR = TEST_PLAYGROUND_DIR + "work/"
-val DSL_DEPENDS = array(COMMON_BIN_DIR, ANT_JAR, ANT_LAUNCHER_JAR,
+val DSL_DEPENDS = array(ANT_JAR, ANT_LAUNCHER_JAR,
         ANT_CONTRIB_JAR, ARGS4J_JAR, KOTLIN_RUNTIME_JAR)
 
 fun file(fileName: String): String {

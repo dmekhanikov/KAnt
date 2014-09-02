@@ -193,8 +193,8 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
     }
 
     public fun compile() {
-        val depends = array(classpath, ARGS4J_JAR, COMMON_BIN_DIR).join(pathSeparator)
-        compileKotlinCode(depends, binOutDir, srcOutDir)
+        val depends = array(classpath, ARGS4J_JAR).join(pathSeparator)
+        compileKotlinCode(depends, binOutDir, srcOutDir, COMMON_SRC_DIR)
         val outFile = File(binOutDir + STRUCTURE_FILE)
         outFile.getParentFile()!!.mkdirs()
         val fileOut = FileOutputStream(outFile)
