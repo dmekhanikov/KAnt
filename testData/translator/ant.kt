@@ -229,20 +229,22 @@ object project : DSLProject() {
         expandpropertyFiles = "**/version.txt,**/defaultManifest.mf"
         junitCollectorDir = "$buildDir/failingTests"
         junitCollectorClass = "FailedTests"
-        val classpath = path {
-            fileset(dir = "lib/optional", includes = "*.jar")
-        }
-        val testsClasspath = path {
-            pathElement(location = buildClasses)
-            path(refid = classpath)
-        }
-        val testsRuntimeClasspath = path {
-            path(refid = testsClasspath)
-            pathElement(location = buildTests)
-            pathElement(location = srcJunit)
-            pathElement(location = testsEtcDir)
-            pathElement(location = "$javaHome/../lib/tools.jar")
-        }
+    }
+    val classpath = path {
+        fileset(dir = "lib/optional", includes = "*.jar")
+    }
+    val testsClasspath = path {
+        pathElement(location = buildClasses)
+        path(refid = classpath)
+    }
+    val testsRuntimeClasspath = path {
+        path(refid = testsClasspath)
+        pathElement(location = buildTests)
+        pathElement(location = srcJunit)
+        pathElement(location = testsEtcDir)
+        pathElement(location = "$javaHome/../lib/tools.jar")
+    };
+    {
         distName = "apache-$name-$projectVersion"
         distBase = "distribution"
         distBaseSource = "$distBase/source"
@@ -259,150 +261,152 @@ object project : DSLProject() {
         srcDistManual = "$srcDistDir/manual"
         srcDistLib = "$srcDistDir/lib"
         javaRepositoryDir = "java-repository/$groupid"
-        val notInKaffe = selector {
-            or {
-                filename(name = "$conditionPackage/IsReachable*")
-            }
+    }
+    val notInKaffe = selector {
+        or {
+            filename(name = "$conditionPackage/IsReachable*")
         }
-        val needsApacheResolver = selector {
-            filename(name = "$apacheResolverTypePackage/")
-        }
-        val needsJunit = selector {
-            and {
-                filename(name = "$optionalPackage/junit/")
-                not {
-                    or {
-                        filename(name = "$optionalPackage/junit/JUnit4TestMethodAdapter*")
-                        filename(name = "$optionalPackage/junit/CustomJUnit4TestAdapterCache*")
-                    }
-                }
-            }
-        }
-        val needsJunit4 = selector {
-            or {
-                filename(name = "$optionalPackage/junit/JUnit4TestMethodAdapter*")
-                filename(name = "$optionalPackage/junit/CustomJUnit4TestAdapterCache*")
-            }
-        }
-        val needsApacheRegexp = selector {
-            filename(name = "$regexpPackage/JakartaRegexp*")
-        }
-        val needsApacheOro = selector {
-            or {
-                filename(name = "$regexpPackage/JakartaOro*")
-            }
-        }
-        val needsApacheBcel = selector {
-            or {
-                filename(name = "$antPackage/filters/util/JavaClassHelper*")
-                filename(name = "$utilPackage/depend/bcel/")
-                filename(name = "$optionalTypePackage/depend/ClassFileSetTest*")
-            }
-        }
-        val needsApacheLog4j = selector {
-            filename(name = "$antPackage/listener/Log4jListener*")
-        }
-        val needsCommonsLogging = selector {
-            filename(name = "$antPackage/listener/CommonsLoggingListener*")
-        }
-        val needsApacheBsf = selector {
-            or {
-                filename(name = "$utilPackage/ScriptRunner.*")
-                filename(name = "$utilPackage/optional/ScriptRunner*")
-            }
-        }
-        val needsJavamail = selector {
-            or {
-                filename(name = "$antPackage/taskdefs/email/MimeMailer*")
-            }
-        }
-        val needsNetrexx = selector {
-            filename(name = "$optionalPackage/NetRexxC*")
-        }
-        val needsCommonsNet = selector {
-            or {
-                filename(name = "$optionalPackage/net/FTP*")
-                filename(name = "$optionalPackage/net/RExec*")
-                filename(name = "$optionalPackage/net/TelnetTask*")
-            }
-        }
-        val needsAntlr = selector {
-            filename(name = "$optionalPackage/ANTLR*")
-        }
-        val needsJmf = selector {
-            filename(name = "$optionalPackage/sound/")
-        }
-        val needsJai = selector {
-            or {
-                filename(name = "$optionalPackage/image/")
-                filename(name = "$optionalTypePackage/image/")
-            }
-        }
-        val needsJdepend = selector {
-            filename(name = "$optionalPackage/jdepend/")
-        }
-        val needsSwing = selector {
-            filename(name = "$optionalPackage/splash/")
-        }
-        val needsJsch = selector {
-            filename(name = "$optionalPackage/ssh/")
-        }
-        val needsApacheXalan2 = selector {
-            filename(name = "$optionalPackage/Xalan2TraceSupport*")
-        }
-        val antLauncher = selector {
-            filename(name = "$antPackage/launch/")
-        }
-        val antCore = selector {
+    }
+    val needsApacheResolver = selector {
+        filename(name = "$apacheResolverTypePackage/")
+    }
+    val needsJunit = selector {
+        and {
+            filename(name = "$optionalPackage/junit/")
             not {
                 or {
-                    selector(refid = needsAntlr)
-                    selector(refid = needsApacheBcel)
-                    selector(refid = needsApacheBsf)
-                    selector(refid = needsApacheLog4j)
-                    selector(refid = needsApacheOro)
-                    selector(refid = needsApacheRegexp)
-                    selector(refid = needsApacheResolver)
-                    selector(refid = needsApacheXalan2)
-                    selector(refid = needsCommonsLogging)
-                    selector(refid = needsCommonsNet)
-                    selector(refid = needsJai)
-                    selector(refid = needsJavamail)
-                    selector(refid = needsJdepend)
-                    selector(refid = needsJmf)
-                    selector(refid = needsJsch)
-                    selector(refid = needsJunit)
-                    selector(refid = needsJunit4)
-                    selector(refid = needsNetrexx)
-                    selector(refid = needsSwing)
-                    selector(refid = antLauncher)
+                    filename(name = "$optionalPackage/junit/JUnit4TestMethodAdapter*")
+                    filename(name = "$optionalPackage/junit/CustomJUnit4TestAdapterCache*")
                 }
             }
         }
-        val onlinetests = patternset {
-            exclude(name = "**/GetTest.java", `if` = "offline")
-            exclude(name = "**/HttpTest.java", `if` = "offline")
+    }
+    val needsJunit4 = selector {
+        or {
+            filename(name = "$optionalPackage/junit/JUnit4TestMethodAdapter*")
+            filename(name = "$optionalPackage/junit/CustomJUnit4TestAdapterCache*")
         }
-        val teststhatfail = patternset {
-            exclude(unless = "run.failing.tests", name = "$optionalPackage/BeanShellScriptTest.java")
-            exclude(unless = "run.failing.tests", name = "$optionalPackage/jdepend/JDependTest.java")
+    }
+    val needsApacheRegexp = selector {
+        filename(name = "$regexpPackage/JakartaRegexp*")
+    }
+    val needsApacheOro = selector {
+        or {
+            filename(name = "$regexpPackage/JakartaOro*")
         }
-        val needsXmlschema = selector {
+    }
+    val needsApacheBcel = selector {
+        or {
+            filename(name = "$antPackage/filters/util/JavaClassHelper*")
+            filename(name = "$utilPackage/depend/bcel/")
+            filename(name = "$optionalTypePackage/depend/ClassFileSetTest*")
+        }
+    }
+    val needsApacheLog4j = selector {
+        filename(name = "$antPackage/listener/Log4jListener*")
+    }
+    val needsCommonsLogging = selector {
+        filename(name = "$antPackage/listener/CommonsLoggingListener*")
+    }
+    val needsApacheBsf = selector {
+        or {
+            filename(name = "$utilPackage/ScriptRunner.*")
+            filename(name = "$utilPackage/optional/ScriptRunner*")
+        }
+    }
+    val needsJavamail = selector {
+        or {
+            filename(name = "$antPackage/taskdefs/email/MimeMailer*")
+        }
+    }
+    val needsNetrexx = selector {
+        filename(name = "$optionalPackage/NetRexxC*")
+    }
+    val needsCommonsNet = selector {
+        or {
+            filename(name = "$optionalPackage/net/FTP*")
+            filename(name = "$optionalPackage/net/RExec*")
+            filename(name = "$optionalPackage/net/TelnetTask*")
+        }
+    }
+    val needsAntlr = selector {
+        filename(name = "$optionalPackage/ANTLR*")
+    }
+    val needsJmf = selector {
+        filename(name = "$optionalPackage/sound/")
+    }
+    val needsJai = selector {
+        or {
+            filename(name = "$optionalPackage/image/")
+            filename(name = "$optionalTypePackage/image/")
+        }
+    }
+    val needsJdepend = selector {
+        filename(name = "$optionalPackage/jdepend/")
+    }
+    val needsSwing = selector {
+        filename(name = "$optionalPackage/splash/")
+    }
+    val needsJsch = selector {
+        filename(name = "$optionalPackage/ssh/")
+    }
+    val needsApacheXalan2 = selector {
+        filename(name = "$optionalPackage/Xalan2TraceSupport*")
+    }
+    val antLauncher = selector {
+        filename(name = "$antPackage/launch/")
+    }
+    val antCore = selector {
+        not {
             or {
-                filename(name = "$optionalPackage/SchemaValidateTest.*")
-                filename(name = "$optionalPackage/XmlValidateTest.*")
+                selector(refid = needsAntlr)
+                selector(refid = needsApacheBcel)
+                selector(refid = needsApacheBsf)
+                selector(refid = needsApacheLog4j)
+                selector(refid = needsApacheOro)
+                selector(refid = needsApacheRegexp)
+                selector(refid = needsApacheResolver)
+                selector(refid = needsApacheXalan2)
+                selector(refid = needsCommonsLogging)
+                selector(refid = needsCommonsNet)
+                selector(refid = needsJai)
+                selector(refid = needsJavamail)
+                selector(refid = needsJdepend)
+                selector(refid = needsJmf)
+                selector(refid = needsJsch)
+                selector(refid = needsJunit)
+                selector(refid = needsJunit4)
+                selector(refid = needsNetrexx)
+                selector(refid = needsSwing)
+                selector(refid = antLauncher)
             }
         }
-        val usefulTests = patternset {
-            include(name = "$antPackage/AntAssert*")
-            include(name = "$antPackage/BuildFileTest*")
-            include(name = "$antPackage/BuildFileRule*")
-            include(name = "$antPackage/FileUtilities*")
-            include(name = "$regexpPackage/RegexpMatcherTest*")
-            include(name = "$regexpPackage/RegexpTest*")
-            include(name = "$optionalPackage/AbstractXSLTLiaisonTest*")
-            include(name = "$antPackage/types/AbstractFileSetTest*")
+    }
+    val onlinetests = patternset {
+        exclude(name = "**/GetTest.java", `if` = "offline")
+        exclude(name = "**/HttpTest.java", `if` = "offline")
+    }
+    val teststhatfail = patternset {
+        exclude(unless = "run.failing.tests", name = "$optionalPackage/BeanShellScriptTest.java")
+        exclude(unless = "run.failing.tests", name = "$optionalPackage/jdepend/JDependTest.java")
+    }
+    val needsXmlschema = selector {
+        or {
+            filename(name = "$optionalPackage/SchemaValidateTest.*")
+            filename(name = "$optionalPackage/XmlValidateTest.*")
         }
+    }
+    val usefulTests = patternset {
+        include(name = "$antPackage/AntAssert*")
+        include(name = "$antPackage/BuildFileTest*")
+        include(name = "$antPackage/BuildFileRule*")
+        include(name = "$antPackage/FileUtilities*")
+        include(name = "$regexpPackage/RegexpMatcherTest*")
+        include(name = "$regexpPackage/RegexpTest*")
+        include(name = "$optionalPackage/AbstractXSLTLiaisonTest*")
+        include(name = "$antPackage/types/AbstractFileSetTest*")
+    };
+    {
         if (os(family = "mac") && isSet(property = "buildosxpackage.required")) {
             buildosxpackage = true
         }

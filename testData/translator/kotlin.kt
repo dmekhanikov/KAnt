@@ -100,16 +100,18 @@ fun DSLTaskContainer.newKotlinc(src: String, output: String, classpath: String) 
 object project : DSLProject() {
     {
         property(file = "resources/manifest.properties")
-        val classpath = path {
-            file(file = bootstrapRuntime)
-            fileset(dir = ideaSdk, includes = "core/*.jar")
-            fileset(dir = ideaSdk, includes = "lib/protobuf-2.5.0.jar")
-            fileset(dir = "$basedir/lib", includes = "**/*.jar")
-            fileset(dir = dependenciesDir, includes = "jline.jar")
-            fileset(dir = dependenciesDir, includes = "jansi.jar")
-            fileset(dir = dependenciesDir, includes = "cli-parser-1.1.1.jar")
-            fileset(dir = "$basedir/ideaSDK/jps", includes = "jps-model.jar")
-        }
+    }
+    val classpath = path {
+        file(file = bootstrapRuntime)
+        fileset(dir = ideaSdk, includes = "core/*.jar")
+        fileset(dir = ideaSdk, includes = "lib/protobuf-2.5.0.jar")
+        fileset(dir = "$basedir/lib", includes = "**/*.jar")
+        fileset(dir = dependenciesDir, includes = "jline.jar")
+        fileset(dir = dependenciesDir, includes = "jansi.jar")
+        fileset(dir = dependenciesDir, includes = "cli-parser-1.1.1.jar")
+        fileset(dir = "$basedir/ideaSDK/jps", includes = "jps-model.jar")
+    };
+    {
         typedef(resource = "org/jetbrains/jet/buildtools/ant/antlib.xml", classpath = "$bootstrapCompilerHome/lib/kotlin-ant.jar")
         taskdef(resource = "net/sf/antcontrib/antcontrib.properties", classpath = "$dependenciesDir/ant-contrib.jar")
         taskdef(name = "javac2", classname = "org.apache.tools.ant.taskdefs.Javac")
@@ -123,51 +125,53 @@ object project : DSLProject() {
         } else {
             echo(message = "Use default javac compiler")
         }
-        val compilerSourcesDirset = dirset(dir = "$basedir/") {
-            include(name = "compiler/frontend/src")
-            include(name = "core/descriptors/src")
-            include(name = "core/serialization/src")
-            include(name = "core/descriptor.loader.java/src")
-            include(name = "compiler/frontend.java/src")
-            include(name = "core/serialization.java/src")
-            include(name = "compiler/backend-common/src")
-            include(name = "compiler/backend/src")
-            include(name = "compiler/cli/src")
-            include(name = "compiler/cli/cli-common/src")
-            include(name = "compiler/util/src")
-            include(name = "core/util.runtime/src")
-            include(name = "compiler/jet.as.java.psi/src")
-            include(name = "compiler/builtins-serializer")
-            include(name = "js/js.dart-ast/src")
-            include(name = "js/js.translator/src")
-            include(name = "js/js.frontend/src")
-        }
+    }
+    val compilerSourcesDirset = dirset(dir = "$basedir/") {
+        include(name = "compiler/frontend/src")
+        include(name = "core/descriptors/src")
+        include(name = "core/serialization/src")
+        include(name = "core/descriptor.loader.java/src")
+        include(name = "compiler/frontend.java/src")
+        include(name = "core/serialization.java/src")
+        include(name = "compiler/backend-common/src")
+        include(name = "compiler/backend/src")
+        include(name = "compiler/cli/src")
+        include(name = "compiler/cli/cli-common/src")
+        include(name = "compiler/util/src")
+        include(name = "core/util.runtime/src")
+        include(name = "compiler/jet.as.java.psi/src")
+        include(name = "compiler/builtins-serializer")
+        include(name = "js/js.dart-ast/src")
+        include(name = "js/js.translator/src")
+        include(name = "js/js.frontend/src")
+    };
+    {
         ideaOut = "$basedir/out/production"
-        val compilerClassesFromIDEAFileset = patternset {
-            include(name = "frontend/**")
-            include(name = "descriptors/**")
-            include(name = "serialization/**")
-            include(name = "descriptor.loader.java/**")
-            include(name = "frontend.java/**")
-            include(name = "serialization.java/**")
-            include(name = "backend/**")
-            include(name = "backend-common/**")
-            include(name = "cli/**")
-            include(name = "cli-common/**")
-            include(name = "util/**")
-            include(name = "util.runtime/**")
-            include(name = "jet.as.java.psi/**")
-            include(name = "builtins-serializer/**")
-            include(name = "js.dart-ast/**")
-            include(name = "js.translator/**")
-            include(name = "js.frontend/**")
-        }
-        val compilerSourcesPath = path {
-            dirset(refid = compilerSourcesDirset)
-        }
-        val preloaderSourcesPath = path {
-            dirset(dir = "compiler/preloader/src")
-        }
+    }
+    val compilerClassesFromIDEAFileset = patternset {
+        include(name = "frontend/**")
+        include(name = "descriptors/**")
+        include(name = "serialization/**")
+        include(name = "descriptor.loader.java/**")
+        include(name = "frontend.java/**")
+        include(name = "serialization.java/**")
+        include(name = "backend/**")
+        include(name = "backend-common/**")
+        include(name = "cli/**")
+        include(name = "cli-common/**")
+        include(name = "util/**")
+        include(name = "util.runtime/**")
+        include(name = "jet.as.java.psi/**")
+        include(name = "builtins-serializer/**")
+        include(name = "js.dart-ast/**")
+        include(name = "js.translator/**")
+        include(name = "js.frontend/**")
+    }
+    val compilerSourcesPath = path {
+        dirset(refid = compilerSourcesDirset)
+    }
+    val preloaderSourcesPath = path {
+        dirset(dir = "compiler/preloader/src")
     }
 
     val clean = target {
