@@ -1,20 +1,18 @@
 package jetbrains.kant.dsl
 
 import org.apache.tools.ant.*
-import kotlin.properties.Delegates
 import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
-import java.lang.reflect.Method
 import java.lang.reflect.Field
 import kotlin.reflect.KMemberProperty
 import jetbrains.kant.common.valuesToMap
 
-val DSL_TARGET = javaClass<DSLTarget>().getName()
+private val DSL_TARGET = javaClass<DSLTarget>().getName()
 
-abstract class DSLElement(val projectAO: Project, val targetAO: Target)
+public abstract class DSLElement(val projectAO: Project, val targetAO: Target)
 
-open class DSLTask(projectAO: Project, targetAO: Target,
+public open class DSLTask(projectAO: Project, targetAO: Target,
                        val parentWrapperAO: RuntimeConfigurable?, // if it is null then it can be executed
                        val elementTag: String,
                        nearestExecutable: DSLTask?) : DSLElement(projectAO, targetAO) {
@@ -93,20 +91,20 @@ open class DSLTask(projectAO: Project, targetAO: Target,
     }
 }
 
-trait DSLTaskContainer : DSLElement {
-    fun createLazyTask(init: DSLTaskContainer.() -> Unit): LazyTask {
+public trait DSLTaskContainer : DSLElement {
+    public fun createLazyTask(init: DSLTaskContainer.() -> Unit): LazyTask {
         val lazyTaskAO = LazyTask(this, init)
         lazyTaskAO.setProject(projectAO)
         lazyTaskAO.setOwningTarget(targetAO)
         return lazyTaskAO
     }
 
-    open fun addTask(task: Task) {
+    public open fun addTask(task: Task) {
         targetAO.addTask(task)
     }
 }
 
-abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
+public abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
                                     parentAO: RuntimeConfigurable?,
                                     elementTag: String,
                                     nearestExecutable: DSLTask?) : DSLTask(projectAO, targetAO, parentAO, elementTag, nearestExecutable), DSLTaskContainer {
@@ -115,7 +113,7 @@ abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
     }
 }
 
-open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
+public open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
     val targets = HashMap<String, DSLTarget>() // field name -> DSLTarget
     private var configured = false
     {
@@ -224,7 +222,7 @@ open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
     }
 }
 
-class DSLTarget(val project: DSLProject, var name: String?,
+public class DSLTarget(val project: DSLProject, var name: String?,
                 val depends: Array<KMemberProperty<out DSLProject, DSLTarget>>,
                 val init: DSLTaskContainer.() -> Unit) : DSLElement(project.projectAO, Target()), DSLTaskContainer {
     val namedAsField = name == null

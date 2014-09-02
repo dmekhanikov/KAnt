@@ -1,11 +1,10 @@
 package jetbrains.kant.dsl
 
-import java.util.regex.Pattern
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.PropertyHelper
 import java.io.File
 
-var propertyHelper: PropertyHelper? = null
+private var propertyHelper: PropertyHelper? = null
 
 fun initProperties(projectAO: Project) {
     propertyHelper = PropertyHelper.getPropertyHelper(projectAO)
@@ -13,10 +12,10 @@ fun initProperties(projectAO: Project) {
     propertyHelper!!.setUserProperty("basedir", basedir)
 }
 
-open class Property<T>(val name: String? = null, val convert: (value: String) -> T, val defaultValue: () -> T) {
+public open class Property<T>(public val name: String? = null, public val convert: (value: String) -> T, public val defaultValue: () -> T) {
     private fun getName(prop: PropertyMetadata): String {
         if (name != null) {
-            return name
+            return name!!
         } else {
             return prop.name
         }
@@ -46,12 +45,12 @@ public fun propertyIsSet(name: String): Boolean {
     return propertyHelper!!.getProperty(name) != null
 }
 
-class BooleanProperty(name: String? = null, defaultValue: () -> Boolean = { false }) : Property<Boolean>(name, { java.lang.Boolean.parseBoolean(it) }, defaultValue)
-class CharProperty(name: String? = null, defaultValue: () -> Char = { '\u0000' }) : Property<Char>(name, { it[0] }, defaultValue)
-class ByteProperty(name: String? = null, defaultValue: () -> Byte = { 0 }) : Property<Byte>(name, { java.lang.Byte.parseByte(it) }, defaultValue)
-class ShortProperty(name: String? = null, defaultValue: () -> Short = { 0 }) : Property<Short>(name, { java.lang.Short.parseShort(it) }, defaultValue)
-class IntProperty(name: String? = null, defaultValue: () -> Int = { 0 }) : Property<Int>(name, { java.lang.Integer.parseInt(it) }, defaultValue)
-class FloatProperty(name: String? = null, defaultValue: () -> Float = { 0.0f }) : Property<Float>(name, { java.lang.Float.parseFloat(it) }, defaultValue)
-class LongProperty(name: String? = null, defaultValue: () -> Long = { 0 }) : Property<Long>(name, { java.lang.Long.parseLong(it) }, defaultValue)
-class DoubleProperty(name: String? = null, defaultValue: () -> Double = { 0.0 }) : Property<Double>(name, { java.lang.Double.parseDouble(it) }, defaultValue)
-class StringProperty(name: String? = null, defaultValue: () -> String = { "" }) : Property<String>(name, { it }, defaultValue)
+public class BooleanProperty(name: String? = null, defaultValue: () -> Boolean = { false }) : Property<Boolean>(name, { java.lang.Boolean.parseBoolean(it) }, defaultValue)
+public class CharProperty(name: String? = null, defaultValue: () -> Char = { '\u0000' }) : Property<Char>(name, { it[0] }, defaultValue)
+public class ByteProperty(name: String? = null, defaultValue: () -> Byte = { 0 }) : Property<Byte>(name, { java.lang.Byte.parseByte(it) }, defaultValue)
+public class ShortProperty(name: String? = null, defaultValue: () -> Short = { 0 }) : Property<Short>(name, { java.lang.Short.parseShort(it) }, defaultValue)
+public class IntProperty(name: String? = null, defaultValue: () -> Int = { 0 }) : Property<Int>(name, { java.lang.Integer.parseInt(it) }, defaultValue)
+public class FloatProperty(name: String? = null, defaultValue: () -> Float = { 0.0f }) : Property<Float>(name, { java.lang.Float.parseFloat(it) }, defaultValue)
+public class LongProperty(name: String? = null, defaultValue: () -> Long = { 0 }) : Property<Long>(name, { java.lang.Long.parseLong(it) }, defaultValue)
+public class DoubleProperty(name: String? = null, defaultValue: () -> Double = { 0.0 }) : Property<Double>(name, { java.lang.Double.parseDouble(it) }, defaultValue)
+public class StringProperty(name: String? = null, defaultValue: () -> String = { "" }) : Property<String>(name, { it }, defaultValue)

@@ -1,32 +1,31 @@
 package jetbrains.kant.dsl
 
 import org.apache.tools.ant.taskdefs.condition.Condition
-import org.apache.tools.ant.taskdefs.ConditionTask
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 
-var maxRefid = 0
+private var maxRefid = 0
 
-class DSLReference<T : DSLTask>(public val value: T) {
-    val refid = (++maxRefid).toString();
+public class DSLReference<T : DSLTask>(public val value: T) {
+    public val refid: String = (++maxRefid).toString();
     {
         value.attributes["id"] = refid
     }
 }
 
 [Retention(RetentionPolicy.RUNTIME)]
-annotation class default
+public annotation class default
 
-class DSLException(message: String) : Exception(message)
+public class DSLException(message: String) : Exception(message)
 
-trait DSLTextContainer: DSLTask {
-    fun text(init: DSLTextContainer.() -> String) {
+public trait DSLTextContainer: DSLTask {
+    public fun text(init: DSLTextContainer.() -> String) {
         nestedText = init()
     }
 }
 
-trait DSLCondition: DSLTask {
-    override fun configure() {
+public trait DSLCondition: DSLTask {
+    override public fun configure() {
         setAttributes()
         val parent = DSLTask(projectAO, targetAO, null, "condition", null)
         parent.taskAO.addChild(taskAO)
