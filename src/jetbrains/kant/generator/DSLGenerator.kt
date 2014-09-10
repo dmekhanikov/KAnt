@@ -79,9 +79,9 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
     private val containerGenerator = ContainerGenerator()
     private var classLoader: ClassLoader = createClassLoader(classpath, null)
     private val outDir = outDir + if (outDir.endsWith('/')) {""} else {'/'}
-    private val srcOutDir = outDir + "src/"
-    private val binOutDir = outDir + "bin/"
-    private val distOutDir = outDir + "dist/"
+    private val srcOutDir = this.outDir + "src/"
+    private val binOutDir = this.outDir + "bin/"
+    private val distOutDir = this.outDir + "dist/"
     private val aliasFiles = ArrayList<String>(); {
         this.aliasFiles.addAll(aliasFiles)
         structure.put(DSL_TASK_CONTAINER, DSLClass(DSL_TASK_CONTAINER, ArrayList<String>()))
