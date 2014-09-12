@@ -13,6 +13,7 @@
     <orderEntry type="library" name="ant-contrib:ant-contrib:1.0b3" level="project" />
     <orderEntry type="library" name="args4j:args4j:2.0.29" level="project" />
     <orderEntry type="module" module-name="common" />
+    <orderEntry type="library" name="org.apache.ivy:ivy:2.4.0-rc1" level="project" />
   </component>
 </module>
 
