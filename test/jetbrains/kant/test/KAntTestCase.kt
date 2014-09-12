@@ -13,6 +13,7 @@ import jetbrains.kant.gtcommon.constants.DSL_SRC_ROOT
 import jetbrains.kant.gtcommon.constants.DSL_GENERATED_DIR
 import jetbrains.kant.generator.DSLGenerator
 import jetbrains.kant.common.createClassLoader
+import jetbrains.kant.gtcommon.constants.IVY_JAR
 
 var testInitComplete = false
 
@@ -21,7 +22,8 @@ abstract class KAntTestCase : TestCase() {
         if (!testInitComplete) {
             testInitComplete = true
             File(GENERATOR_OUT_DIR).cleanDirectory()
-            val generator = DSLGenerator(GENERATOR_OUT_DIR, ANT_JAR + pathSeparator + ANT_CONTRIB_JAR, array(), true, true)
+            val generator = DSLGenerator(GENERATOR_OUT_DIR, array(ANT_JAR, ANT_CONTRIB_JAR, IVY_JAR).join(pathSeparator),
+                                            array(), true, true)
             generator.generate()
             generator.compile()
         }

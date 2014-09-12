@@ -9,6 +9,7 @@ import jetbrains.kant.gtcommon.constants.ANT_LAUNCHER_JAR
 import jetbrains.kant.gtcommon.constants.ANT_CONTRIB_JAR
 import jetbrains.kant.gtcommon.constants.ARGS4J_JAR
 import jetbrains.kant.gtcommon.constants.KOTLIN_RUNTIME_JAR
+import jetbrains.kant.gtcommon.constants.IVY_JAR
 
 val TEST_DATA_DIR = "testData/"
 val TEST_RES_DIR = TEST_DATA_DIR + "res/"
@@ -20,7 +21,7 @@ val TEST_PLAYGROUND_DIR = TEST_BIN_DIR + "playground/"
 val TEST_PLAYGROUND_BIN_DIR = TEST_PLAYGROUND_DIR + "bin/"
 val TEST_PLAYGROUND_WORK_DIR = TEST_PLAYGROUND_DIR + "work/"
 val DSL_DEPENDS = array(ANT_JAR, ANT_LAUNCHER_JAR,
-        ANT_CONTRIB_JAR, ARGS4J_JAR, KOTLIN_RUNTIME_JAR)
+        ANT_CONTRIB_JAR, ARGS4J_JAR, KOTLIN_RUNTIME_JAR, IVY_JAR)
 
 fun file(fileName: String): String {
     if (fileName.startsWith('/')) {

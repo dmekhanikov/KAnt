@@ -15,6 +15,7 @@ public val KOTLIN_RUNTIME_JAR: String = "lib/kotlin-runtime.jar"
 public val ANT_JAR: String = "lib/ant-1.9.4.jar"
 public val ANT_LAUNCHER_JAR: String = "lib/ant-launcher-1.9.4.jar"
 public val ANT_CONTRIB_JAR: String = "lib/ant-contrib-1.0b3.jar"
+public val IVY_JAR: String = "lib/ivy-2.4.0-rc1.jar"
 public val ARGS4J_JAR: String = "lib/args4j-2.0.29.jar"
 
 public val keywords: Set<String> = array(

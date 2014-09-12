@@ -57,7 +57,7 @@ class XmlTag(val name: String) {
 
 public class IvyModuleDescriptor {
     private val ivyModuleTag = XmlTag("ivy-module")
-    private val ivyFile = File.createTempFile("ivy", ".xml")
+    private val ivyFile = File.createTempFile("ivy", ".xml")!!
     private var lastIvyModuleRevId = ivyModuleTag.revId
     {
         ivyModuleTag.addAttribute("version", "2.0")
