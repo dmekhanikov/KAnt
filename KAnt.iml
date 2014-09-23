@@ -12,10 +12,11 @@
     <orderEntry type="jdk" jdkName="1.7" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="library" name="junit:junit:4.10" level="project" />
-    <orderEntry type="library" name="args4j:args4j:2.0.29" level="project" />
     <orderEntry type="module" module-name="common" />
-    <orderEntry type="library" name="org.jetbrains.kotlin:kotlin-compiler:0.8.679" level="project" />
+    <orderEntry type="library" name="args4j" level="project" />
+    <orderEntry type="library" name="junit" level="project" />
+    <orderEntry type="library" name="ant" level="project" />
+    <orderEntry type="library" name="kotlin-compiler" level="project" />
   </component>
 </module>
 
