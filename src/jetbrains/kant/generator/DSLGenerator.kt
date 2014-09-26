@@ -4,6 +4,7 @@ import jetbrains.kant.gtcommon.constants.*
 import jetbrains.kant.gtcommon.*
 import jetbrains.kant.common.createClassLoader
 import jetbrains.kant.common.valuesToMap
+import jetbrains.kant.common.DefinitionKind
 import java.io.*
 import java.io.File.pathSeparator
 import org.kohsuke.args4j.*
@@ -24,11 +25,11 @@ class GeneratorRunner {
     [Option(name = "-d", metaVar = "<directory>", usage = "Output directory", required = true)]
     private val outDir: String = ""
 
-    [Option(name = "-seek", usage = "Seek alias files")]
+    [Option(name = "-seek", usage = "Seek definition files")]
     private val seek = false
 
-    [Option(name = "-defaultaliases", usage = "Generate functions with names similar to class names")]
-    private val defAl = false
+    [Option(name = "-defaultnames", usage = "Generate functions with names similar to class names")]
+    private val defaultNames = false
 
     [Option(name = "-compile", usage = "Compile the library after generation")]
     private val compile = false
@@ -36,8 +37,8 @@ class GeneratorRunner {
     [Option(name = "-jar", usage = "Create jar file containing all class files of the generated library and some information about its structure")]
     private val createJar = false
 
-    [Argument(metaVar = "alias files", usage = "Antlib or properties files with aliases that the generator should use")]
-    private val aliasFiles: Array<String> = array()
+    [Argument(metaVar = "definition files", usage = "Antlib or properties files with definitions that the generator should use")]
+    private val definitionFiles: Array<String> = array()
 
     fun doMain(args: Array<String>) {
         val parser = CmdLineParser(this)
@@ -45,12 +46,12 @@ class GeneratorRunner {
             parser.parseArgument(args.toArrayList())
         } catch(e: CmdLineException) {
             System.err.println(e.getMessage())
-            System.err.println("Usage: java jetbrains.kant.generator.GeneratorPackage <options> <alias files>")
+            System.err.println("Usage: java jetbrains.kant.generator.GeneratorPackage <options> <definition files>")
             parser.printUsage(System.err)
             System.err.println()
             return
         }
-        val generator = DSLGenerator(outDir, classpath, aliasFiles, seek, defAl)
+        val generator = DSLGenerator(outDir, classpath, definitionFiles, seek, defaultNames)
         generator.generate()
         if (compile || createJar) {
             generator.compile()
@@ -72,8 +73,50 @@ private fun copyBaseFiles(src: String, dst: String) {
     }
 }
 
-class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<String>,
-                   val seekForAliasFiles: Boolean = false, val defAl: Boolean = false) {
+private fun JarInputStream.getAntlibFiles(): List<String> {
+    val result = ArrayList<String>()
+    var jarEntry = getNextJarEntry()
+    while (jarEntry != null) {
+        val entryName = jarEntry!!.getName()
+        if (entryName.toLowerCase().endsWith(".properties") || entryName.toLowerCase().endsWith(".xml")) {
+            result.add(entryName)
+        }
+        jarEntry = getNextJarEntry()
+    }
+    return result
+}
+
+private fun JarInputStream.getAntTasks(classLoader: ClassLoader): List<AntClass> {
+    val result = ArrayList<AntClass>()
+    var jarEntry = getNextJarEntry()
+    while (jarEntry != null) {
+        val entryName = jarEntry!!.getName()
+        if (entryName.endsWith(".class") && !entryName.contains("$")) {
+            val className = entryName.substring(0, entryName.lastIndexOf('.')).replace('/', '.')
+            val antClass = tryToCreateAntClass(className, classLoader)
+            if (antClass != null && (antClass.isTask || antClass.isCondition || antClass.hasRefId)) {
+                result.add(antClass)
+            }
+        }
+        jarEntry = getNextJarEntry()
+    }
+    return result
+}
+
+private fun tryToCreateAntClass(className: String, classLoader: ClassLoader): AntClass? {
+    try {
+        return AntClass(classLoader, className)
+    } catch (e: ClassNotFoundException) {
+        return null
+    } catch(e: NoClassDefFoundError) {
+        return null
+    } catch(e: IllegalAccessError) {
+        return null
+    }
+}
+
+class DSLGenerator(outDir: String, val classpath: String, definitionFiles: Array<String>,
+                   val seekForAntlibFiles: Boolean = false, val defaultNames: Boolean = false) {
     private val resolved = HashMap<String, Target>()
     public val structure: HashMap<String, DSLClass> = HashMap()
     private val containerGenerator = ContainerGenerator()
@@ -82,110 +125,29 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
     private val srcOutDir = this.outDir + "src/"
     private val binOutDir = this.outDir + "bin/"
     private val distOutDir = this.outDir + "dist/"
-    private val aliasFiles = ArrayList<String>(); {
-        this.aliasFiles.addAll(aliasFiles)
+    private val antlibFiles = ArrayList<String>(); {
+        this.antlibFiles.addAll(definitionFiles)
         structure.put(DSL_TASK_CONTAINER, DSLClass(DSL_TASK_CONTAINER, ArrayList<String>()))
         structure.put(DSL_PROJECT, DSLClass(DSL_PROJECT, array(DSL_TASK_CONTAINER).toList()))
         structure.put(DSL_TARGET, DSLClass(DSL_TARGET, array(DSL_TASK_CONTAINER).toList()))
     }
 
-    private var aliasReader: BufferedReader? = null
-
     private val PRIMITIVE_TYPES = array("Boolean", "Char", "Byte", "Short", "Int", "Float", "Long", "Double").toSet()
-
-    private fun createAntClass(className: String): AntClass? {
-        try {
-            return AntClass(classLoader, className)
-        } catch (e: ClassNotFoundException) {
-            return null
-        } catch(e: NoClassDefFoundError) {
-            return null
-        } catch(e: IllegalAccessError) {
-            return null
-        }
-    }
-
-    private fun addTarget(antClass: AntClass) {
-        val className = antClass.className
-        val target = Target(className)
-        target.antClass = antClass
-        resolved[className] = target
-        val dslClassName = resultClassName(antClass.className)
-        structure.put(dslClassName,
-                DSLClass(dslClassName, antClass.nestedTypes.map { containerGenerator.containerName(it) }))
-        val resultClassName = resultClassName(className)
-        val pkg = resultClassName.substring(0, resultClassName.lastIndexOf("."))
-        target.kotlinSrcFile = antClass.toKotlin(pkg)
-        containerGenerator.resolveContainers(antClass.implementedInterfaces)
-        containerGenerator.resolveContainers(antClass.nestedTypes)
-    }
-
-    public fun resolveClass(className: String) {
-        val names = explodeTypeName(className)
-        for (name in names) {
-            if (!resolved.containsKey(name)) {
-                val antClass = createAntClass(className)
-                if (antClass != null) {
-                    addTarget(antClass)
-                }
-            }
-        }
-    }
 
     public fun generate() {
         copyBaseFiles(DSL_SRC_ROOT, srcOutDir)
         val generatedRoot = srcOutDir + DSL_PACKAGE.replace('.', '/') + "/generated"
         File(generatedRoot).mkdirs()
-        val classpathArray = classpath.split(pathSeparator)
-        if (seekForAliasFiles) {
-            for (jar in classpathArray) {
-                if (jar.endsWith(".jar")) {
-                    val jis = JarInputStream(FileInputStream(jar))
-                    aliasFiles.addAll(jis.getAliasFiles())
-                    jis.close()
-                }
-            }
+
+        val definitions = getDefinitions()
+        for (definition in definitions) {
+            resolveDefinition(definition)
         }
-        val aliases = ArrayList<Alias>()
-        for (aliasFileName in aliasFiles) {
-            var stream = classLoader.getResourceAsStream(aliasFileName)
-            if (stream == null) {
-                val aliasFile = File(aliasFileName)
-                if (!aliasFile.exists()) {
-                    System.err.println("File $aliasFile was not found")
-                    continue
-                }
-                stream = FileInputStream(aliasFile)
-            }
-            if (aliasFileName.toLowerCase().endsWith(".properties")) {
-                aliases.addAll(AliasParser(stream!!).parseProperties())
-            } else if (aliasFileName.toLowerCase().endsWith(".xml")) {
-                aliases.addAll(AliasParser(stream!!).parseXML())
-            }
+
+        if (defaultNames) {
+            generateConstructorsWithDefaultNames()
         }
-        for (alias in aliases) {
-            resolveAlias(alias)
-        }
-        if (defAl) {
-            for (jar in classpathArray) {
-                if (jar.endsWith(".jar")) {
-                    val jis = JarInputStream(FileInputStream(jar))
-                    val antTasks = jis.getAntTasks()
-                    for (antTask in antTasks) {
-                        val className = antTask.className
-                        val taskName = defaultConstructorName(className)
-                        val dslClassName = resultClassName(className)
-                        if (!resolved.contains(className)) {
-                            addTarget(antTask)
-                        }
-                        if (!constructorIsGenerated(dslClassName, taskName)) {
-                            resolved[antTask.className]?.generateConstructors(taskName, false)
-                        }
-                    }
-                    jis.close()
-                }
-            }
-        }
+
         for (target in resolved.values()) {
             target.dumpFile()
         }
@@ -209,15 +171,89 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
         createJar(jarFile, binOutDir)
     }
 
-    private fun resolveAlias(alias: Alias) {
-        val tag = alias.tag
-        val className = alias.className
-        val restricted = alias.restricted
-        resolveClass(className)
-        resolved[className]?.generateConstructors(tag, restricted)
+    private fun resolveClass(className: String) {
+        if (!resolved.containsKey(className)) {
+            val antClass = tryToCreateAntClass(className, classLoader)
+            if (antClass != null) {
+                resolveClass(antClass)
+            }
+        }
     }
 
-    private fun resultClassName(srcClassName: String): String {
+    private fun resolveClass(antClass: AntClass) {
+        val target = Target(antClass)
+        val className = antClass.className
+        resolved[className] = target
+        val dslClassName = getResultClassName(className)
+        structure.put(dslClassName,
+                DSLClass(dslClassName, antClass.nestedTypes.map { containerGenerator.getContainerName(it) }))
+        val resultClassName = getResultClassName(className)
+        val pkg = resultClassName.substring(0, resultClassName.lastIndexOf("."))
+        target.kotlinSrcFile = antClass.toKotlin(pkg)
+        containerGenerator.generateContainers(antClass.implementedInterfaces)
+        containerGenerator.generateContainers(antClass.nestedTypes)
+    }
+
+    private fun generateConstructorsWithDefaultNames() {
+        val classpathArray = classpath.split(pathSeparator)
+        for (jar in classpathArray) {
+            if (jar.endsWith(".jar")) {
+                val jis = JarInputStream(FileInputStream(jar))
+                val antTasks = jis.getAntTasks(classLoader)
+                for (antTask in antTasks) {
+                    val className = antTask.className
+                    val taskName = getConstructorDefaultName(className)
+                    val dslClassName = getResultClassName(className)
+                    if (!resolved.contains(className)) {
+                        resolveClass(antTask)
+                    }
+                    if (!constructorIsGenerated(DSL_TASK_CONTAINER, taskName)) {
+                        val definition = Definition(name = taskName, className = className, kind = DefinitionKind.TASK)
+                        resolved[antTask.className]?.generateConstructors(definition)
+                    }
+                }
+                jis.close()
+            }
+        }
+    }
+
+    private fun getDefinitions(): List<Definition> {
+        val classpathArray = classpath.split(pathSeparator)
+        if (seekForAntlibFiles) {
+            for (jar in classpathArray) {
+                if (jar.endsWith(".jar")) {
+                    val jis = JarInputStream(FileInputStream(jar))
+                    antlibFiles.addAll(jis.getAntlibFiles())
+                    jis.close()
+                }
+            }
+        }
+        val definitions = ArrayList<Definition>()
+        for (antlibFileName in antlibFiles) {
+            var stream = classLoader.getResourceAsStream(antlibFileName)
+            if (stream == null) {
+                val antlibFile = File(antlibFileName)
+                if (!antlibFile.exists()) {
+                    System.err.println("File $antlibFile was not found")
+                    continue
+                }
+                stream = FileInputStream(antlibFile)
+            }
+            if (antlibFileName.toLowerCase().endsWith(".properties")) {
+                definitions.addAll(DefinitionParser(stream!!).parseProperties())
+            } else if (antlibFileName.toLowerCase().endsWith(".xml")) {
+                definitions.addAll(DefinitionParser(stream!!).parseXML())
+            }
+        }
+        return definitions
+    }
+
+    private fun resolveDefinition(definition: Definition) {
+        resolveClass(definition.className)
+        resolved[definition.className]?.generateConstructors(definition)
+    }
+
+    private fun getResultClassName(srcClassName: String): String {
         val className = srcClassName.replace("$", "")
         val result = StringBuilder()
         result.append(DSL_PACKAGE + ".")
@@ -230,49 +266,19 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
         return result.toString()
     }
 
-    private fun resultFile(srcClassName: String): File {
-        return File(srcOutDir + resultClassName(srcClassName)
+    private fun getResultFile(srcClassName: String): File {
+        return File(srcOutDir + getResultClassName(srcClassName)
                 .replace(DSL_PACKAGE, DSL_PACKAGE + ".generated").replace('.', '/') + ".kt")
     }
 
-    private fun JarInputStream.getAliasFiles(): List<String> {
-        val result = ArrayList<String>()
-        var jarEntry = getNextJarEntry()
-        while (jarEntry != null) {
-            val entryName = jarEntry!!.getName()
-            if (entryName.toLowerCase().endsWith(".properties") || entryName.toLowerCase().endsWith(".xml")) {
-                result.add(entryName)
-            }
-            jarEntry = getNextJarEntry()
-        }
-        return result
-    }
-
-    private fun JarInputStream.getAntTasks(): List<AntClass> {
-        val result = ArrayList<AntClass>()
-        var jarEntry = getNextJarEntry()
-        while (jarEntry != null) {
-            val entryName = jarEntry!!.getName()
-            if (entryName.endsWith(".class") && !entryName.contains("$")) {
-                val className = entryName.substring(0, entryName.lastIndexOf('.')).replace('/', '.')
-                val antClass = createAntClass(className)
-                if (antClass != null && (antClass.isTask || antClass.isCondition || antClass.hasRefId)) {
-                    result.add(antClass)
-                }
-            }
-            jarEntry = getNextJarEntry()
-        }
-        return result
-    }
-
-    private fun dslAttribute(attr: AntAttribute, parentName: String): AntAttribute {
+    private fun constructDslAttribute(attr: AntAttribute, parentName: String): AntAttribute {
         val name = attr.name
         val typeName =
                 if (PRIMITIVE_TYPES.contains(attr.typeName)) {
                     attr.typeName
                 } else if (attr.typeName == ANT_CLASS_PREFIX + "types.Reference") {
                     if (attr.name == "refid") {
-                        "$DSL_REFERENCE<${resultClassName(parentName)}>"
+                        "$DSL_REFERENCE<${getResultClassName(parentName)}>"
                     } else if (attr.name.toLowerCase().endsWith("pathref")) {
                         "$DSL_REFERENCE<$DSL_PATH>"
                     } else {
@@ -304,24 +310,25 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
             res.append(",\n        $dslConditionShorten")
         }
         for (nestedType in nestedTypes) {
-            val containerName = res.importManager.shorten(containerGenerator.containerName(nestedType))
+            val containerName = res.importManager.shorten(containerGenerator.getContainerName(nestedType))
             res.append(",\n        $containerName")
         }
         res.append(" {\n")
         for (attr in attributes) {
-            val dslAttr = dslAttribute(attr, className)
+            val dslAttr = constructDslAttribute(attr, className)
             res.append("    var ${escapeKeywords(dslAttr.name)}: ${res.importManager.shorten(dslAttr.typeName.replace('$', '.'))} " +
                     "by ${res.importManager.shorten("kotlin.properties.Delegates")}.mapVar(attributes)\n")
         }
         res.append("}\n")
         for (element in nestedElements) {
-            renderNestedElement(res, dslTypeName, element, false, false)
+            val definition = Definition(name = element.name, className = element.typeName, kind = DefinitionKind.NESTED)
+            renderNestedElement(res, dslTypeName, definition)
         }
         return res
     }
 
-    private fun AntClass.constructorReturnType(): String? {
-        val typeName = resultClassName(className)
+    private fun AntClass.getConstructorReturnType(): String? {
+        val typeName = getResultClassName(className)
         if (isCondition) {
             return "Boolean"
         } else if (hasRefId) {
@@ -332,22 +339,22 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
     }
 
     private fun AntClass.renderNestedElement(out: KotlinSourceFile,
-                                             parentName: String, element: AntAttribute,
-                                             define: Boolean, restricted: Boolean) {
-        if (constructorIsGenerated(parentName, element.name)) {
+                                             parentName: String,
+                                             definition: Definition) {
+        if (constructorIsGenerated(parentName, definition.name)) {
             return
         }
-        resolveClass(element.typeName)
-        val elementClass = resolved[explodeTypeName(element.typeName)[0]]!!.antClass!!
-        elementClass.renderConstructor(out, parentName, element.name, define, restricted, true)
-        elementClass.renderConstructor(out, parentName, element.name, define, restricted, false)
-        addConstructor(parentName, element.name, out.pkg, elementClass)
+        resolveClass(definition.className)
+        val elementClass = resolved[definition.className]!!.antClass
+        elementClass.renderConstructor(out, parentName, definition, true)
+        elementClass.renderConstructor(out, parentName, definition, false)
+        addConstructor(parentName, definition.name, out.pkg, elementClass)
     }
 
     private fun AntClass.renderConstructorParameters(out: KotlinSourceFile) {
         var first = true
         for (attr in attributes) {
-            val dslAttr = dslAttribute(attr, className)
+            val dslAttr = constructDslAttribute(attr, className)
             if (first) {
                 first = false
             } else {
@@ -358,9 +365,9 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
     }
 
     private fun AntClass.renderConstructor(out: KotlinSourceFile,
-                                           parentName: String, tag: String,
-                                           define: Boolean, restricted: Boolean, withInit: Boolean) {
-        val dslTypeName = out.importManager.shorten(resultClassName(className))
+                                           parentName: String,
+                                           definition: Definition, withInit: Boolean) {
+        val dslTypeName = out.importManager.shorten(getResultClassName(className))
         val dslTaskContainerShorten = out.importManager.shorten(DSL_TASK_CONTAINER)
         val dslReferenceShorten = out.importManager.shorten(DSL_REFERENCE)
         val initReceiverTypeName = if (isTaskContainer) {
@@ -369,7 +376,7 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
             dslTypeName
         }
         out.append("\n")
-        out.append("public fun ${out.importManager.shorten(parentName)}.${escapeKeywords(toCamelCase(tag))}(\n")
+        out.append("public fun ${out.importManager.shorten(parentName)}.${escapeKeywords(toCamelCase(definition.name))}(\n")
         renderConstructorParameters(out)
         if (withInit) {
             if (!attributes.empty) {
@@ -378,18 +385,18 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
             out.append("        init: $initReceiverTypeName.() -> ${out.importManager.shorten("kotlin.Unit")}")
         }
         out.append(")")
-        val returnType = constructorReturnType()
+        val returnType = getConstructorReturnType()
         if (returnType != null) {
             out.append(": " + out.importManager.shorten(returnType))
         }
         out.append(" {\n")
         if (withInit) {
             val mustBeExecuted = (parentName == DSL_TASK_CONTAINER || parentName == DSL_PROJECT)
-            out.append("    val dslObject = $dslTypeName(this.projectAO, this.targetAO, ${if (mustBeExecuted) {"null"} else {"this.wrapperAO"}}, \"$tag\", ")
+            out.append("    val dslObject = $dslTypeName(this.projectAO, this.targetAO, ${if (mustBeExecuted) {"null"} else {"this.wrapperAO"}}, \"${definition.name}\", ")
             out.append(if (mustBeExecuted) {"null"} else {"this"})
             out.append(")\n")
             for (attr in attributes) {
-                val dslAttr = dslAttribute(attr, className)
+                val dslAttr = constructDslAttribute(attr, className)
                 out.append("    if (${escapeKeywords(dslAttr.name)} != null) { dslObject.${escapeKeywords(dslAttr.name)} = ${escapeKeywords(dslAttr.name)} }\n")
             }
             if (!isTaskContainer) {
@@ -398,12 +405,8 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
             if (!isCondition && returnType != null) {
                 out.append("    val reference = $dslReferenceShorten(dslObject)\n")
             }
-            if (define) {
-                if (restricted) {
-                    out.append("    dslObject.defineType(\"$className\")\n")
-                } else {
-                    out.append("    dslObject.defineComponent(\"$className\")\n")
-                }
+            if (definition.kind != DefinitionKind.NESTED) {
+                out.append("    dslObject.defineComponent(${definition.getAttributes(out.importManager)})\n")
             }
             out.append("    dslObject.configure()\n")
             if (isTaskContainer) {
@@ -421,7 +424,7 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
                 }).append("\n")
             }
         } else {
-            out.append("    return ${toCamelCase(tag)}(\n")
+            out.append("    return ${toCamelCase(definition.name)}(\n")
             for (attr in attributes) {
                 out.append("        ${escapeKeywords(attr.name)},\n")
             }
@@ -434,85 +437,109 @@ class DSLGenerator(outDir: String, val classpath: String, aliasFiles: Array<Stri
         return name.substring(name.lastIndexOf('.') + 1).replace("$", "")
     }
 
+    private fun getConstructorDefaultName(className: String): String {
+        val shortName = cutShortName(className)
+        return Character.toLowerCase(shortName[0]) + shortName.substring(1)
+    }
+
     private fun constructorIsGenerated(parent: String, function: String): Boolean {
         val dslClass = structure[parent]!!
         return dslClass.containsFunction(function)
     }
 
-    private fun defaultConstructorName(className: String): String {
-        val shortName = cutShortName(className)
-        return Character.toLowerCase(shortName.charAt(0)) + shortName.substring(1)
-    }
-
     private fun addConstructor(parent: String, function: String, pkg: String?, antClass: AntClass) {
         val dslClass = structure[parent]!!
         dslClass.addFunction(function, pkg,
-                antClass.attributes.map { dslAttribute(it, antClass.className) },
-                resultClassName(antClass.className))
+                antClass.attributes.map { constructDslAttribute(it, antClass.className) },
+                getResultClassName(antClass.className))
     }
 
-    private inner class Target(val className: String) {
-        var antClass: AntClass? = null
+    private inner class Target(val antClass: AntClass) {
+        val className = antClass.className
         var kotlinSrcFile: KotlinSourceFile? = null
 
-        fun generateConstructors(tag: String, restricted: Boolean) {
-            val invAntClass = antClass!!
+        fun generateConstructors(definition: Definition) {
+            val invAntClass = antClass
             val invKotlinSrcFile = kotlinSrcFile!!
-            if (!restricted) {
+            if (definition.kind != DefinitionKind.COMPONENT && definition.kind != DefinitionKind.NESTED) {
                 if (invAntClass.isTask || invAntClass.isCondition || invAntClass.hasRefId) {
-                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_TASK_CONTAINER, AntAttribute(tag, className), true, restricted)
+                    invAntClass.renderNestedElement(invKotlinSrcFile, DSL_TASK_CONTAINER, definition)
                 }
             }
             for (interface in invAntClass.implementedInterfaces) {
                 if (containerGenerator.typeNeedsContainer(interface)) {
-                    val containerName = containerGenerator.containerName(interface)
-                    invAntClass.renderNestedElement(invKotlinSrcFile, containerName, AntAttribute(tag, className), true, restricted)
+                    val containerName = containerGenerator.getContainerName(interface)
+                    invAntClass.renderNestedElement(invKotlinSrcFile, containerName, definition)
                 }
             }
         }
 
         fun dumpFile() {
-            kotlinSrcFile!!.dump(resultFile(className))
+            kotlinSrcFile!!.dump(getResultFile(className))
         }
     }
 
     private inner class ContainerGenerator {
         private val kotlinSrcFile = KotlinSourceFile("$DSL_PACKAGE.containers")
-        private val resolved = HashSet<String>()
+        private val generated = HashSet<String>()
 
-        public fun resolveContainers(names: List<String>) {
+        fun generateContainers(names: List<String>) {
             for (name in names) {
-                resolveContainer(name)
+                generateContainer(name)
             }
         }
 
-        public fun containerName(name: String): String {
+        fun getContainerName(name: String): String {
             val shortName = name.substring(name.lastIndexOf('.') + 1).replace("$", "")
             return "$DSL_PACKAGE.containers._DSL" + shortName + "Container"
         }
 
-        public fun typeNeedsContainer(name: String): Boolean {
+        fun typeNeedsContainer(name: String): Boolean {
             return !name.startsWith("java.")
         }
 
-        public fun resolveContainer(name: String) {
-            if (!resolved.contains(name) && typeNeedsContainer(name)) {
-                val containerName = containerName(name)
+        fun generateContainer(name: String) {
+            if (!generated.contains(name) && typeNeedsContainer(name)) {
+                val containerName = getContainerName(name)
                 val containerNameShorten = kotlinSrcFile.importManager.shorten(containerName)
                 val dslTaskShorten =  kotlinSrcFile.importManager.shorten(DSL_TASK)
                 kotlinSrcFile.append("\ntrait $containerNameShorten : $dslTaskShorten\n")
-                resolved.add(name)
+                generated.add(name)
                 structure.put(containerName, DSLClass(containerName, ArrayList<String>()))
             }
         }
 
-        public fun dump(file: File) {
+        fun dump(file: File) {
             kotlinSrcFile.dump(file)
         }
     }
 }
 
-class DSLClass(val name: String, val traits: List<String>): Serializable {
+class Definition(val name: String,
+                 val className: String,
+                 val kind: DefinitionKind,
+                 val extraAttributes: Map<String, String>? = null) {
+    fun getAttributes(importManager: ImportManager): String {
+        val res = StringBuilder("name = \"$name\", classname = \"$className\"")
+        if (extraAttributes != null) {
+            for ((attrName, attrVal) in extraAttributes) {
+                res.append(", $attrName=\"$attrVal\"")
+            }
+        }
+        val DefinitionKindShorten = importManager.shorten("$COMMON_PACKAGE.DefinitionKind")
+        res.append(", kind = ").append(
+                when (kind) {
+                    DefinitionKind.TASK -> "$DefinitionKindShorten.TASK"
+                    DefinitionKind.TYPE -> "$DefinitionKindShorten.TYPE"
+                    DefinitionKind.COMPONENT -> "$DefinitionKindShorten.COMPONENT"
+                    DefinitionKind.NESTED -> "$DefinitionKindShorten.NESTED"
+                }
+        )
+        return res.toString()
+    }
+}
+
+public class DSLClass(val name: String, val traits: List<String>): Serializable {
     private val functions = HashMap<String, DSLFunction>()
 
     fun addFunction(functionName: String, pkg: String?, attributes: List<AntAttribute>, receiver: String) {
@@ -528,13 +555,13 @@ class DSLClass(val name: String, val traits: List<String>): Serializable {
     }
 }
 
-class DSLFunction(val name: String, val pkg: String?, val attributes: Map<String, AntAttribute>, val parentName: String, val initReceiver: String): Serializable {
+public class DSLFunction(val name: String, val pkg: String?, val attributes: Map<String, AntAttribute>, val parentName: String, val initReceiver: String): Serializable {
     public fun getAttribute(attributeName: String): AntAttribute? {
         return attributes[attributeName.toLowerCase()]
     }
 
     public fun getAttributeName(attributeName: String): String? {
-        return getAttribute(attributeName)?.name;
+        return getAttribute(attributeName)?.name
     }
 
     public fun getAttributeType(attributeName: String): String? {

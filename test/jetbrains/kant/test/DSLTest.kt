@@ -38,4 +38,8 @@ class GeneratorTest : KAntTestCase() {
     public fun testRunner() {
         runBoxTest(DSL_TEST_DATA_DIR + "Runner.kt")
     }
+
+    public fun testTaskdefsInsideTasks() {
+        runBoxTest(DSL_TEST_DATA_DIR + "TaskdefsInsideTasks.kt")
+    }
 }

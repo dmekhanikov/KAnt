@@ -7,6 +7,13 @@ import java.net.URLClassLoader
 import java.io.File
 import java.util.HashMap
 
+public enum class DefinitionKind {
+    TASK
+    TYPE
+    COMPONENT
+    NESTED
+}
+
 public fun createClassLoader(jars: Array<String>, parent: ClassLoader?): ClassLoader {
     val path = ArrayList<URL>()
     for (jar in jars) {

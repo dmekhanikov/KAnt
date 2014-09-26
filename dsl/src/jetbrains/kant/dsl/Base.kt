@@ -7,6 +7,8 @@ import java.util.HashMap
 import java.lang.reflect.Field
 import kotlin.reflect.KMemberProperty
 import jetbrains.kant.common.valuesToMap
+import jetbrains.kant.common.DefinitionKind
+import org.apache.tools.ant.taskdefs.Definer.OnError
 
 private val DSL_TARGET = javaClass<DSLTarget>().getName()
 
@@ -58,29 +60,74 @@ public open class DSLTask(projectAO: Project, targetAO: Target,
         }
     }
 
-    public fun defineType(className: String) {
+    public fun defineComponent(name: String,
+                               classname: String,
+                               onerror: String? = null,
+                               adapter: String? = null,
+                               adaptto: String? = null,
+                               uri: String? = null,
+                               kind: DefinitionKind) {
         val componentHelper = ComponentHelper.getComponentHelper(projectAO)!!
-        if (componentHelper.getDefinition(elementTag) != null) {
+        val definition = componentHelper.getDefinition(name)
+        val restrictedDefinitions = componentHelper.getRestrictedDefinitions(name)
+        if (definition != null
+                || restrictedDefinitions != null
+                && (kind == DefinitionKind.TYPE
+                    || restrictedDefinitions.firstOrNull { it.getClassName() == classname } != null)) {
             return
         }
-        val typedef = DSLTask(projectAO, targetAO, null, "typedef", null)
-        typedef.attributes["name"] = elementTag
-        typedef.attributes["classname"] = className
-        typedef.configure()
-        typedef.execute()
-    }
+        var cl: Class<*>? = null
+        val al = javaClass.getClassLoader()
+        val onErrorIndex = if (onerror != null) {
+            OnError(onerror).getIndex()
+        } else {
+            OnError.FAIL
+        }
+        try {
+            try {
+                val componentName = ProjectHelper.genComponentName(uri, name)
+                if (onErrorIndex != OnError.IGNORE) {
+                    cl = Class.forName(classname, true, al)
+                }
+                val adapterClass = if (adapter != null) {
+                    Class.forName(adapter, true, al)
+                } else {
+                    null
+                }
+                val adaptToClass = if (adaptto != null) {
+                    Class.forName(adaptto, true, al)
+                } else {
+                    null
+                }
 
-    public fun defineComponent(className: String) {
-        val componentHelper = ComponentHelper.getComponentHelper(projectAO)!!
-        val definitions = componentHelper.getRestrictedDefinitions(elementTag)
-        if (definitions != null && definitions.contains(className) || componentHelper.getDefinition(elementTag) != null) {
-            return
+                val def = AntTypeDefinition()
+                def.setName(componentName)
+                def.setClassName(classname)
+                def.setClass(cl)
+                def.setAdapterClass(adapterClass)
+                def.setAdaptToClass(adaptToClass)
+                def.setRestrict(kind == DefinitionKind.COMPONENT)
+                def.setClassLoader(al)
+                if (cl != null) {
+                    def.checkClass(projectAO)
+                }
+                componentHelper.addDataTypeDefinition(def)
+            } catch (cnfe: ClassNotFoundException) {
+                val msg = "Class $classname cannot be found \n using the classloader " + al
+                throw BuildException(msg, cnfe)
+            } catch (ncdfe: NoClassDefFoundError) {
+                val msg = " A class needed by class $classname cannot be found: ${ncdfe.getMessage()}" +
+                        "\n using the classloader " + al
+                throw BuildException(msg, ncdfe)
+            }
+        } catch (ex: BuildException) {
+            when (onErrorIndex) {
+                OnError.FAIL_ALL, OnError.FAIL -> throw ex
+                OnError.REPORT ->
+                    System.err.println(ex.getLocation().toString() + "Warning: " + ex.getMessage());
+                else -> System.err.println(ex.getLocation().toString() + ex.getMessage())
+            }
         }
-        val componentdef = DSLTask(projectAO, targetAO, null, "componentdef", null)
-        componentdef.attributes["name"] = elementTag
-        componentdef.attributes["classname"] = className
-        componentdef.configure()
-        componentdef.execute()
     }
 
     open public fun configure() {

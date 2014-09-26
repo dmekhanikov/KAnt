@@ -4,6 +4,7 @@ import java.util.HashSet
 
 public val KANT_PACKAGE: String = "jetbrains.kant"
 public val DSL_PACKAGE: String = "$KANT_PACKAGE.dsl"
+public val COMMON_PACKAGE: String = "$KANT_PACKAGE.common"
 public val DSL_PROPERTIES_PACKAGE: String = DSL_PACKAGE
 public val ANT_CLASS_PREFIX: String = "org.apache.tools.ant."
 

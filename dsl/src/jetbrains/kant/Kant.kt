@@ -25,7 +25,7 @@ public class Kant {
     private var className: String? = null
 
     private fun getterName(fieldName: String): String {
-        return "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1)
+        return "get" + Character.toUpperCase(fieldName[0]) + fieldName.substring(1)
     }
 
     private fun failWithError(message: String) {

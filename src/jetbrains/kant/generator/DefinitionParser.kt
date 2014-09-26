@@ -10,37 +10,37 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import javax.xml.parsers.SAXParserFactory
 import javax.xml.parsers.ParserConfigurationException
+import jetbrains.kant.common.DefinitionKind
+import java.util.HashMap
 
-class Alias(val tag: String, val className: String, val restricted: Boolean)
-
-class AliasParser(val inputStream: InputStream) {
-    fun parseProperties(): List<Alias> {
-        val result = ArrayList<Alias>()
+class DefinitionParser(val inputStream: InputStream) {
+    fun parseProperties(): List<Definition> {
+        val result = ArrayList<Definition>()
         val bf = BufferedReader(InputStreamReader(inputStream))
         var line = bf.readLine()
         while (line != null) {
-            val alias = parseAlias(line!!)
-            if (alias != null) {
-                result.add(alias)
+            val definition = parseDefinition(line!!)
+            if (definition != null) {
+                result.add(definition)
             }
             line = bf.readLine()
         }
         return result
     }
 
-    private fun parseAlias(line: String): Alias? {
+    private fun parseDefinition(line: String): Definition? {
         val pattern = Pattern.compile("^([\\w.-]*)\\s*=\\s*([\\w.]*)$")
         val matcher = pattern.matcher(line)
         if (matcher.matches()) {
-            val tag = matcher.group(1)!!
+            val name = matcher.group(1)!!
             val className = matcher.group(2)!!
-            return Alias(tag, className, false)
+            return Definition(name = name, className = className, kind = DefinitionKind.TASK)
         } else {
             return null
         }
     }
 
-    fun parseXML(): List<Alias> {
+    fun parseXML(): List<Definition> {
         try {
             val factory  = SAXParserFactory.newInstance()!!
             val parser = factory.newSAXParser()
@@ -51,12 +51,12 @@ class AliasParser(val inputStream: InputStream) {
         } catch (e: ParserConfigurationException) {
             e.printStackTrace()
         }
-        return ArrayList<Alias>()
+        return ArrayList()
     }
 
     private class AntlibHandler: DefaultHandler() {
         var depth = 0
-        val result = ArrayList<Alias>()
+        val result = ArrayList<Definition>()
 
         override fun startElement(uri: String, localName: String, qName: String, attributes: Attributes) {
             depth++
@@ -67,15 +67,32 @@ class AliasParser(val inputStream: InputStream) {
                 return
             }
             val name = attributes.getValue("name")
-            val className = attributes.getValue("classname")
-            if (name != null && className != null) {
-                val restricted = when (qName) {
-                    "taskdef", "typedef" -> false
-                    else -> true
+            val classname = attributes.getValue("classname")
+            if (name != null && classname != null) {
+                val kind = when (qName) {
+                    "taskdef" -> DefinitionKind.TASK
+                    "typedef" -> DefinitionKind.TYPE
+                    "componentdef" -> DefinitionKind.COMPONENT
+                    else -> return
                 }
-                result.add(Alias(name, className, restricted))
+                val extraAttributes = HashMap<String, String>()
+                for (i in 0..attributes.getLength() - 1) {
+                    val key = attributes.getLocalName(i)!!
+                    if (key == "onerror" || key == "adapter" || key == "adaptto" || key == "uri") {
+                        val value = attributes.getValue(i)!!
+                        extraAttributes[key] = value
+                    }
+                }
+                result.add(
+                        Definition(
+                                name = name,
+                                className = classname,
+                                kind = kind,
+                                extraAttributes = extraAttributes
+                        ))
             }
         }
+
         override fun endElement(uri: String?, localName: String, qName: String) {
             depth--
         }
