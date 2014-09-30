@@ -3,7 +3,6 @@ import jetbrains.kant.dsl.other.net.sf.antcontrib.math.*
 import jetbrains.kant.dsl.other.net.sf.antcontrib.property.propertycopy
 import jetbrains.kant.dsl.taskdefs.condition.*
 
-val fact by DoubleProperty()
 val result by DoubleProperty()
 
 object project : DSLProject() {
