@@ -25,7 +25,7 @@ object project : DSLProject() {
         property(file = resource("dsl/Properties.txt"))
         result = "\"$stringProperty\", \"$booleanProperty\", \"$intProperty\", \"$doubleProperty\", " +
                 "\"$defaultProperty\", \"$copyDestination\", \"$stringFileProperty\", \"$intFileProperty\", " +
-                "\"$doubleFileProperty\""
+                "\"$doubleFileProperty\", \"${getIntProperty("intPropertyByName")}\""
     }
 }
 
@@ -34,6 +34,7 @@ fun init() {
     propertyManager.setProperty("booleanProperty", "true")
     propertyManager.setProperty("intProperty", "42")
     propertyManager.setProperty("doubleProperty", "21568.3")
+    propertyManager.setProperty("intPropertyByName", "73218")
 }
 
 fun box(): String {
@@ -44,7 +45,8 @@ fun box(): String {
             return "systemProperty is empty"
         }
         if (result != "\"string property\", \"true\", \"42\", \"21568.3\", " +
-                "\"default value\", \"default value\", \"string file property\", \"9000\", \"146.47\"") {
+                "\"default value\", \"default value\", \"string file property\", \"9000\", \"146.47\", " +
+                "\"73218\"") {
             return result
         }
         return "OK"

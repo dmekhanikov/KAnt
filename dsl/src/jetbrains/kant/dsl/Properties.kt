@@ -35,7 +35,7 @@ public open class Property<T>(public val name: String? = null, public val conver
             if (defaultValue != null) {
                 value = defaultValue!!()
             } else {
-                throw IllegalStateException("Property ${getName(prop)} has not been initialized}")
+                throw IllegalStateException("Property ${getName(prop)} has not been initialized")
             }
         }
         val result = value
@@ -74,3 +74,31 @@ public class FloatProperty(name: String? = null, defaultValue: (() -> Float)? = 
 public class LongProperty(name: String? = null, defaultValue: (() -> Long)? = null) : Property<Long>(name, { java.lang.Long.parseLong(it) }, defaultValue)
 public class DoubleProperty(name: String? = null, defaultValue: (() -> Double)? = null) : Property<Double>(name, { java.lang.Double.parseDouble(it) }, defaultValue)
 public class StringProperty(name: String? = null, defaultValue: (() -> String)? = null) : Property<String>(name, { it }, defaultValue)
+
+public fun getProperty(name: String): Any {
+    val value = propertyHelper!!.getProperty(name)
+    if (value != null) {
+        return value
+    } else {
+        throw IllegalStateException("Property $name has not been initialized")
+    }
+}
+
+public fun <T>getProperty(name: String, convert: (String) -> T): T {
+    val value = getProperty(name)
+    if (value is String) {
+        return convert(value)
+    } else {
+        return value as T
+    }
+}
+
+public fun getBooleanProperty(name: String): Boolean { return getProperty(name, { java.lang.Boolean.parseBoolean(it) }) }
+public fun getCharProperty(name: String): Char { return getProperty(name, { it[0] }) }
+public fun getByteProperty(name: String): Byte { return getProperty(name, { java.lang.Byte.parseByte(it) }) }
+public fun getShortProperty(name: String): Short { return getProperty(name, { java.lang.Short.parseShort(it) }) }
+public fun getIntProperty(name: String): Int { return getProperty(name, { java.lang.Integer.parseInt(it) }) }
+public fun getFloatProperty(name: String): Float { return getProperty(name, { java.lang.Float.parseFloat(it) }) }
+public fun getLongProperty(name: String): Long { return getProperty(name, { java.lang.Long.parseLong(it) }) }
+public fun getDoubleProperty(name: String): Double { return getProperty(name, { java.lang.Double.parseDouble(it) }) }
+public fun getStringProperty(name: String): String { return getProperty(name, { it }) }
