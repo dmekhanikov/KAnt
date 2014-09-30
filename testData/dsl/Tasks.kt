@@ -8,7 +8,7 @@ import jetbrains.kant.test.readFile
 object project : DSLProject() {
     {
         echo(message = "TestTESTteSt", file = file("src/test.txt"))
-        zip (basedir = file("src/"), destFile = file("zip.zip"))
+        zip(basedir = file("src/"), destFile = file("zip.zip"))
         unzip(src = file("zip.zip"), dest = file("dst/"))
     }
 }

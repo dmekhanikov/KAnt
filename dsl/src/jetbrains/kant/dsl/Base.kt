@@ -189,11 +189,11 @@ public open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer
     val targets = HashMap<String, DSLTarget>() // field name -> DSLTarget
     private var configured = false
     {
+        projectAO.init()
+        projectAO.addBuildListener(createLogger())
         initProperties(projectAO)
         targetAO.setProject(projectAO)
         targetAO.setName("")
-        projectAO.init()
-        projectAO.addBuildListener(createLogger())
     }
 
     private fun createLogger(): BuildLogger {

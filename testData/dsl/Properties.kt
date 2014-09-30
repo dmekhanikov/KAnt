@@ -1,5 +1,6 @@
 import jetbrains.kant.dsl.*
 import jetbrains.kant.dsl.taskdefs.property
+import jetbrains.kant.dsl.other.net.sf.antcontrib.property.propertycopy
 import jetbrains.kant.test.PropertyManager
 import jetbrains.kant.test.resource
 
@@ -10,6 +11,7 @@ val booleanProperty by BooleanProperty()
 val intProperty by IntProperty()
 val doubleProperty by DoubleProperty()
 val defaultProperty by StringProperty { "default value" }
+val copyDestination by StringProperty()
 val stringFileProperty by StringProperty("string.file.property")
 val intFileProperty by IntProperty("int.file.property")
 val doubleFileProperty by DoubleProperty("double.file.property")
@@ -19,9 +21,11 @@ var result = ""
 
 object project : DSLProject() {
     {
+        propertycopy(property = "copyDestination", from = "defaultProperty")
         property(file = resource("dsl/Properties.txt"))
         result = "\"$stringProperty\", \"$booleanProperty\", \"$intProperty\", \"$doubleProperty\", " +
-                "\"$defaultProperty\", \"$stringFileProperty\", \"$intFileProperty\", \"$doubleFileProperty\""
+                "\"$defaultProperty\", \"$copyDestination\", \"$stringFileProperty\", \"$intFileProperty\", " +
+                "\"$doubleFileProperty\""
     }
 }
 
@@ -40,7 +44,7 @@ fun box(): String {
             return "systemProperty is empty"
         }
         if (result != "\"string property\", \"true\", \"42\", \"21568.3\", " +
-                "\"default value\", \"string file property\", \"9000\", \"146.47\"") {
+                "\"default value\", \"default value\", \"string file property\", \"9000\", \"146.47\"") {
             return result
         }
         return "OK"
