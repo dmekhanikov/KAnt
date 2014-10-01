@@ -1,6 +1,7 @@
 package jetbrains.kant.dsl
 
 import org.apache.tools.ant.*
+import org.apache.tools.ant.taskdefs.Definer.OnError
 import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
@@ -8,7 +9,6 @@ import java.lang.reflect.Field
 import kotlin.reflect.KMemberProperty
 import jetbrains.kant.common.valuesToMap
 import jetbrains.kant.common.DefinitionKind
-import org.apache.tools.ant.taskdefs.Definer.OnError
 
 private val DSL_TARGET = javaClass<DSLTarget>().getName()
 

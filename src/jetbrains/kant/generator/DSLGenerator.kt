@@ -393,7 +393,7 @@ class DSLGenerator(outDir: String, val classpath: String, definitionFiles: Array
         if (withInit) {
             val mustBeExecuted = (parentName == DSL_TASK_CONTAINER || parentName == DSL_PROJECT)
             out.append("    val dslObject = $dslTypeName(this.projectAO, this.targetAO, ${if (mustBeExecuted) {"null"} else {"this.wrapperAO"}}, \"${definition.name}\", ")
-            out.append(if (mustBeExecuted) {"null"} else {"this"})
+            out.append(if (mustBeExecuted) {"null"} else {"this.nearestExecutable"})
             out.append(")\n")
             for (attr in attributes) {
                 val dslAttr = constructDslAttribute(attr, className)

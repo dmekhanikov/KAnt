@@ -37,6 +37,24 @@ class DSLTest : KAntTestCase() {
         }
     }
 
+    public class GenericTask : KAntTestCase() {
+        public fun testCutDirsMapper() {
+            runBoxTest(DSL_TEST_DATA_DIR + "GenericTask/CutDirsMapper.kt")
+        }
+
+        public fun testMath() {
+            runBoxTest(DSL_TEST_DATA_DIR + "GenericTask/Math.kt")
+        }
+
+        public fun testReplace() {
+            runBoxTest(DSL_TEST_DATA_DIR + "GenericTask/Replace.kt")
+        }
+
+        public fun testSwitch() {
+            runBoxTest(DSL_TEST_DATA_DIR + "GenericTask/Switch.kt")
+        }
+    }
+
     public class NestedElements : KAntTestCase() {
         public fun testCutDirsMapper() {
             runBoxTest(DSL_TEST_DATA_DIR + "NestedElements/CutDirsMapper.kt")
