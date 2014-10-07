@@ -11,6 +11,10 @@ public class DSLReference<T : DSLTask>(public val value: T) {
     {
         value.attributes["id"] = refid
     }
+
+    public fun <Q: DSLTask> asExpected(): DSLReference<Q> {
+        return this as DSLReference<Q>;
+    }
 }
 
 [Retention(RetentionPolicy.RUNTIME)]
