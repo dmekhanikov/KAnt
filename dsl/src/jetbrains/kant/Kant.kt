@@ -12,7 +12,7 @@ import java.net.URLClassLoader
 import java.util.ArrayList
 import jetbrains.kant.common.createClassLoader
 
-fun main(args: Array<String>) {
+public fun main(args: Array<String>) {
     Kant().doMain(args)
 }
 

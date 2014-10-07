@@ -4,7 +4,7 @@ import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-public class ConditionTask extends Wrapper{
+public class ConditionTask extends Wrapper {
     private String propName;
     private String value;
     private String elseValue;

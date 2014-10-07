@@ -12,7 +12,6 @@
     <orderEntry type="module" module-name="common" />
     <orderEntry type="library" name="args4j" level="project" />
     <orderEntry type="library" name="ant" level="project" />
-    <orderEntry type="library" name="kotlin-compiler" level="project" />
   </component>
 </module>
 
