@@ -5,16 +5,16 @@ import org.apache.tools.ant.PropertyHelper
 import java.io.File
 import java.util.HashMap
 
-private val defaultValues = HashMap<String, Any?>()
+private val defaultValues = HashMap<String, () -> Any?>()
 private var propertyHelper: PropertyHelper? = null
 
 fun initProperties(projectAO: Project) {
     propertyHelper = PropertyHelper.getPropertyHelper(projectAO)
-    val basedir = File(".").getAbsoluteFile()!!.getParent()
+    val basedir = File(".").getAbsoluteFile()!!.getParent().toString()
     propertyHelper!!.setUserProperty("basedir", basedir)
     for ((key, value) in defaultValues) {
         if (propertyHelper!!.getProperty(key) == null) {
-            propertyHelper!!.setUserProperty(key, value)
+            propertyHelper!!.setUserProperty(key, value())
         }
     }
 }
@@ -56,7 +56,7 @@ public open class Property<T>(public val name: String? = null, public val conver
 
     public fun propertyDelegated(prop: PropertyMetadata) {
         if (defaultValue != null && !defaultValues.contains(getName(prop))) {
-            defaultValues[getName(prop)] = defaultValue!!()
+            defaultValues[getName(prop)] = defaultValue!!
         }
     }
 }

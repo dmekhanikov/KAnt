@@ -86,6 +86,10 @@ class DSLTest : KAntTestCase() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/GetFromFile.kt")
         }
 
+        public fun testInitWithAnotherProp() {
+            runBoxTest(DSL_TEST_DATA_DIR + "Properties/InitWithBasedir.kt")
+        }
+
         public fun testInvalidFormat() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/InvalidFormat.kt")
         }
