@@ -127,6 +127,10 @@ public class Wrapper {
         this.parent = parent;
     }
 
+    public DSLFunction getConstructor() {
+        return constructor;
+    }
+
     public String getConstructorQName() {
         if (constructor != null) {
             return constructor.getPkg() + "." + constructor.getName();

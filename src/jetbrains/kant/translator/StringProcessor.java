@@ -1,7 +1,10 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.generator.DSLFunction;
 import jetbrains.kant.translator.codeStructure.Context;
 import jetbrains.kant.translator.codeStructure.Variable;
+import jetbrains.kant.translator.wrappers.Property;
+import jetbrains.kant.translator.wrappers.Wrapper;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,6 +67,19 @@ public class StringProcessor {
         }
     }
 
+    private static boolean refOrPropClashes(String name, Context context) {
+        if (context.hasFunctionArgument(name)) {
+            return true;
+        }
+        name = toCamelCase(name).toLowerCase();
+        Wrapper wrapper = context.getWrapper();
+        if (wrapper instanceof Property) {
+            return false;
+        }
+        DSLFunction constructor = wrapper.getConstructor();
+        return constructor != null && constructor.getAttribute(name) != null;
+    }
+
     /**
      * Get property name qualified if needed. Null
      *
@@ -84,7 +100,7 @@ public class StringProcessor {
             ccName = functionArgument.getName();
         } else {
             ccName = toCamelCase(name);
-            if (functionArgument != null) {
+            if (refOrPropClashes(name, context)) {
                 ccName = context.getPackageName() + '.' + ccName;
             }
             if (context.getPropertyManager() != null) {
@@ -158,7 +174,7 @@ public class StringProcessor {
         if (type.startsWith(getDSL_REFERENCE())) {
             String name = toCamelCase(value);
             context.referenceAccess(name);
-            if (context.hasFunctionArgument(value)) {
+            if (refOrPropClashes(name, context)) {
                 name = context.getPackageName() + '.' + name;
             }
             return name;
