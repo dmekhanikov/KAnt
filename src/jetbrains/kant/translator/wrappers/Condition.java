@@ -1,6 +1,5 @@
-package jetbrains.kant.translator;
+package jetbrains.kant.translator.wrappers;
 
-import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.SAXException;
 
 public class Condition extends Wrapper {
@@ -26,35 +25,35 @@ public class Condition extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager, ImportManager importManager) {
+    public String toString() {
         String result;
         switch (name) {
             case "not":
-                return "!" + children.get(0).toString(propertyManager, importManager);
+                return "!" + children.get(0).toString();
             case "and":
-                result = children.get(0).toString(propertyManager, importManager) + " && " + children.get(1).toString(propertyManager, importManager);
+                result = children.get(0).toString() + " && " + children.get(1).toString();
                 if (parent != null && "not".equals(parent.name)) {
                     result = "(" + result + ")";
                 }
                 return result;
             case "or":
-                result = children.get(0).toString(propertyManager, importManager) + " || " + children.get(1).toString(propertyManager, importManager);
+                result = children.get(0).toString() + " || " + children.get(1).toString();
                 if (parent != null && ("not".equals(parent.name) || "and".equals(parent.name))) {
                     result = "(" + result + ")";
                 }
                 return result;
             case "xor":
-                result = children.get(0).toString(propertyManager, importManager) + " ^ " + children.get(1).toString(propertyManager, importManager);
+                result = children.get(0).toString() + " ^ " + children.get(1).toString();
                 if (parent != null && ("not".equals(parent.name) || "and".equals(parent.name))) {
                     result = "(" + result + ")";
                 }
                 return result;
             case "istrue":
-                return attributes.get(0).getDefaultValue(propertyManager);
+                return attributes.get(0).getDefaultValue(context);
             case "isfalse":
-                return "!" + attributes.get(0).getDefaultValue(propertyManager);
+                return "!" + attributes.get(0).getDefaultValue(context);
             default:
-                return super.toString(propertyManager, importManager);
+                return super.toString();
         }
     }
 }

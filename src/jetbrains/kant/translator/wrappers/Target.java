@@ -1,8 +1,9 @@
-package jetbrains.kant.translator;
+package jetbrains.kant.translator.wrappers;
 
 import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
 import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_TARGET_FUNCTION;
-import jetbrains.kant.gtcommon.ImportManager;
+
+import jetbrains.kant.translator.codeStructure.Context;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -11,8 +12,8 @@ public class Target extends Wrapper {
 
     private String[] depends;
 
-    public Target(Attributes attributes) throws SAXException {
-        super(getDSL_TARGET_FUNCTION(), null);
+    public Target(Attributes attributes, Context context) throws SAXException {
+        super(getDSL_TARGET_FUNCTION(), null, context);
         targetName = attributes.getValue("name");
         if (targetName == null) {
             throw new SAXException("Target should have a name");
@@ -35,7 +36,7 @@ public class Target extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager, ImportManager importManager) {
+    public String toString() {
         StringBuilder result = new StringBuilder();
         if (((Project) parent).getDefaultTarget().equals(targetName)) {
             result.append(indent).append("[default]\n");
@@ -48,7 +49,7 @@ public class Target extends Wrapper {
             result.append("(\"").append(targetName).append("\"");
             firstArgument = false;
         }
-        importManager.addImport(getDSL_TARGET_FUNCTION());
+        context.getImportManager().addImport(getDSL_TARGET_FUNCTION());
         if (depends != null) {
             for (String depend : depends) {
                 if (firstArgument) {
@@ -65,7 +66,7 @@ public class Target extends Wrapper {
         }
         if (!children.isEmpty()) {
             result.append(" {\n");
-            result.append(renderChildren(propertyManager, importManager));
+            renderChildren(result);
             result.append("\n").append(indent).append("}");
         } else {
             result.append(" {}");

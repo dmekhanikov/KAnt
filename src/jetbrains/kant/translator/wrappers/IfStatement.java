@@ -1,6 +1,6 @@
-package jetbrains.kant.translator;
+package jetbrains.kant.translator.wrappers;
 
-import jetbrains.kant.gtcommon.ImportManager;
+import jetbrains.kant.translator.codeStructure.Context;
 import org.xml.sax.SAXException;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +11,8 @@ public class IfStatement extends Wrapper {
     private Sequential elseStatement;
     private List<IfStatement> elseifStatements = new ArrayList<>();
 
-    public IfStatement() {
-        super((String) null, null);
+    public IfStatement(Context context) {
+        super((String) null, null, context);
     }
 
     public IfStatement(Wrapper wrapper) {
@@ -63,22 +63,22 @@ public class IfStatement extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager, ImportManager importManager) {
+    public String toString() {
         StringBuilder result = new StringBuilder(indent);
         result.append("if (");
-        result.append(condition.toString(propertyManager, importManager));
+        result.append(condition.toString());
         result.append(") {\n");
         if (thenStatement != null) {
-            result.append(thenStatement.toString(propertyManager, importManager)).append("\n");
+            result.append(thenStatement.toString()).append("\n");
         }
         result.append(indent).append("}");
         for (IfStatement elseifStatement : elseifStatements) {
             result.append(" else ");
-            result.append(elseifStatement.toString(propertyManager, importManager).substring(elseifStatement.indent.length()));
+            result.append(elseifStatement.toString().substring(elseifStatement.indent.length()));
         }
         if (elseStatement != null) {
             result.append(" else {\n");
-            result.append(elseStatement.toString(propertyManager, importManager));
+            result.append(elseStatement.toString());
             result.append("\n").append(indent).append("}");
         }
         return result.toString();

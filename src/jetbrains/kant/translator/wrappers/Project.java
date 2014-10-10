@@ -1,8 +1,8 @@
-package jetbrains.kant.translator;
+package jetbrains.kant.translator.wrappers;
 
 import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_PROJECT;
 import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_PROJECT_FUNCTION;
-import jetbrains.kant.gtcommon.ImportManager;
+import jetbrains.kant.translator.codeStructure.Context;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -10,8 +10,8 @@ public class Project extends Wrapper {
     private String defaultTarget;
     private Sequential init;
 
-    public Project(Attributes attributes) {
-        super(getDSL_PROJECT_FUNCTION(), null);
+    public Project(Attributes attributes, Context context) {
+        super(getDSL_PROJECT_FUNCTION(), null, context);
         defaultTarget = attributes.getValue("default");
     }
 
@@ -25,7 +25,7 @@ public class Project extends Wrapper {
             return super.addChild(child);
         } else {
             if (init == null) {
-                init = new Sequential();
+                init = new Sequential(new Context(context)); // TODO: figure out what to put here instead of context
                 init.setParent(this);
             }
             child = init.addChild(child);
@@ -39,9 +39,9 @@ public class Project extends Wrapper {
     }
 
     @Override
-    public String toString(PropertyManager propertyManager, ImportManager importManager) {
+    public String toString() {
         StringBuilder result = new StringBuilder(indent);
-        String dslProjectShorten = importManager.shorten(getDSL_PROJECT());
+        String dslProjectShorten = context.getImportManager().shorten(getDSL_PROJECT());
         result.append("object project : ").append(dslProjectShorten).append("() {");
         if (init != null) {
             boolean inInit = false;
@@ -59,7 +59,7 @@ public class Project extends Wrapper {
                     result.append('\n').append(indent).append(TAB).append("}");
                     inInit = false;
                 }
-                result.append('\n').append(child.toString(propertyManager, importManager));
+                result.append('\n').append(child.toString());
             }
             if (inInit) {
                 result.append('\n').append(indent).append(TAB).append('}');
@@ -69,7 +69,7 @@ public class Project extends Wrapper {
             }
         }
         for (Wrapper child : children) {
-            result.append("\n").append(child.toString(propertyManager, importManager)).append("\n");
+            result.append("\n").append(child.toString()).append("\n");
         }
         result.append(indent).append("}");
         return result.toString();

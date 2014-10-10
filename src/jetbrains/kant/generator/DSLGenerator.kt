@@ -141,7 +141,7 @@ class DSLGenerator(outDir: String, val classpath: String, definitionFiles: Array
 
         val definitions = getDefinitions()
         for (definition in definitions) {
-            resolveDefinition(definition)
+            definition.resolve()
         }
 
         if (defaultNames) {
@@ -248,9 +248,9 @@ class DSLGenerator(outDir: String, val classpath: String, definitionFiles: Array
         return definitions
     }
 
-    private fun resolveDefinition(definition: Definition) {
-        resolveClass(definition.className)
-        resolved[definition.className]?.generateConstructors(definition)
+    private fun Definition.resolve() {
+        resolveClass(className)
+        resolved[className]?.generateConstructors(this)
     }
 
     private fun getResultClassName(srcClassName: String): String {
@@ -449,9 +449,12 @@ class DSLGenerator(outDir: String, val classpath: String, definitionFiles: Array
 
     private fun addConstructor(parent: String, function: String, pkg: String?, antClass: AntClass) {
         val dslClass = structure[parent]!!
-        dslClass.addFunction(function, pkg,
+        dslClass.addFunction(
+                function,
+                pkg,
                 antClass.attributes.map { constructDslAttribute(it, antClass.className) },
-                getResultClassName(antClass.className))
+                getResultClassName(antClass.className),
+                antClass.getConstructorReturnType())
     }
 
     private inner class Target(val antClass: AntClass) {
@@ -539,23 +542,31 @@ class Definition(val name: String,
     }
 }
 
-public class DSLClass(val name: String, val traits: List<String>): Serializable {
+public class DSLClass(public val name: String, public val traits: List<String>): Serializable {
     private val functions = HashMap<String, DSLFunction>()
 
-    fun addFunction(functionName: String, pkg: String?, attributes: List<AntAttribute>, receiver: String) {
-        functions.put(functionName.toLowerCase(), DSLFunction(toCamelCase(functionName), pkg, attributes.valuesToMap {it.name.toLowerCase()}, name, receiver))
+    public fun addFunction(functionName: String, pkg: String?,
+                           attributes: List<AntAttribute>, receiver: String, returnType: String? = null) {
+        functions.put(functionName.toLowerCase(),
+                DSLFunction(toCamelCase(functionName), pkg,
+                        attributes.valuesToMap {it.name.toLowerCase()}, name, receiver, returnType))
     }
 
-    fun containsFunction(name: String): Boolean {
+    public fun containsFunction(name: String): Boolean {
         return functions.containsKey(name.toLowerCase())
     }
 
-    fun getFunction(name: String): DSLFunction? {
+    public fun getFunction(name: String): DSLFunction? {
         return functions[name.toLowerCase()]
     }
 }
 
-public class DSLFunction(val name: String, val pkg: String?, val attributes: Map<String, AntAttribute>, val parentName: String, val initReceiver: String): Serializable {
+public class DSLFunction(public val name: String,
+                         public val pkg: String?,
+                         public val attributes: Map<String, AntAttribute>,
+                         public val parentName: String,
+                         public val initReceiver: String,
+                         public val returnType: String? = null): Serializable {
     public fun getAttribute(attributeName: String): AntAttribute? {
         return attributes[attributeName.toLowerCase()]
     }

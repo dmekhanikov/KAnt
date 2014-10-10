@@ -1,6 +1,9 @@
-package jetbrains.kant.translator;
+package jetbrains.kant.translator.wrappers;
 
 import jetbrains.kant.gtcommon.AntAttribute;
+import jetbrains.kant.translator.StringProcessor;
+import jetbrains.kant.translator.codeStructure.Context;
+
 import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
 
 public class DSLAttribute extends AntAttribute {
@@ -11,18 +14,18 @@ public class DSLAttribute extends AntAttribute {
         this.defaultValue = defaultValue;
     }
 
-    public String getDefaultValue(PropertyManager propertyManager) {
-        return StringProcessor.prepareValue(defaultValue, propertyManager, getTypeName());
+    public String getDefaultValue(Context context) {
+        return StringProcessor.prepareValue(defaultValue, context, getTypeName());
     }
 
-    public String toString(boolean includeType, PropertyManager propertyManager) {
+    public String toString(boolean includeType, Context context) {
         StringBuilder result = new StringBuilder(toCamelCase(getName()));
         if (includeType) {
             result.append(": ").append(getTypeName());
         }
         if (defaultValue != null) {
             result.append(" = ");
-            result.append(getDefaultValue(propertyManager));
+            result.append(getDefaultValue(context));
         }
         return result.toString();
     }

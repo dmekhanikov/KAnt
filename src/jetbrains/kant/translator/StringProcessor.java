@@ -1,5 +1,8 @@
 package jetbrains.kant.translator;
 
+import jetbrains.kant.translator.codeStructure.Context;
+import jetbrains.kant.translator.codeStructure.Variable;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
@@ -49,37 +52,66 @@ public class StringProcessor {
                 i + 1 < string.length() && string.charAt(i + 1) == '{';
     }
 
-    public static String processProperties(String value, PropertyManager propertyManager) {
+    public static String getPropertyName(String s) {
+        if (!isStartOfTemplate(s, 0)) {
+            return null;
+        }
+        int end = s.indexOf('}');
+        if (end == -1) {
+            return null;
+        } else {
+            return s.substring(2, end);
+        }
+    }
+
+    /**
+     * Get property name qualified if needed. Null
+     *
+     * @return property name or null if no property found
+     */
+    public static String processProperty(String s, Context context) {
+        String name = getPropertyName(s);
+        if (name == null) {
+            return null;
+        }
+        boolean isAttribute = s.charAt(0) == '@';
+        Variable functionArgument = context.getFunctionArgument(name);
+        if (isAttribute && functionArgument == null || name.equals("$")) {
+            return null;
+        }
+        String ccName;
+        if (isAttribute) {
+            ccName = functionArgument.getName();
+        } else {
+            ccName = toCamelCase(name);
+            if (functionArgument != null) {
+                ccName = context.getPackageName() + '.' + ccName;
+            }
+            if (context.getPropertyManager() != null) {
+                context.getPropertyManager().readAccess(name);
+            }
+        }
+        return ccName;
+    }
+
+    public static String processProperties(String value, Context context) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < value.length(); i++) {
             if (isStartOfTemplate(value, i)) {
-                boolean isAttribute = value.charAt(i) == '@';
-                StringBuilder propertyName = new StringBuilder();
-                for (i += 2; i < value.length() && value.charAt(i) != '}'; i++) {
-                    propertyName.append(value.charAt(i));
+                String name = processProperty(value.substring(i), context);
+                if (name == null) {
+                    result.append(value.charAt(i)).append(value.charAt(i + 1));
+                    i++;
+                    continue;
                 }
-                String name = propertyName.toString();
-                if (isAttribute && (propertyManager == null || !propertyManager.containsAttribute(name))) {
-                    result.append("@{").append(name).append("}");
-                } else if (name.equals("\"$\"")) {
-                    result.append("${\"$\"}");
+                i = value.indexOf('}', i);
+                boolean isQualified = name.contains(".");
+                if (isQualified || i + 1 < value.length() && Character.isJavaIdentifierPart(value.charAt(i + 1))) {
+                    name = "${" + name + "}";
                 } else {
-                    String ccName = toCamelCase(name);
-                    if (propertyManager != null) {
-                        if (isAttribute) {
-                            name = propertyManager.getExactAttributeName(name);
-                            ccName = toCamelCase(name);
-                        } else {
-                            propertyManager.readAccess(propertyName.toString());
-                        }
-                    }
-                    if (i + 1 < value.length() && Character.isJavaIdentifierPart(value.charAt(i + 1))) {
-                        ccName = "${" + ccName + "}";
-                    } else {
-                        ccName = "$" + ccName;
-                    }
-                    result.append(ccName);
+                    name = "$" + name;
                 }
+                result.append(name);
             } else {
                 result.append(value.charAt(i));
             }
@@ -119,12 +151,17 @@ public class StringProcessor {
         }
     }
 
-    public static String prepareValue(String value, PropertyManager propertyManager, String type) {
+    public static String prepareValue(String value, Context context, String type) {
         if (value == null) {
             return null;
         }
         if (type.startsWith(getDSL_REFERENCE())) {
-            return toCamelCase(value);
+            String name = toCamelCase(value);
+            context.referenceAccess(name);
+            if (context.hasFunctionArgument(value)) {
+                name = context.getPackageName() + '.' + name;
+            }
+            return name;
         }
         try {
             switch (type) {
@@ -159,15 +196,16 @@ public class StringProcessor {
         if (matcher.matches()) {
             boolean isAttribute = value.charAt(0) == '@';
             String propName = matcher.group(1);
-            String propCCName = processProperties(value, propertyManager).substring(1);
-            if (propCCName.charAt(0) != '{') {
+            String propCCName = processProperty(value, context);
+            if (propCCName != null) {
                 String propType = null;
-                if (propertyManager != null) {
-                    if (isAttribute) {
-                        propType = propertyManager.getAttributeType(propName);
-                    } else {
-                        propType = propertyManager.getPropType(propName);
+                Variable functionArgument = context.getFunctionArgument(propName);
+                if (isAttribute) {
+                    if (functionArgument != null) {
+                        propType = functionArgument.getType();
                     }
+                } else if (context.getPropertyManager() != null) {
+                    propType = context.getPropertyManager().getPropType(propName);
                 }
                 if (propType == null) {
                     propType = "String";
@@ -184,7 +222,7 @@ public class StringProcessor {
             }
         }
         StringBuilder result = new StringBuilder();
-        result.append(processProperties(escapeTemplates(value), propertyManager));
+        result.append(processProperties(escapeTemplates(value), context));
         escape(result, '\\');
         escape(result, '\"');
         result.insert(0, "\"");

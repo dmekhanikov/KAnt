@@ -6,6 +6,9 @@ import static jetbrains.kant.common.CommonPackage.createClassLoader;
 import static jetbrains.kant.gtcommon.constants.ConstantsPackage.*;
 
 import jetbrains.kant.generator.DSLFunction;
+import jetbrains.kant.translator.codeStructure.Context;
+import jetbrains.kant.translator.codeStructure.Reference;
+import jetbrains.kant.translator.wrappers.*;
 import org.kohsuke.args4j.*;
 import java.io.*;
 import java.util.*;
@@ -81,27 +84,32 @@ public class Translator {
     }
 
     private class AntXMLHandler extends DefaultHandler {
-        List<Wrapper> stack;
         StringBuilder macrodefs;
+        Context globalContext;
+        Context currentContext;
+
         PropertyManager propertyManager;
         ImportManager importManager;
+        Map<String, Reference> references;
 
         @Override
         public void startDocument() throws SAXException {
-            stack = new ArrayList<>();
             macrodefs = new StringBuilder();
             propertyManager = new PropertyManager();
             importManager = new ImportManager(null);
+            references = new HashMap<>();
+            globalContext = new Context(null, propertyManager, importManager, references);
+            currentContext = globalContext;
             result = new StringBuilder();
         }
 
         @Override
         public void endDocument() throws SAXException {
-            String propertiesDeclaration = propertyManager.toString(importManager);
+            String propertiesDeclaration = propertyManager.toString(currentContext);
             result.insert(0, importManager + "\n" + propertiesDeclaration + "\n" + macrodefs);
         }
 
-        private DSLFunction findConstructor(String parentClassName, String name) {
+        DSLFunction findConstructor(String parentClassName, String name) {
             DSLClass parentDSLClass = structure.get(parentClassName);
             if (parentDSLClass != null) {
                 DSLFunction constructor = parentDSLClass.getFunction(name);
@@ -119,41 +127,34 @@ public class Translator {
             return null;
         }
 
-        private DSLFunction findConstructor(Wrapper parent, String name) {
+        DSLFunction findConstructor(Wrapper parent, String name) {
             if (parent == null) {
                 return null;
             }
             return findConstructor(parent.getDSLClassName(), name);
         }
 
-        private void processChild(Wrapper child, Wrapper parent) throws SAXException {
+        void processChild(Wrapper child, Wrapper parent) throws SAXException {
             if (parent != null) {
-                child = parent.addChild(child);
+                parent.addChild(child);
             }
-            stack.add(child);
         }
 
-        private void pushDummy() {
-            stack.add(new Wrapper((String) null, null));
-        }
-
-        private void defaultHandler(String name, Attributes attrs, Wrapper parent, DSLFunction constructor) throws SAXException {
+        void defaultHandler(String name, Attributes attrs, Wrapper parent, DSLFunction constructor) throws SAXException {
             propertyManager.finishDeclaring();
             Wrapper wrapper;
             if (constructor != null) {
-                wrapper = new Wrapper(constructor, attrs);
+                wrapper = new Wrapper(constructor, attrs, currentContext);
             } else {
-                wrapper = new Wrapper(name, attrs);
+                wrapper = new Wrapper(name, attrs, currentContext);
             }
             processChild(wrapper, parent);
         }
 
         @Override
         public void startElement(String namespaceURI, String localName, String qName, Attributes attrs) throws SAXException {
-            Wrapper parent = null;
-            if (!stack.isEmpty()) {
-                parent = stack.get(stack.size() - 1);
-            }
+            Wrapper parent = currentContext.getWrapper();
+            currentContext = new Context(currentContext);
             DSLFunction constructor = findConstructor(parent, qName);
             if (constructor != null && !constructor.getParentName().equals(getDSL_TASK_CONTAINER())) { // it's a nested element
                 defaultHandler(qName, attrs, parent, constructor);
@@ -161,53 +162,50 @@ public class Translator {
             }
             switch (qName) {
                 case "project": {
-                    Wrapper project = new Project(attrs);
+                    Wrapper project = new Project(attrs, currentContext);
                     processChild(project, parent);
                     break;
                 }
                 case "target": {
                     propertyManager.finishDeclaring();
-                    Target target = new Target(attrs);
+                    Target target = new Target(attrs, currentContext);
                     processChild(target, parent);
                     break;
                 }
                 case "property": {
                     Property property;
                     if (constructor != null) {
-                         property = new Property(attrs, constructor);
+                         property = new Property(attrs, constructor, currentContext);
                     } else {
-                        property = new Property(attrs);
+                        property = new Property(attrs, currentContext);
                     }
                     propertyManager.writeAccess(property);
                     String propName = attrs.getValue("name");
                     if (propName == null || !propertyManager.isDeclaring()) {
                         processChild(property, parent);
-                    } else {
-                        pushDummy();
                     }
                     break;
                 }
                 case "if": {
                     propertyManager.finishDeclaring();
-                    IfStatement ifStatement = new IfStatement();
+                    IfStatement ifStatement = new IfStatement(currentContext);
                     processChild(ifStatement, parent);
                     break;
                 }
                 case "condition": {
                     propertyManager.finishDeclaring();
-                    ConditionTask condition = new ConditionTask(attrs);
+                    ConditionTask condition = new ConditionTask(attrs, currentContext);
                     processChild(condition, parent);
                     break;
                 }
                 case "sequential": {
                     propertyManager.finishDeclaring();
-                    Sequential sequential = new Sequential();
+                    Sequential sequential = new Sequential(currentContext);
                     processChild(sequential, parent);
                     break;
                 }
                 case "macrodef": {
-                    Macrodef macrodef = new Macrodef(attrs);
-                    stack.add(macrodef);
+                    new Macrodef(attrs, currentContext); // it is written as wrapper for currentNode
                     break;
                 }
                 case "attribute": {
@@ -217,8 +215,7 @@ public class Translator {
                         String attrType = StringProcessor.getType(attrVal);
                         DSLAttribute attribute = new DSLAttribute(attrName, attrType, attrVal);
                         parent.addAttribute(attribute);
-                        propertyManager.addAttribute(attribute);
-                        pushDummy();
+                        currentContext.getParent().addFunctionArgument(attrName, attrType);
                         break;
                     }
                 }
@@ -232,14 +229,15 @@ public class Translator {
         public void characters(char[] ch, int start, int length) throws SAXException {
             String value = new String(ch, start, length);
             if (!value.trim().isEmpty()) {
-                Wrapper parent = stack.get(stack.size() - 1);
-                parent.addText(value);
+                Wrapper wrapper = currentContext.getWrapper();
+                wrapper.addText(value);
             }
         }
 
         @Override
         public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
-            Wrapper wrapper = stack.get(stack.size() - 1);
+            Wrapper wrapper = currentContext.getWrapper();
+            Context parentalContext = currentContext.getParent();
             if (wrapper instanceof Macrodef) {
                 Macrodef macrodef = (Macrodef) wrapper;
                 DSLClass dslTaskContainerClass = structure.get(getDSL_TASK_CONTAINER());
@@ -248,14 +246,17 @@ public class Translator {
                     structure.put(getDSL_TASK_CONTAINER(), dslTaskContainerClass);
                 }
                 dslTaskContainerClass.addFunction(macrodef.getMacrodefName(), getDSL_PACKAGE(),
-                        macrodef.getAttributes(), getDSL_TASK_CONTAINER());
-                macrodefs.append(macrodef.toString(propertyManager, importManager)).append("\n\n");
-                propertyManager.clearAttributes();
-            } else if (stack.size() == 1) {
-                result.append(stack.get(0).toString(propertyManager, importManager));
+                        macrodef.getAttributes(), getDSL_TASK_CONTAINER(), null);
+                currentContext.setOffset(macrodefs.length());
+                macrodefs.append(macrodef.toString()).append("\n\n");
+                currentContext.setParent(globalContext);
+            } else if (currentContext.getParent() == globalContext) {
+                currentContext.setOffset(result.length());
+                result.append(wrapper.toString());
                 result.append("\n");
             }
-            stack.remove(stack.size() - 1);
+            currentContext.getParent().addChild(currentContext);
+            currentContext = parentalContext;
         }
     }
 }

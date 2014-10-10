@@ -1,17 +1,20 @@
 package jetbrains.kant.translator;
 
-import jetbrains.kant.gtcommon.ImportManager;
+import jetbrains.kant.translator.codeStructure.Context;
+import jetbrains.kant.translator.wrappers.Property;
+
 import java.util.HashMap;
 
 public class PropertyManager {
     private boolean isDeclaring = true;
     private HashMap<String, Property> pool = new HashMap<>();
-    private HashMap<String, DSLAttribute> attributes = new HashMap<>();
 
-    public String toString(ImportManager importManager) {
+    public String toString(Context context) {
         StringBuilder result = new StringBuilder();
         for (Property property : pool.values()) {
-            result.append(property.getDeclaration(null, importManager)).append("\n");
+            context.setPropertyManager(null); // not to get ConcurrentModificationException
+            result.append(property.getDeclaration(context)).append("\n");
+            context.setPropertyManager(this);
         }
         return result.toString();
     }
@@ -34,7 +37,7 @@ public class PropertyManager {
 
     public void readAccess(String name) {
         if (!pool.containsKey(name)) {
-            Property property = new Property(name, null);
+            Property property = new Property(name, null, null);
             pool.put(name, property);
         }
     }
@@ -43,40 +46,6 @@ public class PropertyManager {
         Property prop = pool.get(propName);
         if (prop != null) {
             return prop.getPropType();
-        } else {
-            return null;
-        }
-    }
-
-    public void addAttribute(DSLAttribute attribute) {
-        attributes.put(attribute.getName().toLowerCase(), attribute);
-    }
-
-    public void clearAttributes() {
-        attributes.clear();
-    }
-
-    public boolean containsAttribute(String attrName) {
-        return attributes.containsKey(attrName);
-    }
-
-    public DSLAttribute getAttribute(String attrName) {
-        return attributes.get(attrName.toLowerCase());
-    }
-
-    public String getExactAttributeName(String attrName) {
-        DSLAttribute attr = getAttribute(attrName);
-        if (attr != null) {
-            return attr.getName();
-        } else {
-            return attrName;
-        }
-    }
-
-    public String getAttributeType(String attrName) {
-        DSLAttribute attr = getAttribute(attrName);
-        if (attr != null) {
-            return attr.getTypeName();
         } else {
             return null;
         }
