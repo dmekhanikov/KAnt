@@ -11,19 +11,19 @@ class ImportManager(val pkg: String?) {
 
     private fun cutName(name: String): String? {
         val pos = name.lastIndexOf('.')
-        if (pos != -1) {
-            return name.substring(pos + 1)
+        return if (pos != -1) {
+            name.substring(pos + 1)
         } else {
-            return null
+            null
         }
     }
 
     private fun cutPackageName(name: String): String? {
         val cutName = cutName(name)
-        if (cutName != null && cutName.length < name.length) {
-            return name.substring(0, name.length - cutName.length - 1)
+        return if (cutName != null && cutName.length < name.length) {
+            name.substring(0, name.length - cutName.length - 1)
         } else {
-            return null
+            null
         }
     }
 
@@ -31,22 +31,22 @@ class ImportManager(val pkg: String?) {
         return packageName != "java.lang" && packageName != "kotlin" && packageName != pkg
     }
 
-    public fun addImport(name: String?, packageName: String?) {
+    fun addImport(name: String?, packageName: String?) {
         if (name == null || packageName == null) {
             return
         }
         var imported = imports[packageName]
         if (imported == null) {
             imported = java.util.HashSet()
-            imports[packageName] = imported!!
+            imports[packageName] = imported
         }
-        imported!!.add(name)
+        imported.add(name)
         if (mustBePrinted(packageName)) {
             empty = false
         }
     }
 
-    public fun addImport(name: String?) {
+    fun addImport(name: String?) {
         if (name == null) {
             return
         }
@@ -55,7 +55,7 @@ class ImportManager(val pkg: String?) {
         addImport(shortName, packageName)
     }
 
-    public fun shorten(name: String): String {
+    fun shorten(name: String): String {
         val names = explodeTypeName(name)
         val result = StringBuilder()
         for (noGenericName in names) {
@@ -68,27 +68,27 @@ class ImportManager(val pkg: String?) {
                 noGenericName
             }
             addImport(cutName, packageName)
-            if (result.length() != 0) {
+            if (result.isNotEmpty()) {
                 result.append('<')
             }
             result.append(shorten)
         }
-        for (i in 1..names.size - 1) {
+        for (i in 1 until names.size) {
             result.append('>')
         }
         return result.toString()
     }
 
-    public fun empty(): Boolean {
+    fun empty(): Boolean {
         return empty
     }
 
-    override public fun toString(): String {
+    override fun toString(): String {
         val res = StringBuilder("")
-        for (packageName in imports.keySet()) {
+        for (packageName in imports.keys) {
             if (mustBePrinted(packageName)) {
                 val imported = imports[packageName]!!
-                if (imported.size() >= MIN_FOR_WILDCARD) {
+                if (imported.size >= MIN_FOR_WILDCARD) {
                     res.append("import ").append(packageName).append(".*\n")
                 } else {
                     for (className in imported) {

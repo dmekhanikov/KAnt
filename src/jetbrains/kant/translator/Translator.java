@@ -1,19 +1,34 @@
 package jetbrains.kant.translator;
 
-import jetbrains.kant.gtcommon.ImportManager;
-import jetbrains.kant.generator.DSLClass;
-import static jetbrains.kant.common.CommonPackage.createClassLoader;
-import static jetbrains.kant.gtcommon.constants.ConstantsPackage.*;
-
-import jetbrains.kant.generator.DSLFunction;
-import org.kohsuke.args4j.*;
-import java.io.*;
-import java.util.*;
-import org.xml.sax.*;
-import org.xml.sax.helpers.DefaultHandler;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
+import jetbrains.kant.generator.DSLClass;
+import jetbrains.kant.generator.DSLFunction;
+import jetbrains.kant.gtcommon.ImportManager;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+import static jetbrains.kant.common.CommonKt.createClassLoader;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_PACKAGE;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_TASK_CONTAINER;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.STRUCTURE_FILE;
 
 public class Translator {
     public static final String TAB = "    ";
@@ -29,12 +44,12 @@ public class Translator {
     @Argument(index = 1, metaVar = "output file", required = true)
     private File outputFile;
 
-    public static void main(String ... args) {
+    public static void main(String... args) {
         Translator translator = new Translator();
         CmdLineParser parser = new CmdLineParser(translator);
         try {
             parser.parseArgument(args);
-        } catch(CmdLineException e) {
+        } catch (CmdLineException e) {
             System.err.println(e.getMessage());
             System.err.println("Usage: java jetbrains.kant.translator.TranslatorPackage <options> <input file> <output file>");
             parser.printUsage(System.err);
@@ -66,7 +81,7 @@ public class Translator {
         String[] classpathArray = classpath.split(File.pathSeparator);
         for (String jar : classpathArray) {
             ClassLoader classLoader = createClassLoader(jar, null);
-            InputStream inputStream = classLoader.getResourceAsStream(getSTRUCTURE_FILE());
+            InputStream inputStream = classLoader.getResourceAsStream(STRUCTURE_FILE);
             if (inputStream != null) {
                 try (ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
                     HashMap<String, DSLClass> readStructure = (HashMap<String, DSLClass>) objectInputStream.readObject();
@@ -137,7 +152,8 @@ public class Translator {
             stack.add(new Wrapper((String) null, null));
         }
 
-        private void defaultHandler(String name, Attributes attrs, Wrapper parent, DSLFunction constructor) throws SAXException {
+        private void defaultHandler(String name, Attributes attrs, Wrapper parent,
+                                    DSLFunction constructor) throws SAXException {
             propertyManager.finishDeclaring();
             Wrapper wrapper;
             if (constructor != null) {
@@ -149,13 +165,14 @@ public class Translator {
         }
 
         @Override
-        public void startElement(String namespaceURI, String localName, String qName, Attributes attrs) throws SAXException {
+        public void startElement(String namespaceURI, String localName, String qName,
+                                 Attributes attrs) throws SAXException {
             Wrapper parent = null;
             if (!stack.isEmpty()) {
                 parent = stack.get(stack.size() - 1);
             }
             DSLFunction constructor = findConstructor(parent, qName);
-            if (constructor != null && !constructor.getParentName().equals(getDSL_TASK_CONTAINER())) { // it's a nested element
+            if (constructor != null && !constructor.getParentName().equals(DSL_TASK_CONTAINER)) { // it's a nested element
                 defaultHandler(qName, attrs, parent, constructor);
                 return;
             }
@@ -174,7 +191,7 @@ public class Translator {
                 case "property": {
                     Property property;
                     if (constructor != null) {
-                         property = new Property(attrs, constructor);
+                        property = new Property(attrs, constructor);
                     } else {
                         property = new Property(attrs);
                     }
@@ -242,13 +259,13 @@ public class Translator {
             Wrapper wrapper = stack.get(stack.size() - 1);
             if (wrapper instanceof Macrodef) {
                 Macrodef macrodef = (Macrodef) wrapper;
-                DSLClass dslTaskContainerClass = structure.get(getDSL_TASK_CONTAINER());
+                DSLClass dslTaskContainerClass = structure.get(DSL_TASK_CONTAINER);
                 if (dslTaskContainerClass == null) {
-                    dslTaskContainerClass = new DSLClass(getDSL_TASK_CONTAINER(), new ArrayList<String>());
-                    structure.put(getDSL_TASK_CONTAINER(), dslTaskContainerClass);
+                    dslTaskContainerClass = new DSLClass(DSL_TASK_CONTAINER, new ArrayList<String>());
+                    structure.put(DSL_TASK_CONTAINER, dslTaskContainerClass);
                 }
-                dslTaskContainerClass.addFunction(macrodef.getMacrodefName(), getDSL_PACKAGE(),
-                        macrodef.getAttributes(), getDSL_TASK_CONTAINER());
+                dslTaskContainerClass.addFunction(macrodef.getMacrodefName(), DSL_PACKAGE,
+                        macrodef.getAttributes(), DSL_TASK_CONTAINER);
                 macrodefs.append(macrodef.toString(propertyManager, importManager)).append("\n\n");
                 propertyManager.clearAttributes();
             } else if (stack.size() == 1) {

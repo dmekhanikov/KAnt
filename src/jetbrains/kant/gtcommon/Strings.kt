@@ -4,7 +4,7 @@ import jetbrains.kant.gtcommon.constants.keywords
 import java.util.ArrayList
 import java.util.regex.Pattern
 
-public fun escapeKeywords(string: String): String {
+fun escapeKeywords(string: String): String {
     return if (keywords.contains(string)) {
         "`$string`"
     } else {
@@ -12,7 +12,7 @@ public fun escapeKeywords(string: String): String {
     }
 }
 
-public fun toCamelCase(name: String): String {
+fun toCamelCase(name: String): String {
     val stringBuilder = StringBuilder(name)
     val separators = ".-_ "
     for (c in separators) {
@@ -20,8 +20,8 @@ public fun toCamelCase(name: String): String {
         var j = stringBuilder.indexOf(separator)
         while (j != -1) {
             stringBuilder.deleteCharAt(j)
-            if (stringBuilder.length() > j) {
-                stringBuilder.setCharAt(j, Character.toUpperCase(stringBuilder.charAt(j)))
+            if (stringBuilder.length > j) {
+                stringBuilder.setCharAt(j, Character.toUpperCase(stringBuilder[j]))
             }
             j = stringBuilder.indexOf(separator, j)
         }
@@ -29,15 +29,15 @@ public fun toCamelCase(name: String): String {
     return escapeKeywords(stringBuilder.toString())
 }
 
-public fun getClassByPackage(pkgName: String): String {
-    if (pkgName == "") {
-        return "_DefaultPackage"
+fun getClassByPackage(pkgName: String): String {
+    return if (pkgName == "") {
+        "_DefaultPackage"
     } else {
-        return "$pkgName.${pkgName.split('.').last().capitalize()}Package"
+        "$pkgName.${pkgName.split('.').last().capitalize()}Package"
     }
 }
 
-public fun explodeTypeName(name: String): List<String> {
+fun explodeTypeName(name: String): List<String> {
     val result = ArrayList<String>()
     val pattern = Pattern.compile("([^<>]*)<(.*)>")
     var remaining = name

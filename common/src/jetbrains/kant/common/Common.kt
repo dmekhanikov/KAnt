@@ -7,14 +7,14 @@ import java.net.URLClassLoader
 import java.io.File
 import java.util.HashMap
 
-public enum class DefinitionKind {
-    TASK
-    TYPE
-    COMPONENT
-    NESTED
+enum class DefinitionKind {
+    TASK,
+    TYPE,
+    COMPONENT,
+    NESTED,
 }
 
-public fun createClassLoader(jars: Array<String>, parent: ClassLoader?): ClassLoader {
+fun createClassLoader(jars: Array<String>, parent: ClassLoader?): ClassLoader {
     val path = ArrayList<URL>()
     for (jar in jars) {
         try {
@@ -27,14 +27,14 @@ public fun createClassLoader(jars: Array<String>, parent: ClassLoader?): ClassLo
             e.printStackTrace()
         }
     }
-    return URLClassLoader(path.toArray(array(path[0])), parent)
+    return URLClassLoader(path.toArray(arrayOf(path[0])), parent)
 }
 
-public fun createClassLoader(classpath: String, parent: ClassLoader?): ClassLoader {
-    return createClassLoader(classpath.split(File.pathSeparator), parent)
+fun createClassLoader(classpath: String, parent: ClassLoader?): ClassLoader {
+    return createClassLoader(classpath.split(File.pathSeparator).toTypedArray(), parent)
 }
 
-public fun <K, V>List<V>.valuesToMap(key: (V) -> K): Map<K, V> {
+fun <K, V> List<V>.valuesToMap(key: (V) -> K): Map<K, V> {
     val result = HashMap<K, V>()
     for (value in this) {
         result[key(value)] = value

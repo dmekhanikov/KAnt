@@ -1,143 +1,141 @@
 package jetbrains.kant.test
 
-import junit.framework.TestCase
-
-val DSL_TEST_DATA_DIR = TEST_DATA_DIR + "dsl/";
+const val DSL_TEST_DATA_DIR = TEST_DATA_DIR + "dsl/"
 
 class DSLTest : KAntTestCase() {
-    public class DefaultTarget : KAntTestCase() {
-        public fun testInheritance() {
+    class DefaultTarget : KAntTestCase() {
+        fun testInheritance() {
             runBoxTest(DSL_TEST_DATA_DIR + "DefaultTarget/Inheritance.kt")
         }
 
-        public fun testSimple() {
+        fun testSimple() {
             runBoxTest(DSL_TEST_DATA_DIR + "DefaultTarget/Simple.kt")
         }
 
-        public fun testTwoDefaults() {
+        fun testTwoDefaults() {
             runBoxTest(DSL_TEST_DATA_DIR + "DefaultTarget/TwoDefaults.kt")
         }
     }
 
-    public class Dependencies : KAntTestCase() {
-        public fun testChain() {
+    class Dependencies : KAntTestCase() {
+        fun testChain() {
             runBoxTest(DSL_TEST_DATA_DIR + "Dependencies/Chain.kt")
         }
 
-        public fun testCircular() {
+        fun testCircular() {
             runBoxTest(DSL_TEST_DATA_DIR + "Dependencies/Circular.kt")
         }
 
-        public fun testMultipleOccurrences() {
+        fun testMultipleOccurrences() {
             runBoxTest(DSL_TEST_DATA_DIR + "Dependencies/MultipleOccurrences.kt")
         }
 
-        public fun testStar() {
+        fun testStar() {
             runBoxTest(DSL_TEST_DATA_DIR + "Dependencies/Star.kt")
         }
     }
 
-    public class GenericTask : KAntTestCase() {
-        public fun testCutDirsMapper() {
+    class GenericTask : KAntTestCase() {
+        fun testCutDirsMapper() {
             runBoxTest(DSL_TEST_DATA_DIR + "GenericTask/CutDirsMapper.kt")
         }
 
-        public fun testMath() {
+        fun testMath() {
             runBoxTest(DSL_TEST_DATA_DIR + "GenericTask/Math.kt")
         }
 
-        public fun testReplace() {
+        fun testReplace() {
             runBoxTest(DSL_TEST_DATA_DIR + "GenericTask/Replace.kt")
         }
 
-        public fun testSwitch() {
+        fun testSwitch() {
             runBoxTest(DSL_TEST_DATA_DIR + "GenericTask/Switch.kt")
         }
     }
 
-    public class NestedElements : KAntTestCase() {
-        public fun testCutDirsMapper() {
+    class NestedElements : KAntTestCase() {
+        fun testCutDirsMapper() {
             runBoxTest(DSL_TEST_DATA_DIR + "NestedElements/CutDirsMapper.kt")
         }
 
-        public fun testMath() {
+        fun testMath() {
             runBoxTest(DSL_TEST_DATA_DIR + "NestedElements/Math.kt")
         }
 
-        public fun testReplace() {
+        fun testReplace() {
             runBoxTest(DSL_TEST_DATA_DIR + "NestedElements/Replace.kt")
         }
 
-        public fun testSwitch() {
+        fun testSwitch() {
             runBoxTest(DSL_TEST_DATA_DIR + "NestedElements/Switch.kt")
         }
     }
 
-    public class Properties : KAntTestCase() {
-        public fun testDefaultValues() {
+    class Properties : KAntTestCase() {
+        fun testDefaultValues() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/DefaultValues.kt")
         }
 
-        public fun testGetByName() {
+        fun testGetByName() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/GetByName.kt")
         }
 
-        public fun testGetFromFile() {
+        fun testGetFromFile() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/GetFromFile.kt")
         }
 
-        public fun testInitWithAnotherProp() {
+        fun testInitWithAnotherProp() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/InitWithBasedir.kt")
         }
 
-        public fun testInvalidFormat() {
+        fun testInvalidFormat() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/InvalidFormat.kt")
         }
 
-        public fun testMultipleModifications() {
+        fun testMultipleModifications() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/MultipleModifications.kt")
         }
 
-        public fun testNotInitialized() {
+        fun testNotInitialized() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/NotInitialized.kt")
         }
 
-        public fun testSystemProps() {
+        fun testSystemProps() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/SystemProps.kt")
         }
 
-        public fun testTypedProps() {
+        fun testTypedProps() {
             runBoxTest(DSL_TEST_DATA_DIR + "Properties/TypedProps.kt")
         }
     }
 
-    public class Tasks : KAntTestCase() {
-        public fun testConditions() {
+    class Tasks : KAntTestCase() {
+        fun testConditions() {
             runBoxTest(DSL_TEST_DATA_DIR + "Tasks/Conditions.kt")
         }
 
-        public fun testExternalLibraries() {
+        fun testExternalLibraries() {
             runBoxTest(DSL_TEST_DATA_DIR + "Tasks/ExternalLibraries.kt")
         }
 
-        public fun testTaskdefsInsideTasks() {
+        fun testTaskdefsInsideTasks() {
             runBoxTest(DSL_TEST_DATA_DIR + "Tasks/TaskdefsInsideTasks.kt")
         }
 
-        public fun testTasks() {
+        fun testTasks() {
             runBoxTest(DSL_TEST_DATA_DIR + "Tasks/Tasks.kt")
         }
     }
 
-    public fun testConsistency() {
+    fun testConsistency() {
         runBoxTest(DSL_TEST_DATA_DIR + "Consistency.kt")
     }
 
-    public fun testImports() {
+    fun testImports() {
         runBoxTest(DSL_TEST_DATA_DIR + "Imports.kt")
     }
 
-    public fun testRunner() {
+    fun testRunner() {
         runBoxTest(DSL_TEST_DATA_DIR + "Runner.kt")
     }
 }

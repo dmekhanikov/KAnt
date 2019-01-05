@@ -1,10 +1,11 @@
 package jetbrains.kant.translator;
 
-import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
-import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_TARGET_FUNCTION;
 import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+
+import static jetbrains.kant.gtcommon.StringsKt.toCamelCase;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_TARGET_FUNCTION;
 
 public class Target extends Wrapper {
     private String targetName;
@@ -12,7 +13,7 @@ public class Target extends Wrapper {
     private String[] depends;
 
     public Target(Attributes attributes) throws SAXException {
-        super(getDSL_TARGET_FUNCTION(), null);
+        super(DSL_TARGET_FUNCTION, null);
         targetName = attributes.getValue("name");
         if (targetName == null) {
             throw new SAXException("Target should have a name");
@@ -48,7 +49,7 @@ public class Target extends Wrapper {
             result.append("(\"").append(targetName).append("\"");
             firstArgument = false;
         }
-        importManager.addImport(getDSL_TARGET_FUNCTION());
+        importManager.addImport(DSL_TARGET_FUNCTION);
         if (depends != null) {
             for (String depend : depends) {
                 if (firstArgument) {

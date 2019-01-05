@@ -1,16 +1,17 @@
 package jetbrains.kant.translator;
 
-import jetbrains.kant.gtcommon.ImportManager;
 import jetbrains.kant.generator.DSLFunction;
-import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
-import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_PROPERTIES_PACKAGE;
+import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.Attributes;
+
+import static jetbrains.kant.gtcommon.StringsKt.toCamelCase;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_PROPERTIES_PACKAGE;
 
 public class Property extends Wrapper {
     private String propName;
     private String propVal;
     private String propType;
-    boolean includeDefVal = false;
+    private boolean includeDefVal = false;
     private boolean isMutable;
 
     public Property(Attributes attributes, DSLFunction constructor) {
@@ -82,7 +83,7 @@ public class Property extends Wrapper {
             result.append("val");
         }
         String ccName = toCamelCase(propName);
-        String propDelegateType = importManager.shorten(getDSL_PROPERTIES_PACKAGE() + "." + propType + "Property");
+        String propDelegateType = importManager.shorten(DSL_PROPERTIES_PACKAGE + "." + propType + "Property");
         result.append(" ").append(ccName).append(" by ").append(propDelegateType);
         if (!propName.equals(ccName)) {
             result.append("(\"").append(propName).append("\")");

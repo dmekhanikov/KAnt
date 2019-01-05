@@ -1,6 +1,7 @@
 package jetbrains.kant.translator;
 
 import jetbrains.kant.gtcommon.ImportManager;
+
 import java.util.HashMap;
 
 public class PropertyManager {

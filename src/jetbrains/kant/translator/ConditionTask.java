@@ -50,7 +50,8 @@ public class ConditionTask extends Wrapper {
                 elseBranch.addChild(elseProperty);
                 propertyManager.writeAccess(elseProperty);
             }
-        } catch (SAXException ignore) {}
+        } catch (SAXException ignore) {
+        }
         return ifStatement.toString(propertyManager, importManager);
     }
 }

@@ -1,14 +1,19 @@
 package jetbrains.kant.translator;
 
-import jetbrains.kant.gtcommon.ImportManager;
-import jetbrains.kant.generator.DSLFunction;
-
-import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
-import static jetbrains.kant.gtcommon.constants.ConstantsPackage.*;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import java.util.ArrayList;
 import java.util.List;
+
+import jetbrains.kant.generator.DSLFunction;
+import jetbrains.kant.gtcommon.ImportManager;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+
+import static jetbrains.kant.gtcommon.StringsKt.toCamelCase;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_PROJECT;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_PROJECT_FUNCTION;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_TARGET;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_TARGET_FUNCTION;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_TASK_CONTAINER;
 
 public class Wrapper {
     protected final String TAB = Translator.TAB;
@@ -91,7 +96,7 @@ public class Wrapper {
         return child;
     }
 
-    public void addText(String string) throws SAXException{
+    public void addText(String string) throws SAXException {
         if (text == null) {
             text = new Text();
             addChild(text);
@@ -119,21 +124,21 @@ public class Wrapper {
         if (constructor != null) {
             return constructor.getPkg() + "." + constructor.getName();
         } else if (name.equals("project")) {
-            return getDSL_PROJECT_FUNCTION();
+            return DSL_PROJECT_FUNCTION;
         } else if (name.equals("target")) {
-            return getDSL_TARGET_FUNCTION();
+            return DSL_TARGET_FUNCTION;
         } else {
             return null;
         }
     }
 
     public String getDSLClassName() {
-        if (getDSL_PROJECT_FUNCTION().equals(name)) {
-            return getDSL_PROJECT();
-        } else  if (getDSL_TARGET_FUNCTION().equals(name)) {
-            return getDSL_TARGET();
+        if (DSL_PROJECT_FUNCTION.equals(name)) {
+            return DSL_PROJECT;
+        } else if (DSL_TARGET_FUNCTION.equals(name)) {
+            return DSL_TARGET;
         } else if (constructor == null) {
-            return getDSL_TASK_CONTAINER();
+            return DSL_TASK_CONTAINER;
         } else {
             return constructor.getInitReceiver();
         }

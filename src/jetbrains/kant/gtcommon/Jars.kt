@@ -11,9 +11,9 @@ import java.util.jar.Manifest
 import java.util.jar.Attributes
 import java.io.FileOutputStream
 
-public fun copy(inputStream: InputStream, outputStream: OutputStream) {
-    val BUFFER_SIZE = 1024
-    val buffer = ByteArray(BUFFER_SIZE)
+fun copy(inputStream: InputStream, outputStream: OutputStream) {
+    val bufferSize = 1024
+    val buffer = ByteArray(bufferSize)
     val bufferedInputStream = BufferedInputStream(inputStream)
     var len: Int
     while (true) {
@@ -28,12 +28,12 @@ public fun copy(inputStream: InputStream, outputStream: OutputStream) {
 
 private fun copyFilesRecursively(dir: File, jarOutputStream: JarOutputStream, prefLen: Int) {
     for (file in dir.listFiles()!!) {
-        if (file.isDirectory()) {
+        if (file.isDirectory) {
             copyFilesRecursively(file, jarOutputStream, prefLen)
         } else {
-            val fileName = file.getCanonicalPath().substring(prefLen).replace('\\', '/')
+            val fileName = file.canonicalPath.substring(prefLen).replace('\\', '/')
             val jarEntry = JarEntry(fileName)
-            jarEntry.setTime(file.lastModified())
+            jarEntry.time = file.lastModified()
             jarOutputStream.putNextEntry(jarEntry)
             val fileInputStream = FileInputStream(file)
             copy(fileInputStream, jarOutputStream)
@@ -42,13 +42,13 @@ private fun copyFilesRecursively(dir: File, jarOutputStream: JarOutputStream, pr
     }
 }
 
-public fun createJar(jarFile: String, srcDir: String) {
+fun createJar(jarFile: String, srcDir: String) {
     val manifest = Manifest()
-    manifest.getMainAttributes()!!.put(Attributes.Name.MANIFEST_VERSION, "1.0")
-    File(jarFile).getParentFile()!!.mkdirs()
+    manifest.mainAttributes!![Attributes.Name.MANIFEST_VERSION] = "1.0"
+    File(jarFile).parentFile!!.mkdirs()
     val jarOutputStream = JarOutputStream(FileOutputStream(jarFile), manifest)
-    val srcDirFile = File(srcDir).getCanonicalFile()
-    val srcDirCanonical = srcDirFile.getCanonicalPath()
+    val srcDirFile = File(srcDir).canonicalFile
+    val srcDirCanonical = srcDirFile.canonicalPath
     val prefLen = srcDirCanonical.length + if (srcDirCanonical.endsWith('/')) { 0 } else { 1 }
     copyFilesRecursively(srcDirFile, jarOutputStream, prefLen)
     jarOutputStream.close()

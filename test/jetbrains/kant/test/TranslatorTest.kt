@@ -1,6 +1,5 @@
 package jetbrains.kant.test
 
-import junit.framework.TestCase
 import jetbrains.kant.translator.Translator
 import junit.framework.Assert
 

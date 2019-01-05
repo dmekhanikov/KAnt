@@ -1,37 +1,39 @@
 package jetbrains.kant.dsl
 
 import org.apache.tools.ant.*
+import org.apache.tools.ant.Target
 import org.apache.tools.ant.taskdefs.Definer.OnError
 import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
 import java.lang.reflect.Field
-import kotlin.reflect.KMemberProperty
 import jetbrains.kant.common.valuesToMap
 import jetbrains.kant.common.DefinitionKind
+import kotlin.reflect.KProperty
 
-private val DSL_TARGET = javaClass<DSLTarget>().getName()
+private val DSL_TARGET = DSLTarget::class.java.name
 
-public abstract class DSLElement(val projectAO: Project, val targetAO: Target)
+abstract class DSLElement(val projectAO: Project, val targetAO: Target)
 
-public open class DSLTask(projectAO: Project, targetAO: Target,
-                       val parentWrapperAO: RuntimeConfigurable?, // if it is null then it can be executed
-                       val elementTag: String,
-                       nearestExecutable: DSLTask?) : DSLElement(projectAO, targetAO) {
-    val taskAO: UnknownElement
+open class DSLTask(projectAO: Project, targetAO: Target,
+                   val parentWrapperAO: RuntimeConfigurable?, // if it is null then it can be executed
+                   val elementTag: String,
+                   nearestExecutable: DSLTask?) : DSLElement(projectAO, targetAO) {
+    val taskAO: UnknownElement = UnknownElement(elementTag)
     val wrapperAO: RuntimeConfigurable
     val attributes = HashMap<String, Any?>()
-    val taskContainers: ArrayList<Pair<DSLTaskContainer, DSLTaskContainer.() -> Unit>>?
+    private val taskContainers: ArrayList<Pair<DSLTaskContainer, DSLTaskContainer.() -> Unit>>?
     val nearestExecutable: DSLTask
-    var nestedText: String? = null;
-    {
-        taskAO = UnknownElement(elementTag)
-        taskAO.setQName(elementTag)
-        taskAO.setTaskType(ProjectHelper.genComponentName("", elementTag))
-        taskAO.setTaskName(elementTag)
-        taskAO.setProject(projectAO)
-        taskAO.setOwningTarget(targetAO)
-        wrapperAO = RuntimeConfigurable(taskAO, taskAO.getTaskName())
+    var nestedText: String? = null
+
+    init {
+        taskAO.qName = elementTag
+        taskAO.taskType = ProjectHelper.genComponentName("", elementTag)
+        taskAO.taskName = elementTag
+        taskAO.project = projectAO
+        taskAO.owningTarget = targetAO
+        wrapperAO = RuntimeConfigurable(taskAO, taskAO.taskName)
+
         if (parentWrapperAO == null) {
             this.nearestExecutable = this
             taskContainers = ArrayList()
@@ -60,26 +62,26 @@ public open class DSLTask(projectAO: Project, targetAO: Target,
         }
     }
 
-    public fun defineComponent(name: String,
-                               classname: String,
-                               onerror: String? = null,
-                               adapter: String? = null,
-                               adaptto: String? = null,
-                               uri: String? = null,
-                               kind: DefinitionKind) {
+    fun defineComponent(name: String,
+                        classname: String,
+                        onerror: String? = null,
+                        adapter: String? = null,
+                        adaptto: String? = null,
+                        uri: String? = null,
+                        kind: DefinitionKind) {
         val componentHelper = ComponentHelper.getComponentHelper(projectAO)!!
         val definition = componentHelper.getDefinition(name)
         val restrictedDefinitions = componentHelper.getRestrictedDefinitions(name)
         if (definition != null
                 || restrictedDefinitions != null
                 && (kind == DefinitionKind.TYPE
-                    || restrictedDefinitions.firstOrNull { it.getClassName() == classname } != null)) {
+                        || restrictedDefinitions.firstOrNull { it.className == classname } != null)) {
             return
         }
         var cl: Class<*>? = null
-        val al = javaClass.getClassLoader()
+        val al = javaClass.classLoader
         val onErrorIndex = if (onerror != null) {
-            OnError(onerror).getIndex()
+            OnError(onerror).index
         } else {
             OnError.FAIL
         }
@@ -101,13 +103,13 @@ public open class DSLTask(projectAO: Project, targetAO: Target,
                 }
 
                 val def = AntTypeDefinition()
-                def.setName(componentName)
-                def.setClassName(classname)
+                def.name = componentName
+                def.className = classname
                 def.setClass(cl)
                 def.setAdapterClass(adapterClass)
                 def.setAdaptToClass(adaptToClass)
-                def.setRestrict(kind == DefinitionKind.COMPONENT)
-                def.setClassLoader(al)
+                def.isRestrict = kind == DefinitionKind.COMPONENT
+                def.classLoader = al
                 if (cl != null) {
                     def.checkClass(projectAO)
                 }
@@ -116,7 +118,7 @@ public open class DSLTask(projectAO: Project, targetAO: Target,
                 val msg = "Class $classname cannot be found \n using the classloader " + al
                 throw BuildException(msg, cnfe)
             } catch (ncdfe: NoClassDefFoundError) {
-                val msg = " A class needed by class $classname cannot be found: ${ncdfe.getMessage()}" +
+                val msg = " A class needed by class $classname cannot be found: ${ncdfe.message}" +
                         "\n using the classloader " + al
                 throw BuildException(msg, ncdfe)
             }
@@ -124,16 +126,16 @@ public open class DSLTask(projectAO: Project, targetAO: Target,
             when (onErrorIndex) {
                 OnError.FAIL_ALL, OnError.FAIL -> throw ex
                 OnError.REPORT ->
-                    System.err.println(ex.getLocation().toString() + "Warning: " + ex.getMessage());
-                else -> System.err.println(ex.getLocation().toString() + ex.getMessage())
+                    System.err.println(ex.location.toString() + "Warning: " + ex.message)
+                else -> System.err.println(ex.location.toString() + ex.message)
             }
         }
     }
 
-    open public fun configure() {
+    open fun configure() {
         setAttributes()
         if (parentWrapperAO != null) {
-            val parent = parentWrapperAO.getProxy() as UnknownElement
+            val parent = parentWrapperAO.proxy as UnknownElement
             parent.addChild(taskAO)
             parentWrapperAO.addChild(wrapperAO)
         } else {
@@ -152,48 +154,50 @@ public open class DSLTask(projectAO: Project, targetAO: Target,
         }
     }
 
-    public fun addTaskContainer(taskContainer: DSLTaskContainer, init: DSLTaskContainer.() -> Unit) {
+    fun addTaskContainer(taskContainer: DSLTaskContainer, init: DSLTaskContainer.() -> Unit) {
         nearestExecutable.taskContainers!!.add(Pair(taskContainer, init))
     }
 
-    public fun execute() {
+    fun execute() {
         assert(parentWrapperAO == null)
         initTaskContainers()
         taskAO.perform()
     }
 }
 
-public trait DSLTaskContainer : DSLElement {
-    public fun createLazyTask(init: DSLTaskContainer.() -> Unit): LazyTask {
+abstract class DSLTaskContainer(projectAO: Project, targetAO: Target) : DSLElement(projectAO, targetAO) {
+    fun createLazyTask(init: DSLTaskContainer.() -> Unit): LazyTask {
         val lazyTaskAO = LazyTask(this, init)
-        lazyTaskAO.setProject(projectAO)
-        lazyTaskAO.setOwningTarget(targetAO)
+        lazyTaskAO.project = projectAO
+        lazyTaskAO.owningTarget = targetAO
         return lazyTaskAO
     }
 
-    public open fun addTask(task: Task) {
+    open fun addTask(task: Task) {
         targetAO.addTask(task)
     }
 }
 
-public abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
+abstract class DSLTaskContainerTask(projectAO: Project, targetAO: Target,
                                     parentAO: RuntimeConfigurable?,
                                     elementTag: String,
-                                    nearestExecutable: DSLTask?) : DSLTask(projectAO, targetAO, parentAO, elementTag, nearestExecutable), DSLTaskContainer {
-    override public fun addTask(task: Task) {
-        (wrapperAO.getProxy()!! as TaskContainer).addTask(task)
+                                    nearestExecutable: DSLTask?) :
+        DSLTask(projectAO, targetAO, parentAO, elementTag, nearestExecutable), DSLTaskContainer {
+    override fun addTask(task: Task) {
+        (wrapperAO.proxy!! as TaskContainer).addTask(task)
     }
 }
 
-public open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
+open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer {
     val targets = HashMap<String, DSLTarget>() // field name -> DSLTarget
     private var configured = false
-    {
+
+    init {
         projectAO.init()
         projectAO.addBuildListener(createLogger())
         initProperties(projectAO)
-        targetAO.setProject(projectAO)
-        targetAO.setName("")
+        targetAO.project = projectAO
+        targetAO.name = ""
     }
 
     private fun createLogger(): BuildLogger {
@@ -208,22 +212,21 @@ public open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer
     }
 
     private fun Class<*>.getTargetFields(): List<Field> {
-        return getDeclaredFields()!!.filter { it.getType()!!.getName() == DSL_TARGET }
+        return declaredFields!!.filter { it.type!!.name == DSL_TARGET }
     }
 
-    public fun configureTargets() {
+    fun configureTargets() {
         if (configured) {
             return
         }
         configured = true
-        var klass = javaClass as Class<Any?>?
+        var klass = javaClass as Class<*>?
         while (klass != null) {
-            val targetFieldNames = klass!!.getTargetFields().map { it.getName()!! }.
-                    valuesToMap { it.toLowerCase() } // names in lower case -> normal names
-            val targetGetters = klass!!.getMethods()!!
-                    .filter { it.getName()!!.startsWith("get") && it.getReturnType()!!.getName() == DSL_TARGET }
+            val targetFieldNames = klass.getTargetFields().map { it.name!! }.valuesToMap { it.toLowerCase() } // names in lower case -> normal names
+            val targetGetters = klass.methods!!
+                    .filter { it.name!!.startsWith("get") && it.returnType!!.name == DSL_TARGET }
             for (targetGetter in targetGetters) {
-                val fieldName = targetFieldNames[targetGetter.getName()!!.substring("get".length).toLowerCase()]
+                val fieldName = targetFieldNames[targetGetter.name!!.substring("get".length).toLowerCase()]
                 if (fieldName != null && !targets.contains(fieldName)) {
                     var target = targetGetter.invoke(this) as DSLTarget
                     if (target.project != this) {
@@ -240,31 +243,31 @@ public open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer
                     targets[fieldName] = target
                 }
             }
-            klass = klass!!.getSuperclass()
+            klass = klass.superclass
         }
-        for (target in targets.values()) {
+        for (target in targets.values) {
             target.configure()
         }
     }
 
     private fun getDefaultName(): String? {
-        var klass = javaClass as Class<Any?>?
-        var default: String? = null
-        while (default == null && klass != null) {
-            for (targetField in klass!!.getTargetFields()) {
-                if (targetField.isAnnotationPresent(javaClass<default>())) {
-                    if (default != null) {
+        var klass = javaClass as Class<*>?
+        var def: String? = null
+        while (def == null && klass != null) {
+            for (targetField in klass.getTargetFields()) {
+                if (targetField.isAnnotationPresent(default::class.java)) {
+                    if (def != null) {
                         throw DSLException("Project cannot have more than one default target")
                     }
-                    default = targets[targetField.getName()]!!.name
+                    def = targets[targetField.name]!!.name
                 }
             }
-            klass = klass!!.getSuperclass()
+            klass = klass.superclass
         }
-        return default
+        return def
     }
 
-    public fun perform() {
+    fun perform() {
         configureTargets()
         val default = getDefaultName()
         var error: Throwable? = null
@@ -273,8 +276,8 @@ public open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer
             if (default != null) {
                 projectAO.setDefault(default)
                 val basedir = propertyHelper!!.getProperty("basedir") as String
-                projectAO.setBaseDir(File(basedir))
-                projectAO.executeTarget(projectAO.getDefaultTarget())
+                projectAO.baseDir = File(basedir)
+                projectAO.executeTarget(projectAO.defaultTarget)
             }
         } catch (t: Throwable) {
             error = t
@@ -287,25 +290,25 @@ public open class DSLProject : DSLElement(Project(), Target()), DSLTaskContainer
                 t.printStackTrace()
                 if (error != null) {
                     System.err.println("There has been an error prior to that:")
-                    error!!.printStackTrace()
+                    error.printStackTrace()
                 }
             }
         }
     }
 }
 
-public class DSLTarget(val project: DSLProject, var name: String?,
-                val depends: Array<KMemberProperty<out DSLProject, DSLTarget>>,
+class DSLTarget(val project: DSLProject, var name: String?,
+                val depends: Array<out KProperty<DSLTarget>>,
                 val init: DSLTaskContainer.() -> Unit) : DSLElement(project.projectAO, Target()), DSLTaskContainer {
     val namedAsField = name == null
 
-    public fun configure() {
-        targetAO.setProject(projectAO)
-        targetAO.setName(name)
+    fun configure() {
+        targetAO.project = projectAO
+        targetAO.name = name
         projectAO.addTarget(name, targetAO)
         val dependsString = StringBuilder()
         for (dependRef in depends) {
-            if (dependsString.length() > 0) {
+            if (dependsString.isNotEmpty()) {
                 dependsString.append(",")
             }
             val depend = project.targets[dependRef.name]!!
@@ -315,21 +318,21 @@ public class DSLTarget(val project: DSLProject, var name: String?,
         addTask(createLazyTask(init))
     }
 
-    public fun execute() {
+    fun execute() {
         project.configureTargets()
         System.out.println("\n$name:")
         targetAO.execute()
     }
 }
 
-private fun DSLProject.target(depends: Array<KMemberProperty<out DSLProject, DSLTarget>>, name: String?, init: DSLTaskContainer.() -> Unit): DSLTarget {
+private fun DSLProject.target(depends: Array<out KProperty<DSLTarget>>, name: String?, init: DSLTaskContainer.() -> Unit): DSLTarget {
     return DSLTarget(this, name, depends, init)
 }
 
-public fun DSLProject.target(name: String, vararg depends: KMemberProperty<out DSLProject, DSLTarget>, init: DSLTaskContainer.() -> Unit): DSLTarget {
+fun DSLProject.target(name: String, vararg depends: KProperty<DSLTarget>, init: DSLTaskContainer.() -> Unit): DSLTarget {
     return target(depends, name, init)
 }
 
-public fun DSLProject.target(vararg depends: KMemberProperty<out DSLProject, DSLTarget>, init: DSLTaskContainer.() -> Unit): DSLTarget {
+fun DSLProject.target(vararg depends: KProperty<DSLTarget>, init: DSLTaskContainer.() -> Unit): DSLTarget {
     return target(depends, null, init)
 }

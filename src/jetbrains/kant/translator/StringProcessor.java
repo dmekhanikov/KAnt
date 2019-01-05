@@ -2,8 +2,9 @@ package jetbrains.kant.translator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
-import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_REFERENCE;
+
+import static jetbrains.kant.gtcommon.StringsKt.toCamelCase;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_REFERENCE;
 
 public class StringProcessor {
     public static String getType(String value) {
@@ -26,7 +27,7 @@ public class StringProcessor {
         try {
             Double.parseDouble(string);
             return true;
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             return false;
         }
     }
@@ -38,7 +39,7 @@ public class StringProcessor {
         try {
             Integer.parseInt(string);
             return true;
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             return false;
         }
     }
@@ -123,7 +124,7 @@ public class StringProcessor {
         if (value == null) {
             return null;
         }
-        if (type.startsWith(getDSL_REFERENCE())) {
+        if (type.startsWith(DSL_REFERENCE)) {
             return toCamelCase(value);
         }
         try {
@@ -153,7 +154,8 @@ public class StringProcessor {
                 case "Double":
                     return String.valueOf(Double.parseDouble(value));
             }
-        } catch (NumberFormatException ignore) {}
+        } catch (NumberFormatException ignore) {
+        }
         String pattern = "[$@]\\{([^\\{]+)\\}";
         Matcher matcher = Pattern.compile(pattern).matcher(value);
         if (matcher.matches()) {

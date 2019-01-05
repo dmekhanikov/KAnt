@@ -13,13 +13,13 @@ import javax.xml.parsers.ParserConfigurationException
 import jetbrains.kant.common.DefinitionKind
 import java.util.HashMap
 
-class DefinitionParser(val inputStream: InputStream) {
+class DefinitionParser(private val inputStream: InputStream) {
     fun parseProperties(): List<Definition> {
         val result = ArrayList<Definition>()
         val bf = BufferedReader(InputStreamReader(inputStream))
         var line = bf.readLine()
         while (line != null) {
-            val definition = parseDefinition(line!!)
+            val definition = parseDefinition(line)
             if (definition != null) {
                 result.add(definition)
             }
@@ -31,12 +31,12 @@ class DefinitionParser(val inputStream: InputStream) {
     private fun parseDefinition(line: String): Definition? {
         val pattern = Pattern.compile("^([\\w.-]*)\\s*=\\s*([\\w.]*)$")
         val matcher = pattern.matcher(line)
-        if (matcher.matches()) {
+        return if (matcher.matches()) {
             val name = matcher.group(1)!!
             val className = matcher.group(2)!!
-            return Definition(name = name, className = className, kind = DefinitionKind.TASK)
+            Definition(name = name, className = className, kind = DefinitionKind.TASK)
         } else {
-            return null
+            null
         }
     }
 
@@ -76,7 +76,7 @@ class DefinitionParser(val inputStream: InputStream) {
                     else -> return
                 }
                 val extraAttributes = HashMap<String, String>()
-                for (i in 0..attributes.getLength() - 1) {
+                for (i in 0 until attributes.getLength()) {
                     val key = attributes.getLocalName(i)!!
                     if (key == "onerror" || key == "adapter" || key == "adaptto" || key == "uri") {
                         val value = attributes.getValue(i)!!

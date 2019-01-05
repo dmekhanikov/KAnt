@@ -1,17 +1,18 @@
 package jetbrains.kant.translator;
 
-import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_PROJECT;
-import static jetbrains.kant.gtcommon.constants.ConstantsPackage.getDSL_PROJECT_FUNCTION;
 import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_PROJECT;
+import static jetbrains.kant.gtcommon.constants.ConstantsKt.DSL_PROJECT_FUNCTION;
 
 public class Project extends Wrapper {
     private String defaultTarget;
     private Sequential init;
 
     public Project(Attributes attributes) {
-        super(getDSL_PROJECT_FUNCTION(), null);
+        super(DSL_PROJECT_FUNCTION, null);
         defaultTarget = attributes.getValue("default");
     }
 
@@ -41,7 +42,7 @@ public class Project extends Wrapper {
     @Override
     public String toString(PropertyManager propertyManager, ImportManager importManager) {
         StringBuilder result = new StringBuilder(indent);
-        String dslProjectShorten = importManager.shorten(getDSL_PROJECT());
+        String dslProjectShorten = importManager.shorten(DSL_PROJECT);
         result.append("object project : ").append(dslProjectShorten).append("() {");
         if (init != null) {
             boolean inInit = false;

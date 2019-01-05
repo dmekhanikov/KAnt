@@ -2,6 +2,7 @@ package jetbrains.kant.translator;
 
 import jetbrains.kant.gtcommon.ImportManager;
 import org.xml.sax.SAXException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class IfStatement extends Wrapper {
     }
 
     @Override
-    public Wrapper addChild(Wrapper child) throws SAXException{
+    public Wrapper addChild(Wrapper child) throws SAXException {
         child.setParent(this);
         child.setIndent(indent + TAB);
         switch (child.name) {
@@ -31,7 +32,7 @@ public class IfStatement extends Wrapper {
                 thenStatement = new Sequential(child);
                 return thenStatement;
             case "else":
-                if (parent != null && parent instanceof IfStatement && parent.name.equals("elseif")) {
+                if (parent instanceof IfStatement && parent.name.equals("elseif")) {
                     throw new SAXException("\"elseif\" cannot contain \"else\" statements");
                 }
                 if (elseStatement != null) {

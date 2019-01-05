@@ -1,7 +1,8 @@
 package jetbrains.kant.translator;
 
 import jetbrains.kant.gtcommon.AntAttribute;
-import static jetbrains.kant.gtcommon.GtcommonPackage.toCamelCase;
+
+import static jetbrains.kant.gtcommon.StringsKt.toCamelCase;
 
 public class DSLAttribute extends AntAttribute {
     private String defaultValue;

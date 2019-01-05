@@ -9,7 +9,7 @@ public class Condition extends Wrapper {
     }
 
     @Override
-    public Wrapper addChild(Wrapper child) throws SAXException {
+    public Wrapper addChild(Wrapper child) {
         child.setParent(this);
         Condition childCondition = new Condition(child);
         children.add(childCondition);
